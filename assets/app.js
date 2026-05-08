@@ -6,18 +6,38 @@
    ===================================================================== */
 
 const STORE_KEY = "resumeFixMVP";
+let isSubmitting = false; // 防止重复提交
 
 const Store = {
   get(){
-    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
-    catch(e){ return {}; }
+    try {
+      const data = localStorage.getItem(STORE_KEY);
+      return data ? JSON.parse(data) : {};
+    } catch(e) {
+      console.error("[Store] 读取失败:", e);
+      return {};
+    }
   },
   set(patch){
-    const next = { ...this.get(), ...patch };
-    localStorage.setItem(STORE_KEY, JSON.stringify(next));
-    return next;
+    try {
+      const next = { ...this.get(), ...patch };
+      const json = JSON.stringify(next);
+      localStorage.setItem(STORE_KEY, json);
+      console.log("[Store] 保存成功:", next);
+      return next;
+    } catch(e) {
+      console.error("[Store] 保存失败:", e);
+      throw new Error("本地存储失败，请检查浏览器设置");
+    }
   },
-  clear(){ localStorage.removeItem(STORE_KEY); }
+  clear(){
+    try {
+      localStorage.removeItem(STORE_KEY);
+      console.log("[Store] 已清空");
+    } catch(e) {
+      console.error("[Store] 清空失败:", e);
+    }
+  }
 };
 
 /* —— Loader overlay —— */
@@ -27,11 +47,67 @@ function showLoader(text, subtext){
     overlay = document.createElement("div");
     overlay.className = "loader-overlay";
     overlay.innerHTML = `
-      <div class="loader-dots"><span></span><span></span><span></span></div>
-      <div class="loader-text"></div>
-      <div class="loader-subtext"></div>
+      <div class="loader-container">
+        <div class="loader-dots"><span></span><span></span><span></span></div>
+        <div class="loader-text"></div>
+        <div class="loader-subtext"></div>
+      </div>
     `;
     document.body.appendChild(overlay);
+
+    // 添加样式
+    const style = document.createElement("style");
+    style.textContent = `
+      .loader-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 24, 22, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .loader-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .loader-container {
+        text-align: center;
+        color: #f6f3ec;
+      }
+      .loader-dots {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .loader-dots span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #a8d5ba;
+        animation: bounce 1.4s infinite ease-in-out both;
+      }
+      .loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+      .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+      @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+      .loader-text {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .loader-subtext {
+        font-size: 14px;
+        opacity: 0.75;
+      }
+    `;
+    document.head.appendChild(style);
   }
   overlay.querySelector(".loader-text").textContent = text || "处理中…";
   overlay.querySelector(".loader-subtext").textContent = subtext || "";
@@ -43,28 +119,71 @@ function hideLoader(){
 }
 
 /* —— Submit resume (home) —— */
-function submitResume(form){
+async function submitResume(form){
+  if (isSubmitting) {
+    console.log("[Submit] 已有提交在进行中，忽略本次点击");
+    return false;
+  }
+
   const file = form.elements["resume"].files[0];
   const job = form.elements["job"].value.trim();
   const jd  = form.elements["jd"].value.trim();
   const errorBox = form.querySelector(".form-error");
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  console.log("[Submit] 开始提交简历");
+  console.log("[Submit] 文件:", file?.name, "岗位:", job);
 
   if (!file){ errorBox.textContent = "请先上传你的简历文件"; errorBox.classList.add("show"); return false; }
   if (!job){  errorBox.textContent = "目标岗位不能为空"; errorBox.classList.add("show"); return false; }
   // JD 选填:不校验
 
   errorBox.classList.remove("show");
+  isSubmitting = true;
+  if (submitBtn) submitBtn.disabled = true;
 
-  Store.set({
-    resumeName: file.name,
-    jobTitle: job,
-    jdText: jd,
-    submittedAt: Date.now(),
-    isPaid: false
-  });
+  try {
+    showLoader("准备文件…", "读取简历内容…");
+    console.log("[Submit] 开始读取文件...");
+    const resumeText = await readResumeFile(file);
+    console.log("[Submit] 文件读取成功，长度:", resumeText.length);
 
-  showLoader("学长正在阅读你的简历…", "拆解项目经历、匹配 JD 关键词…");
-  setTimeout(() => { window.location.href = "login.html"; }, 1600);
+    showLoader("正在评分…", "AI 分析中…");
+    console.log("[Submit] 开始调用 ATS API...");
+    const atsResult = await scoreResumeAPI(resumeText, job, jd);
+    console.log("[Submit] ATS 评分完成:", atsResult);
+
+    const formattedResult = formatATSResult(atsResult);
+
+    Store.set({
+      resumeName: file.name,
+      jobTitle: job,
+      jdText: jd,
+      resumeText: resumeText,
+      atsResult: formattedResult,
+      submittedAt: Date.now(),
+      isPaid: false
+    });
+
+    console.log("[Submit] 数据已保存，准备跳转...");
+    showLoader("✓ 完成！", "3 秒后跳转…");
+    setTimeout(() => {
+      console.log("[Submit] 跳转到 login.html");
+      window.location.href = "login.html";
+    }, 1200);
+  } catch (error) {
+    console.error("[Submit Error] 详细信息:", error);
+    console.error("[Submit Error] 错误消息:", error.message);
+    console.error("[Submit Error] Stack:", error.stack);
+    const msg = "❌ " + (error.message || "未知错误");
+    errorBox.textContent = msg;
+    errorBox.classList.add("show");
+    hideLoader();
+    toast(msg);
+    isSubmitting = false;
+    if (submitBtn) submitBtn.disabled = false;
+  }
+
   return false; // prevent default submit
 }
 
@@ -109,8 +228,15 @@ function mockPayment(btn){
 /* —— Guard: 没提交简历就别进 result/payment/report —— */
 function guardSubmitted(){
   const s = Store.get();
+  console.log("[Guard] 检查用户状态:", s);
+
   if (!s.resumeName || !s.jobTitle){
+    console.warn("[Guard] 数据不完整，重定向到首页");
+    console.warn("[Guard] resumeName:", s.resumeName);
+    console.warn("[Guard] jobTitle:", s.jobTitle);
     window.location.href = "index.html";
+  } else {
+    console.log("[Guard] ✓ 用户已提交简历，允许继续");
   }
 }
 function guardPaid(){
@@ -280,5 +406,37 @@ function toast(msg){
 
 /* Auto-init */
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("[App] 页面加载完成，绑定事件");
   bindFileUpload();
+
+  // 调试：确保 submitResume 可用
+  if (typeof submitResume === "function") {
+    console.log("[App] ✓ submitResume 函数已加载");
+  } else {
+    console.error("[App] ❌ submitResume 函数未定义！");
+  }
+
+  // 调试：监听表单和按钮
+  const form = document.querySelector("form");
+  if (form) {
+    console.log("[App] ✓ 表单已找到");
+
+    // 在表单上监听
+    form.addEventListener("submit", (e) => {
+      console.log("[App] [Form] submit 事件触发");
+    });
+
+    // 在按钮上监听
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      console.log("[App] ✓ 提交按钮已找到");
+      submitBtn.addEventListener("click", (e) => {
+        console.log("[App] [Button] click 事件触发");
+      });
+    } else {
+      console.error("[App] ❌ 找不到提交按钮");
+    }
+  } else {
+    console.error("[App] ❌ 找不到表单");
+  }
 });

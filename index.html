@@ -39,10 +39,10 @@
       <div class="input-group">
         <label class="input-label">上传简历</label>
         <label class="file-upload">
-          <input type="file" name="resume" accept=".pdf,.doc,.docx" />
+          <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,text/plain" />
           <div class="file-upload-icon">📄</div>
           <div class="file-upload-text">点这里选文件</div>
-          <div class="file-upload-hint">PDF / Word · 仅本次会话使用</div>
+          <div class="file-upload-hint">PDF / Word (.docx / .doc) / 纯文本 (.txt) · 仅本次会话使用</div>
         </label>
       </div>
 
@@ -64,7 +64,7 @@
 
       <div class="form-error input-error mb-12"></div>
 
-      <button class="btn btn-jade btn-block" type="submit">
+      <button class="btn btn-jade btn-block" type="submit" onclick="console.log('[Button] onclick 直接触发'); return submitResume(this.closest('form'));">
         30 秒生成诊断报告 <span class="btn-icon">→</span>
       </button>
     </form>
@@ -106,6 +106,7 @@
 
 </div>
 
+<script src="assets/api-client.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

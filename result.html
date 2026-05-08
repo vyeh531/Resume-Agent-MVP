@@ -161,7 +161,7 @@
       <span class="pill pill-mute" id="targetJob">目标:Product Manager</span>
     </div>
     <h2 class="summary-headline" id="headline">
-      你的当前简历综合评分 <span class="num">75</span> 分,<br/>
+      你的当前简历综合评分 <span class="num" id="atsHeadlineScore">75</span> 分,<br/>
       离获得大厂 <span class="gap">$200K</span> 薪资仍有差距。
     </h2>
     <p class="summary-issue" id="coreIssue"></p>
@@ -209,6 +209,37 @@
         </summary>
         <div class="tile-detail" id="compDetail"></div>
       </details>
+    </div>
+  </section>
+
+  <!-- ATS 评分详情（如果有） -->
+  <section class="section" id="atsDetailSection" hidden>
+    <div class="section-num">ATS 诊断</div>
+    <h3 class="section-title" style="font-size: 18px;">AI 智能评分</h3>
+
+    <div class="card" style="background: linear-gradient(135deg, rgba(168,213,186,.08) 0%, rgba(232,160,107,.06) 100%); border: 1px solid rgba(168,213,186,.2);">
+
+      <!-- 分项得分 -->
+      <div id="atsItemScores" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;"></div>
+
+      <!-- 关键问题 -->
+      <div style="margin-top: 16px;">
+        <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--rose);">🔍 关键问题</h4>
+        <ul id="atsProblems" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
+      </div>
+
+      <!-- 优先建议 -->
+      <div style="margin-top: 12px;">
+        <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--jade);">✨ 优先建议</h4>
+        <ul id="atsSuggestions" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
+      </div>
+
+      <!-- 提分预期 -->
+      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line);">
+        <p style="font-size: 12px; color: var(--ink-soft); margin: 0;">
+          <b>提分空间：</b><span id="atsImprovement" style="color: var(--indigo); font-weight: 600;"></span>
+        </p>
+      </div>
     </div>
   </section>
 
@@ -290,6 +321,7 @@
 
 </div>
 
+<script src="assets/api-client.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/mock-data.js"></script>
 <script>
@@ -297,11 +329,30 @@
 
   const M = window.MOCK;
   const s = Store.get();
+  const atsResult = s.atsResult || {};
+
+  // 如果有 ATS 评分结果，更新显示
+  if (atsResult.atsScore) {
+    M.scores.ats = atsResult.atsScore;
+    M.summary.coreIssue = atsResult.riskLevel === "低"
+      ? `✓ ATS 兼容性良好（${atsResult.atsScore}/100），简历格式清晰规范。`
+      : atsResult.riskLevel === "中"
+      ? `⚠ ATS 兼容性中等（${atsResult.atsScore}/100），建议优化格式和关键词。`
+      : `❌ ATS 兼容性偏低（${atsResult.atsScore}/100），需要重点修改。`;
+
+    console.log("[Result] ATS 评分已加载:", atsResult);
+  }
 
   // ===== Summary =====
   document.getElementById("targetJob").textContent = "目标:" + (s.jobTitle || M.job.title);
   document.getElementById("studentInfo").textContent = `${M.student.grade} · ${M.student.school} · ${M.student.major}`;
   document.getElementById("coreIssue").textContent = M.summary.coreIssue;
+
+  // 更新标题中的 ATS 评分
+  if (atsResult.atsScore) {
+    document.getElementById("atsHeadlineScore").textContent = atsResult.atsScore;
+    console.log("[Result] 标题评分已更新:", atsResult.atsScore);
+  }
 
   document.getElementById("rankPct").textContent = M.scores.rankingPercentile + "%";
   document.getElementById("atsScore").textContent = M.scores.ats;
@@ -453,6 +504,87 @@
     `;
   }).join("");
   document.getElementById("lockedMentorsArea").innerHTML = lockedHTML;
+
+  // ===== ATS 评分详情 =====
+  if (atsResult && atsResult.atsScore) {
+    console.log("[Result] 渲染 ATS 评分详情", atsResult);
+    document.getElementById("atsDetailSection").removeAttribute("hidden");
+
+    // 分项得分
+    const itemLabels = { A: "格式兼容", B: "完整性", C: "内容质量", D: "关键词", E: "投递度" };
+    const itemMaxScores = { A: 20, B: 20, C: 35, D: 15, E: 10 };
+    const itemScores = atsResult.itemScores || {};
+
+    console.log("[Result] itemScores 完整内容:", JSON.stringify(itemScores));
+    console.log("[Result] itemScores 键名:", Object.keys(itemScores));
+    console.log("[Result] atsResult 完整:", JSON.stringify(atsResult));
+
+    // 如果 itemScores 为空，使用默认值
+    let hasScores = Object.keys(itemScores).length > 0;
+    const itemHTML = Object.entries(itemLabels).map(([key, label]) => {
+      const score = itemScores[key] !== null && itemScores[key] !== undefined ? itemScores[key] : "—";
+      const max = itemMaxScores[key];
+      const pct = score !== "—" ? Math.round((score / max) * 100) : 0;
+      console.log(`[Result] ${key}: ${score}/${max} (${pct}%)`);
+      return `
+        <div style="text-align: center; padding: 8px; background: rgba(255,255,255,.3); border-radius: 6px;">
+          <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 4px;">${label}</div>
+          <div style="font-size: 16px; font-weight: 600; color: ${pct >= 70 ? "var(--good)" : pct >= 50 ? "var(--warn)" : "var(--rose)"};">${score}/${max}</div>
+        </div>
+      `;
+    }).join("");
+
+    if (!hasScores) {
+      console.warn("[Result] ⚠️ itemScores 为空，API 可能未返回分项数据");
+    }
+
+    document.getElementById("atsItemScores").innerHTML = itemHTML;
+    console.log("[Result] 分项得分已渲染");
+
+    // 关键问题
+    console.log("[Result] keyProblems:", atsResult.keyProblems);
+    if (atsResult.keyProblems && atsResult.keyProblems.length > 0) {
+      const problemHTML = atsResult.keyProblems.slice(0, 6).map((p, i) => {
+        const cleanText = (p || '').trim();
+        return `
+          <li style="margin-bottom: 10px; padding-left: 20px; position: relative; line-height: 1.5;">
+            <span style="position: absolute; left: 0; color: var(--rose); font-weight: 600;">●</span>
+            ${cleanText}
+          </li>
+        `;
+      }).join("");
+      document.getElementById("atsProblems").innerHTML = problemHTML;
+      console.log("[Result] 关键问题已渲染");
+    } else {
+      document.getElementById("atsProblems").innerHTML = '<li style="color: var(--ink-soft);">暂无关键问题记录</li>';
+    }
+
+    // 优先建议
+    console.log("[Result] suggestions:", atsResult.suggestions);
+    if (atsResult.suggestions && atsResult.suggestions.length > 0) {
+      const suggestionHTML = atsResult.suggestions.slice(0, 6).map((s, i) => {
+        const cleanText = (s || '').trim();
+        return `
+          <li style="margin-bottom: 10px; padding-left: 20px; position: relative; line-height: 1.5;">
+            <span style="position: absolute; left: 0; color: var(--jade); font-weight: 600;">✓</span>
+            ${cleanText}
+          </li>
+        `;
+      }).join("");
+      document.getElementById("atsSuggestions").innerHTML = suggestionHTML;
+      console.log("[Result] 优先建议已渲染");
+    } else {
+      document.getElementById("atsSuggestions").innerHTML = '<li style="color: var(--ink-soft);">暂无建议</li>';
+    }
+
+    // 提分预期
+    console.log("[Result] improvementExpectation:", atsResult.improvementExpectation);
+    if (atsResult.improvementExpectation) {
+      document.getElementById("atsImprovement").textContent = atsResult.improvementExpectation;
+    } else {
+      document.getElementById("atsImprovement").textContent = "基础分 60-70 → 改进后 75-85";
+    }
+  }
 </script>
 </body>
 </html>

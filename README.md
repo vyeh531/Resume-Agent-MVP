@@ -1,12 +1,35 @@
 # Resume Fix MVP
 
-MentorX × 蔓藤教育 · 简历诊断漏斗 MVP(纯前端原型,无构建步骤)。
+MentorX × 蔓藤教育 · 简历诊断漏斗 MVP，集成本地 AI ATS 评分系统。
 
-## 怎么跑
+## 快速开始
 
-**直接双击 `index.html`** 在浏览器里打开即可。
+### 有 AI 支持的版本（推荐）✨
 
-> 推荐用 Chrome/Edge,DevTools → Toggle Device Toolbar → iPhone 14 Pro (390×844) 看 mobile 效果。
+需要 **Ollama** + **Node.js**：
+
+1. **安装 Ollama**  
+   - 下载：[ollama.ai](https://ollama.ai)  
+   - 拉取模型：`ollama pull mistral`
+
+2. **运行服务器**
+   ```bash
+   npm install
+   npm start
+   # 或 PowerShell：.\START.ps1
+   # 或 Windows 批处理：START.bat
+   ```
+
+3. **打开浏览器**  
+   访问 http://localhost:3000
+
+📖 详细指南：见 [ATS-SETUP.md](./ATS-SETUP.md)
+
+### 纯前端版本（无 AI）
+
+**直接双击 `index.html`** 在浏览器里打开即可（使用 mock 数据展示流程）。
+
+> 推荐用 Chrome/Edge，DevTools → Toggle Device Toolbar → iPhone 14 Pro (390×844) 看 mobile 效果。
 
 ## 5 步用户流程
 

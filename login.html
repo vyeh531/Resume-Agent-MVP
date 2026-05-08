@@ -163,6 +163,17 @@
       document.getElementById("resumeJobTitle").textContent = "目标岗位:" + s.jobTitle;
     }
   })();
+
+  // 改进的登录流程
+  window.mockLogin = function(btn){
+    btn.disabled = true;
+    showLoader("正在登录…", "3 秒即将跳转…");
+    Store.set({ userId: "mock_" + Date.now(), loginAt: Date.now() });
+    setTimeout(() => {
+      hideLoader();
+      window.location.href = "result.html";
+    }, 800);
+  };
 </script>
 </body>
 </html>
