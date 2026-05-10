@@ -143,10 +143,51 @@ async function scoreResumeAPI(resumeText, jobTitle, jdText) {
 
     const result = await response.json();
     console.log("[API] 评分结果:", result.data);
+
+    // 把 sessionId 存入 localStorage，方便後續重新撈取
+    if (result.sessionId) {
+      try {
+        const store = JSON.parse(localStorage.getItem("resumeFixMVP") || "{}");
+        store.sessionId = result.sessionId;
+        localStorage.setItem("resumeFixMVP", JSON.stringify(store));
+        console.log("[API] sessionId 已存入 localStorage:", result.sessionId);
+      } catch (e) {
+        console.warn("[API] sessionId 寫入 localStorage 失敗:", e.message);
+      }
+    }
+
     return result.data;
   } catch (error) {
     console.error("[API Error]", error.message);
     throw error;
+  }
+}
+
+// 從伺服器重新撈取評分結果（用 sessionId）
+async function loadAnalysisFromServer(sessionId) {
+  const id = sessionId || (() => {
+    try {
+      return JSON.parse(localStorage.getItem("resumeFixMVP") || "{}").sessionId;
+    } catch { return null; }
+  })();
+
+  if (!id) {
+    console.warn("[API] 沒有 sessionId，無法從伺服器載入");
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/resume/${id}`);
+    if (!response.ok) {
+      console.warn("[API] 載入失敗:", response.status);
+      return null;
+    }
+    const result = await response.json();
+    console.log("[API] 從 DB 載入評分結果:", id);
+    return result.data;
+  } catch (error) {
+    console.error("[API] loadAnalysisFromServer error:", error.message);
+    return null;
   }
 }
 

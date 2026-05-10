@@ -162,7 +162,7 @@
     </div>
     <h2 class="summary-headline" id="headline">
       你的当前简历综合评分 <span class="num" id="atsHeadlineScore">75</span> 分,<br/>
-      离获得大厂 <span class="gap">$200K</span> 薪资仍有差距。
+      离顶级 Offer 线 <span class="gap" id="headlineSalaryTop">$160K</span> 仍有差距。
     </h2>
     <p class="summary-issue" id="coreIssue"></p>
   </section>
@@ -372,33 +372,99 @@
   document.getElementById("salaryDetail").innerHTML = renderRows(M.salaryBreakdown);
   document.getElementById("compDetail").innerHTML   = renderRows(M.compBreakdown);
 
-  // ===== Skill X/10 =====
-  document.getElementById("skillHave").textContent = M.scores.skillHave;
-  document.getElementById("skillTotal").textContent = M.scores.skillTotal;
+  // ── 從 DB 撈真實薪資數據，填入 SALARY tile ──────────────────
+  (async function loadSalaryFromDB() {
+    const jobTitle = s.jobTitle || "";
+    if (!jobTitle) return;
+    try {
+      const resp = await fetch(`http://localhost:3000/api/position-salary?jobTitle=${encodeURIComponent(jobTitle)}`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!data.found || !data.salary_range) return;
 
-  const have = M.skillGap.filter(s => s.status === "have").length;
-  const weak = M.skillGap.filter(s => s.status === "weak").length;
-  document.getElementById("skillSummary").innerHTML = `
-    <span class="skill-have" style="flex: ${have}"></span>
-    <span class="skill-weak" style="flex: ${weak}"></span>
-  `;
+      console.log("[Salary] DB match:", data.position_title, data.salary_range);
 
+      // salary_range 格式解析：支援 "$80K-$120K", "80000-150000", "80K~150K" 等
+      const raw = data.salary_range;
+      const nums = raw.match(/[\d,]+\.?\d*/g);
+      if (!nums || nums.length === 0) return;
+
+      // 把數字標準化為 K 格式
+      function toK(n) {
+        const v = parseFloat(n.replace(/,/g, ""));
+        return v >= 1000 ? Math.round(v / 1000) + "K" : n;
+      }
+
+      const low  = toK(nums[0]);
+      const high = nums[1] ? toK(nums[1]) : low;
+      const mid  = nums[1] ? Math.round((parseFloat(nums[0].replace(/,/g,'')) + parseFloat(nums[1].replace(/,/g,''))) / 2) : null;
+      const midK = mid ? toK(String(mid)) : null;
+
+      // 更新 tile 主數字 & 頂線 & 標題
+      document.getElementById("salaryRange").textContent = "$" + low;
+      document.getElementById("salaryTop").textContent   = "$" + high;
+      const hlTop = document.getElementById("headlineSalaryTop");
+      if (hlTop) hlTop.textContent = "$" + high;
+
+      // 更新 detail breakdown（保留 note 文字不動）
+      const detailRows = [
+        { k: "当前简历水平",     v: "$" + low,              note: M.salaryBreakdown[0]?.note || "" },
+        { k: "面试加分线",       v: midK ? "$" + midK : "$" + low, note: M.salaryBreakdown[1]?.note || "" },
+        { k: "顶级 Offer 线",    v: "$" + high,             note: M.salaryBreakdown[2]?.note || "" },
+      ];
+      document.getElementById("salaryDetail").innerHTML = renderRows(detailRows);
+      console.log("[Salary] Updated:", low, "~", high);
+    } catch (e) {
+      console.warn("[Salary] Failed to load from DB:", e.message);
+    }
+  })();
+
+  // ===== Skill X/10 — 從 DB 撈真實技能，與 resume 比對 =====
   const labelMap = {
     have: `<span class="pill pill-good"><span class="dot"></span>已具备</span>`,
     weak: `<span class="pill pill-warn"><span class="dot"></span>待补强</span>`
   };
-  function renderSkillRow(s){
+  function renderSkillRow(sk){
     return `
       <li class="skill-row">
-        <div class="skill-name"><span class="priority">#${s.priority}</span>${s.name}</div>
-        ${labelMap[s.status]}
+        <div class="skill-name"><span class="priority">#${sk.priority}</span>${sk.name}</div>
+        ${labelMap[sk.status] || ""}
       </li>
     `;
   }
-  // Top 3 visible
-  document.getElementById("skillListTop3").innerHTML = M.skillGap.slice(0, 3).map(renderSkillRow).join("");
-  // 4-10 in paywall
-  document.getElementById("skillPaywallList").innerHTML = M.skillGap.slice(3).map(renderSkillRow).join("");
+  function renderSkillSection(skills) {
+    const have = skills.filter(sk => sk.status === "have").length;
+    const weak = skills.filter(sk => sk.status === "weak").length;
+    const total = skills.length;
+    document.getElementById("skillHave").textContent  = have;
+    document.getElementById("skillTotal").textContent = total;
+    document.getElementById("skillSummary").innerHTML = `
+      <span class="skill-have" style="flex: ${have}"></span>
+      <span class="skill-weak" style="flex: ${weak}"></span>
+    `;
+    document.getElementById("skillListTop3").innerHTML    = skills.slice(0, 3).map(renderSkillRow).join("");
+    document.getElementById("skillPaywallList").innerHTML = skills.slice(3).map(renderSkillRow).join("");
+  }
+
+  // 先用 mock 資料顯示，等 API 回來再替換
+  renderSkillSection(M.skillGap);
+
+  (async function loadSkillsFromDB() {
+    const jobTitle   = s.jobTitle   || "";
+    const resumeText = s.resumeText || "";
+    if (!jobTitle) return;
+    try {
+      const url = `http://localhost:3000/api/position-skills?jobTitle=${encodeURIComponent(jobTitle)}&resumeText=${encodeURIComponent(resumeText.substring(0, 3000))}`;
+      const resp = await fetch(url);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!data.found || !data.skills || data.skills.length === 0) return;
+      console.log("[Skills] DB match:", data.position_title, data.skills);
+      renderSkillSection(data.skills);
+    } catch (e) {
+      console.warn("[Skills] Failed to load from DB:", e.message);
+    }
+  })();
 
   // Toggle paywall
   const expandBtn = document.getElementById("skillExpandToggle");
@@ -412,62 +478,12 @@
       : "查看全部 Top 10 技能 ↓";
   });
 
-  // ===== Free mentor (full detail) =====
-  const free = M.mentors[0];
-  function priorityClass(p){
-    if (p && p.startsWith("P0")) return "";
-    if (p && p.startsWith("P1")) return "priority-tag--p1";
-    if (p && p.startsWith("P2")) return "priority-tag--p2";
-    return "";
-  }
-  document.getElementById("mentorFree").innerHTML = `
-    <header class="mentor-detail-head">
-      <div class="company-logo company-logo--${free.companyKey}">${free.company === "Amazon" ? "amazon" : free.company === "Google" ? "G" : free.company}</div>
-      <div class="info">
-        <div class="company">${free.company}</div>
-        <div class="role">${free.mentorCode} · ${free.position}</div>
-      </div>
-    </header>
-    <div class="cred-pills">
-      ${free.credentials.map(c => `<span class="cred-pill">${c}</span>`).join("")}
-    </div>
-    <div class="career-path"><b>职业路径:</b> ${free.careerPath}</div>
-    <div class="priority-issue">
-      <span class="priority-tag ${priorityClass(free.priority)}">${free.priority}</span>
-      <span class="priority-text">${free.issue}</span>
-    </div>
-    <div class="advice-section">
-      <h4>导师筛选策略</h4>
-      <p>${free.strategy}</p>
-    </div>
-    <div class="advice-section advice-section--plain">
-      <h4>你的现状</h4>
-      <p>${free.current}</p>
-    </div>
-    <div class="advice-section advice-section--plain">
-      <h4>建议</h4>
-      <p>${free.advice}</p>
-    </div>
-    <div class="advice-example">
-      <div class="advice-example-head">
-        <div class="title">
-          <span class="check">✓</span>
-          <span>改写示例</span>
-        </div>
-        <button class="copy-btn" onclick="copyExample(this)" data-content='${escapeAttr(stripHtml(free.example))}'>📋 复制</button>
-      </div>
-      <div class="advice-example-body">
-        <span class="label">改写后的 bullet 示例:</span>
-        ${free.example}
-      </div>
-    </div>
-  `;
-
   function stripHtml(html){ return String(html).replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, ""); }
   function escapeAttr(s){ return s.replace(/'/g, "&apos;").replace(/"/g, "&quot;"); }
-
   function copyExample(btn){
-    const text = btn.getAttribute("data-content").replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+    const raw = btn.getAttribute("data-content").replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+    // Strip [[...]] markers when copying
+    const text = raw.replace(/\[\[([^\]]+)\]\]/g, "$1");
     if (navigator.clipboard){
       navigator.clipboard.writeText(text).then(
         () => { btn.innerHTML = "✓ 已复制"; setTimeout(() => btn.innerHTML = "📋 复制", 2000); }
@@ -476,34 +492,144 @@
   }
   window.copyExample = copyExample;
 
-  // ===== Locked mentors (3) =====
-  const lockedHTML = M.mentors.slice(1).map(m => {
-    const logoText = m.company === "Amazon" ? "amazon"
-                   : m.company === "Google" ? "G"
-                   : m.company;
+  function priorityClass(p){
+    if (!p) return "";
+    if (p.startsWith("P0")) return "";
+    if (p.startsWith("P1")) return "priority-tag--p1";
+    if (p.startsWith("P2")) return "priority-tag--p2";
+    return "";
+  }
+
+  // "Sarah Chen" → "C导师"
+  function formatMentorName(name) {
+    if (!name) return "X导师";
+    const parts = name.trim().split(/\s+/);
+    const last = parts[parts.length - 1] || parts[0];
+    return last[0].toUpperCase() + "导师";
+  }
+
+  // Split "(1) step (2) step (3) step" into separate lines
+  function formatAdvice(text) {
+    if (!text) return "";
+    const parts = String(text).split(/(?=\(\d+\))/);
+    if (parts.length <= 1) return highlightFake(text);
+    return parts.map(p => p.trim()).filter(Boolean)
+      .map(p => `<div style="margin-bottom:5px;">${highlightFake(p)}</div>`)
+      .join("");
+  }
+
+  // Highlight [[fake numbers]] in amber
+  function highlightFake(text) {
+    if (!text) return "";
+    return String(text).replace(/\[\[([^\]]+)\]\]/g,
+      '<mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-weight:600;" title="AI 估算数据，仅供参考">$1</mark>'
+    );
+  }
+
+  // ===== Shared: render one advice group (P0/P1/P2 block) =====
+  function renderAdviceGroup(item, copyHandler) {
+    const ba = item.beforeAfter || {};
+    const hasFake = (ba.after || "").includes("[[");
     return `
-      <article class="locked-mentor-v2">
-        <header class="head">
-          <div class="company-logo company-logo--${m.companyKey}">${logoText}</div>
-          <div class="info">
-            <div class="company-name">${m.company}</div>
-            <div class="role-line">${m.mentorCode} · ${m.position}</div>
-          </div>
-        </header>
-        <div class="cred-pills">
-          ${m.credentials.map(c => `<span class="cred-pill">${c}</span>`).join("")}
+      <div class="priority-issue" style="margin-top:14px;">
+        <span class="priority-tag ${priorityClass(item.priority)}">${item.priority || "P0 必改"}</span>
+        <span class="priority-text">${item.issue || ""}</span>
+      </div>
+      ${item.strategy ? `<div class="advice-section" style="margin-top:12px;"><h4>导师筛选策略</h4><p>${highlightFake(item.strategy)}</p></div>` : ""}
+      ${item.current ? `<div class="advice-section advice-section--plain"><h4>你的现状</h4><p>${highlightFake(item.current)}</p></div>` : ""}
+      <div class="advice-section advice-section--plain"><h4>建议</h4><div style="font-size:14px;line-height:1.7;">${formatAdvice(item.advice || "")}</div></div>
+      ${ba.after ? `
+      <div class="advice-example">
+        <div class="advice-example-head">
+          <div class="title"><span class="check">✓</span><span>改写示例</span></div>
+          <button class="copy-btn" onclick="${copyHandler}(this)" data-content='${escapeAttr(ba.after)}'>📋 复制</button>
         </div>
-        <div class="blur-area">
-          <div class="blur-content">${stripHtml(m.strategy).slice(0, 120)}...</div>
-          <div class="lock-cta">
-            <div class="lock-icon">🔒</div>
-            <div class="lock-text">解锁查看完整建议</div>
-          </div>
+        <div class="advice-example-body">
+          ${ba.before ? `<div style="margin-bottom:8px;"><span class="label" style="color:var(--rose,#e07070);">改写前：</span><br/><span style="font-size:13px;color:var(--ink-soft);font-family:var(--mono,monospace);">${ba.before}</span></div>` : ""}
+          <div><span class="label">改写后：</span><br/><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${highlightFake(ba.after)}</span></div>
+          ${hasFake ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-mute);font-family:var(--mono);"><mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-size:10px;">橙色数字</mark> 为 AI 估算，请替换为你的真实数据</div>` : ""}
         </div>
-      </article>
+      </div>` : ""}
     `;
-  }).join("");
-  document.getElementById("lockedMentorsArea").innerHTML = lockedHTML;
+  }
+
+  // ===== Mentor header HTML (shared) =====
+  function renderMentorHeader(m) {
+    const creds = Array.isArray(m.credentials) ? m.credentials : (m.tag ? [m.tag] : []);
+    const logo = m.avatar || (m.company && m.company[0]) || "M";
+    return `
+      <header class="mentor-detail-head">
+        <div class="company-logo" style="font-size:${m.avatar?'22px':'14px'};width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${logo}</div>
+        <div class="info">
+          <div class="company">${m.company || ""}</div>
+          <div class="role">${formatMentorName(m.name)} · ${m.role || ""}</div>
+        </div>
+      </header>
+      <div class="cred-pills" style="margin-top:10px;">
+        ${creds.map(c => `<span class="cred-pill">${c}</span>`).join("")}
+      </div>
+      ${m.career_path ? `<div style="margin-top:8px;font-size:12px;color:var(--ink-soft);"><b style="color:var(--ink);font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</b>　${m.career_path}</div>` : ""}
+    `;
+  }
+
+  // ===== Render free mentor (1 mentor, 3 advice groups) =====
+  function renderFreeMentor(m) {
+    const adviceList = Array.isArray(m.adviceList) && m.adviceList.length > 0
+      ? m.adviceList
+      : [{ priority: m.priority, issue: m.issue, strategy: m.strategy, current: m.current, advice: m.advice, beforeAfter: m.beforeAfter || {} }];
+    const groups = adviceList.map((item, i) => {
+      const divider = i > 0 ? `<hr style="border:none;border-top:1px dashed var(--line);margin:18px 0 2px;">` : "";
+      return divider + renderAdviceGroup(item, "copyExample");
+    }).join("");
+    document.getElementById("mentorFree").innerHTML = renderMentorHeader(m) + groups;
+  }
+
+  // ===== Render locked mentors (blurred preview of 3 remaining) =====
+  function renderLockedMentors(mentors) {
+    const html = mentors.map(m => {
+      const creds = Array.isArray(m.credentials) ? m.credentials : (m.tag ? [m.tag] : []);
+      const logo = m.avatar || (m.company && m.company[0]) || "M";
+      // Preview text from first advice group
+      const firstAdvice = (Array.isArray(m.adviceList) && m.adviceList[0]) || m;
+      const preview = (firstAdvice.strategy || firstAdvice.advice || "").slice(0, 80);
+      return `
+        <article class="locked-mentor-v2">
+          <header class="head">
+            <div class="company-logo" style="font-size:${m.avatar?'20px':'13px'};width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${logo}</div>
+            <div class="info">
+              <div class="company-name">${m.company || ""}</div>
+              <div class="role-line">${formatMentorName(m.name)} · ${m.role || ""}</div>
+            </div>
+          </header>
+          ${m.career_path ? `<div style="margin:4px 0 6px;font-size:11px;color:var(--ink-soft);">${m.career_path}</div>` : ""}
+          <div class="cred-pills" style="margin:6px 0;">
+            ${creds.map(c => `<span class="cred-pill">${c}</span>`).join("")}
+          </div>
+          <div class="blur-area">
+            <div class="blur-content">${preview}…</div>
+            <div class="lock-cta">
+              <div class="lock-icon">🔒</div>
+              <div class="lock-text">解锁查看完整 3 组建议</div>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+    document.getElementById("lockedMentorsArea").innerHTML = html;
+  }
+
+  // ===== 读取 localStorage 中已生成的导师建议 =====
+  (function renderMentorAdvice() {
+    const mentors = s.mentorAdvice;
+    if (mentors && mentors.length > 0) {
+      console.log("[Mentor] 从 localStorage 读取", mentors.length, "位导师");
+      renderFreeMentor(mentors[0]);
+      if (mentors.length > 1) renderLockedMentors(mentors.slice(1));
+      return;
+    }
+    console.warn("[Mentor] localStorage 无导师建议");
+    document.getElementById("mentorFree").innerHTML = `<p style="color:var(--ink-soft);font-size:14px;padding:16px 0;">暂无导师建议，请返回首页重新提交简历。</p>`;
+  })();
 
   // ===== ATS 评分详情 =====
   if (atsResult && atsResult.atsScore) {
@@ -514,6 +640,34 @@
     const itemLabels = { A: "格式兼容", B: "完整性", C: "内容质量", D: "关键词", E: "投递度" };
     const itemMaxScores = { A: 20, B: 20, C: 35, D: 15, E: 10 };
     const itemScores = atsResult.itemScores || {};
+
+    // ── 用真实 itemScores 覆盖 atsDetail 三项指标 ──────────────
+    (function renderAtsDetail() {
+      const A = itemScores.A || 0, B = itemScores.B || 0;
+      const C = itemScores.C || 0, D = itemScores.D || 0;
+
+      const metrics = [
+        { k: "格式可解析",   pct: Math.round((A + B) / 40 * 100) },
+        { k: "关键词匹配度", pct: Math.round((C + D) / 50 * 100) },
+        { k: "内容规范性",   pct: Math.round((A + C) / 55 * 100) }
+      ];
+
+      function barColor(p) {
+        return p >= 70 ? "var(--jade, #6abf7b)" : p >= 50 ? "#e9a84c" : "var(--rose, #e07070)";
+      }
+
+      document.getElementById("atsDetail").innerHTML = metrics.map(m => `
+        <div style="margin-bottom: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+            <span style="font-size:13px; font-weight:600;">${m.k}</span>
+            <span style="font-size:14px; font-weight:700; color:${barColor(m.pct)};">${m.pct}%</span>
+          </div>
+          <div style="background:rgba(0,0,0,.08); border-radius:99px; height:6px; overflow:hidden;">
+            <div style="width:${m.pct}%; height:100%; border-radius:99px; background:${barColor(m.pct)}; transition:width .4s;"></div>
+          </div>
+        </div>
+      `).join("");
+    })();
 
     console.log("[Result] itemScores 完整内容:", JSON.stringify(itemScores));
     console.log("[Result] itemScores 键名:", Object.keys(itemScores));

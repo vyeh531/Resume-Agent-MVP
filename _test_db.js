@@ -1,0 +1,10 @@
+const db = require('./database');
+const d = db.getDB();
+const mentorCount = d.prepare('SELECT COUNT(*) as c FROM mentors').get();
+const pairCount   = d.prepare('SELECT COUNT(*) as c FROM before_after_pairs').get();
+const skillCount  = d.prepare('SELECT COUNT(*) as c FROM position_skills').get();
+const analyses    = db.getRecentAnalyses(5);
+console.log('✓ resume_analyses:', analyses.length, '筆');
+console.log('✓ mentors:', mentorCount.c);
+console.log('✓ before_after_pairs:', pairCount.c);
+console.log('✓ position_skills:', skillCount.c);

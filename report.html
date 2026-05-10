@@ -417,138 +417,183 @@
 
 </div>
 
+<script src="assets/api-client.js"></script>
 <script src="assets/app.js"></script>
-<script src="assets/mock-data.js"></script>
 <script>
   guardSubmitted();
-  guardPaid();
 
-  const M = window.MOCK;
+  const s = Store.get();
+  const atsResult = s.atsResult || {};
 
-  document.getElementById("coreIssue").textContent = M.summary.coreIssue;
-
-  // Skill (Top 10, 2 statuses)
-  const labelMap = {
-    have: `<span class="pill pill-good"><span class="dot"></span>已具备</span>`,
-    weak: `<span class="pill pill-warn"><span class="dot"></span>待补强</span>`
-  };
-  document.getElementById("skillList").innerHTML = M.skillGap.map(s => `
-    <li class="skill-row">
-      <div class="skill-name"><span class="priority">#${s.priority}</span>${s.name}</div>
-      ${labelMap[s.status]}
-    </li>
-  `).join("");
-
-  // ===== Mentors (all 4 unlocked, full detail) =====
+  // ── helpers ──────────────────────────────────────────────────
   function priorityClass(p){
     if (p && p.startsWith("P0")) return "";
     if (p && p.startsWith("P1")) return "priority-tag--p1";
     if (p && p.startsWith("P2")) return "priority-tag--p2";
     return "";
   }
-  function logoText(company){
-    if (company === "Amazon") return "amazon";
-    if (company === "Google") return "G";
-    return company;
+  function escapeAttr(str){ return String(str).replace(/'/g,"&apos;").replace(/"/g,"&quot;"); }
+  // "Sarah Chen" → "C导师"
+  function formatMentorName(name){
+    if (!name) return "X导师";
+    const parts = name.trim().split(/\s+/);
+    const last = parts[parts.length - 1] || parts[0];
+    return last[0].toUpperCase() + "导师";
   }
-  function stripHtml(html){ return String(html).replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, ""); }
-  function escapeAttr(s){ return s.replace(/'/g, "&apos;").replace(/"/g, "&quot;"); }
+  // Split "(1) step (2) step" into separate lines
+  function formatAdvice(text){
+    if (!text) return "";
+    const parts = String(text).split(/(?=\(\d+\))/);
+    if (parts.length <= 1) return highlightFake(text);
+    return parts.map(p => p.trim()).filter(Boolean)
+      .map(p => `<div style="margin-bottom:5px;">${highlightFake(p)}</div>`)
+      .join("");
+  }
 
-  document.getElementById("mentorsList").innerHTML = M.mentors.map((m, idx) => `
-    <article class="mentor-detail">
-      <header class="mentor-detail-head">
-        <div class="company-logo company-logo--${m.companyKey}">${logoText(m.company)}</div>
-        <div class="info">
-          <div class="company">导师 ${idx + 1} · ${m.company}</div>
-          <div class="role">${m.mentorCode} · ${m.position} · 辅导 ${m.students.toLocaleString()} 人</div>
-        </div>
-      </header>
-      <div class="cred-pills">
-        ${m.credentials.map(c => `<span class="cred-pill">${c}</span>`).join("")}
-      </div>
-      <div class="career-path"><b>职业路径:</b> ${m.careerPath}</div>
-      <div class="priority-issue">
-        <span class="priority-tag ${priorityClass(m.priority)}">${m.priority}</span>
-        <span class="priority-text">${m.issue}</span>
-      </div>
-      <div class="advice-section">
-        <h4>导师筛选策略</h4>
-        <p>${m.strategy}</p>
-      </div>
-      <div class="advice-section advice-section--plain">
-        <h4>你的现状</h4>
-        <p>${m.current}</p>
-      </div>
-      <div class="advice-section advice-section--plain">
-        <h4>建议</h4>
-        <p>${m.advice}</p>
-      </div>
-      <div class="advice-example">
-        <div class="advice-example-head">
-          <div class="title">
-            <span class="check">✓</span>
-            <span>改写示例</span>
-          </div>
-          <button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(stripHtml(m.example))}'>📋 复制</button>
-        </div>
-        <div class="advice-example-body">
-          <span class="label">改写后的 bullet 示例:</span>
-          ${m.example}
-        </div>
-      </div>
-    </article>
-  `).join("");
-
+  // Highlight [[fake numbers]] in amber
+  function highlightFake(text){
+    if (!text) return "";
+    return String(text).replace(/\[\[([^\]]+)\]\]/g,
+      '<mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-weight:600;" title="AI 估算数据，仅供参考">$1</mark>'
+    );
+  }
   function copyMentorExample(btn){
-    const text = btn.getAttribute("data-content").replace(/&apos;/g, "'").replace(/&quot;/g, '"');
-    if (navigator.clipboard){
-      navigator.clipboard.writeText(text).then(
-        () => { btn.innerHTML = "✓ 已复制"; setTimeout(() => btn.innerHTML = "📋 复制", 2000); }
-      );
-    }
+    const raw = btn.getAttribute("data-content").replace(/&apos;/g,"'").replace(/&quot;/g,'"');
+    const text = raw.replace(/\[\[([^\]]+)\]\]/g,"$1");
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(
+      () => { btn.innerHTML = "✓ 已复制"; setTimeout(() => btn.innerHTML = "📋 复制", 2000); }
+    );
   }
   window.copyMentorExample = copyMentorExample;
 
-  // ===== PDF Export =====
+  // ── 1. Summary ────────────────────────────────────────────────
+  const issueText = atsResult.riskLevel === "低"
+    ? "✓ ATS 兼容性良好（" + (atsResult.atsScore||"?") + "/100），简历格式清晰规范。"
+    : atsResult.riskLevel === "中"
+    ? "⚠ ATS 兼容性中等（" + (atsResult.atsScore||"?") + "/100），建议优化格式和关键词。"
+    : atsResult.atsScore
+    ? "❌ ATS 兼容性偏低（" + atsResult.atsScore + "/100），需要重点修改。"
+    : "";
+  document.getElementById("coreIssue").textContent = issueText;
+
+  // Update headline score
+  const headlineEl = document.querySelector(".report-headline .num");
+  if (headlineEl && atsResult.atsScore) headlineEl.textContent = atsResult.atsScore;
+
+  // ── 2. Skills from DB ──────────────────────────────────────────
+  const labelMap = {
+    have: `<span class="pill pill-good"><span class="dot"></span>已具备</span>`,
+    weak: `<span class="pill pill-warn"><span class="dot"></span>待补强</span>`
+  };
+  function renderSkillList(skills){
+    document.getElementById("skillList").innerHTML = skills.map(sk => `
+      <li class="skill-row">
+        <div class="skill-name"><span class="priority">#${sk.priority}</span>${sk.name}</div>
+        ${labelMap[sk.status] || ""}
+      </li>
+    `).join("");
+    // Update AI insight summary
+    const have = skills.filter(sk => sk.status === "have").length;
+    const weak = skills.filter(sk => sk.status === "weak").length;
+    const insightEl = document.querySelector(".ai-insight-diagnosis");
+    if (insightEl) insightEl.innerHTML = `<span class="ico">💡</span>你已掌握 <b>${have}/${skills.length}</b> 项核心技能，还有 <b>${weak} 项</b>待补强。${weak > 0 ? "招聘官 8 秒就能看出你没用岗位语言写简历，建议重点补强缺失关键词。" : "技能覆盖率良好，建议进一步量化成果。"}`;
+  }
+  (async function loadSkills(){
+    const jobTitle = s.jobTitle || "";
+    const resumeText = s.resumeText || "";
+    if (!jobTitle) return;
+    try {
+      const url = "http://localhost:3000/api/position-skills?jobTitle=" + encodeURIComponent(jobTitle)
+                  + "&resumeText=" + encodeURIComponent(resumeText.substring(0, 3000));
+      const resp = await fetch(url);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.found && data.skills && data.skills.length > 0) renderSkillList(data.skills);
+    } catch(e){ console.warn("[Skills]", e.message); }
+  })();
+
+  // ── 3. Mentors (all 4, no paywall) ────────────────────────────
+  // ── One advice group (P0/P1/P2 block) ──
+  function renderAdviceGroup(item) {
+    const ba = item.beforeAfter || {};
+    const hasFake = (ba.after || "").includes("[[");
+    return `
+      <div class="priority-issue" style="margin-top:14px;">
+        <span class="priority-tag ${priorityClass(item.priority)}">${item.priority || "P0 必改"}</span>
+        <span class="priority-text">${item.issue || ""}</span>
+      </div>
+      ${item.strategy ? `<div class="advice-section" style="margin-top:12px;"><h4>导师筛选策略</h4><p>${highlightFake(item.strategy)}</p></div>` : ""}
+      ${item.current ? `<div class="advice-section advice-section--plain"><h4>你的现状</h4><p>${highlightFake(item.current)}</p></div>` : ""}
+      <div class="advice-section advice-section--plain"><h4>建议</h4><div style="font-size:14px;line-height:1.7;">${formatAdvice(item.advice || "")}</div></div>
+      ${ba.after ? `
+      <div class="advice-example">
+        <div class="advice-example-head">
+          <div class="title"><span class="check">✓</span><span>改写示例</span></div>
+          <button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(ba.after)}'>📋 复制</button>
+        </div>
+        <div class="advice-example-body">
+          ${ba.before ? `<div style="margin-bottom:8px;"><span class="label" style="color:var(--rose,#e07070);">改写前：</span><br/><span style="font-size:13px;color:var(--ink-soft);font-family:var(--mono,monospace);">${ba.before}</span></div>` : ""}
+          <div><span class="label">改写后：</span><br/><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${highlightFake(ba.after)}</span></div>
+          ${hasFake ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-mute);font-family:var(--mono);"><mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-size:10px;">橙色数字</mark> 为 AI 估算，请替换为你的真实数据</div>` : ""}
+        </div>
+      </div>` : ""}
+    `;
+  }
+
+  // ── Full mentor card (header + career_path + 3 advice groups) ──
+  function renderMentorCard(m, idx) {
+    const creds = Array.isArray(m.credentials) ? m.credentials : (m.tag ? [m.tag] : []);
+    const logo = m.avatar || (m.company && m.company[0]) || "M";
+    const adviceList = Array.isArray(m.adviceList) && m.adviceList.length > 0
+      ? m.adviceList
+      : [{ priority: m.priority, issue: m.issue, strategy: m.strategy, current: m.current, advice: m.advice, beforeAfter: m.beforeAfter || {} }];
+    const groups = adviceList.map((item, i) => {
+      const divider = i > 0 ? `<hr style="border:none;border-top:1px dashed var(--line);margin:20px 0 4px;">` : "";
+      return divider + renderAdviceGroup(item);
+    }).join("");
+    return `
+      <article class="mentor-detail">
+        <header class="mentor-detail-head">
+          <div class="company-logo" style="font-size:${m.avatar?'22px':'14px'};width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${logo}</div>
+          <div class="info">
+            <div class="company">导师 ${idx + 1} · ${m.company || ""}</div>
+            <div class="role">${formatMentorName(m.name)} · ${m.role || ""}</div>
+          </div>
+        </header>
+        <div class="cred-pills" style="margin-top:10px;">
+          ${creds.map(c => `<span class="cred-pill">${c}</span>`).join("")}
+        </div>
+        ${m.career_path ? `<div style="margin-top:8px;margin-bottom:4px;font-size:12px;color:var(--ink-soft);"><b style="color:var(--ink);font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</b>　${m.career_path}</div>` : ""}
+        ${groups}
+      </article>
+    `;
+  }
+
+  const mentors = s.mentorAdvice;
+  if (mentors && mentors.length > 0) {
+    document.getElementById("mentorsList").innerHTML = mentors.map((m, i) => renderMentorCard(m, i)).join("");
+  } else {
+    document.getElementById("mentorsList").innerHTML = `<p style="color:var(--ink-soft);font-size:14px;padding:16px 0;">导师建议加载失败，请返回首页重新提交简历。</p>`;
+  }
+
+  // ── 4. PDF Export ─────────────────────────────────────────────
   function exportPDF(){
     const btn = document.querySelector('.export-card .btn');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '⏳ 正在生成 PDF…';
-    toast("正在生成 PDF,请稍候…");
-
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '⏳ 正在生成 PDF…';
+    toast("正在生成 PDF，请稍候…");
     document.body.classList.add('exporting');
-
-    const element = document.querySelector('.page');
     const opt = {
       margin: [10, 8, 10, 8],
-      filename: `MentorX-诊断报告-${new Date().toISOString().slice(0,10)}.pdf`,
+      filename: "MentorX-诊断报告-" + new Date().toISOString().slice(0,10) + ".pdf",
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#f6f3ec',
-        windowWidth: 480
-      },
+      html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#f6f3ec', windowWidth: 480 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'], avoid: '.section, .mentor-detail, .advice-example, .service-card' }
     };
-
-    html2pdf().set(opt).from(element).save()
-      .then(() => {
-        document.body.classList.remove('exporting');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        toast("PDF 已下载到本地");
-      })
-      .catch(err => {
-        console.error("PDF gen failed:", err);
-        document.body.classList.remove('exporting');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        toast("PDF 生成失败,请重试");
-      });
+    html2pdf().set(opt).from(document.querySelector('.page')).save()
+      .then(() => { document.body.classList.remove('exporting'); btn.disabled=false; btn.innerHTML=orig; toast("PDF 已下载"); })
+      .catch(err => { console.error(err); document.body.classList.remove('exporting'); btn.disabled=false; btn.innerHTML=orig; toast("PDF 生成失败，请重试"); });
   }
   window.exportPDF = exportPDF;
 </script>
