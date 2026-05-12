@@ -305,5 +305,5 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
   console.log("Resume Fix MVP running at http://localhost:" + PORT);
-  console.log("Database: mentor_kb-v2.db");
+  console.log("Database: mentor_kb-v5.db");
 });

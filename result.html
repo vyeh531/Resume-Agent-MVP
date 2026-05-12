@@ -638,7 +638,7 @@
 
     // 分项得分
     const itemLabels = { A: "格式兼容", B: "完整性", C: "内容质量", D: "关键词", E: "投递度" };
-    const itemMaxScores = { A: 20, B: 20, C: 35, D: 15, E: 10 };
+    const itemMaxScores = { A: 15, B: 10, C: 25, D: 40, E: 10 };
     const itemScores = atsResult.itemScores || {};
 
     // ── 用真实 itemScores 覆盖 atsDetail 三项指标 ──────────────
@@ -647,9 +647,9 @@
       const C = itemScores.C || 0, D = itemScores.D || 0;
 
       const metrics = [
-        { k: "格式可解析",   pct: Math.round((A + B) / 40 * 100) },
-        { k: "关键词匹配度", pct: Math.round((C + D) / 50 * 100) },
-        { k: "内容规范性",   pct: Math.round((A + C) / 55 * 100) }
+        { k: "格式可解析",   pct: Math.round((A + B) / 25 * 100) },   // A/15 + B/10 = 25
+        { k: "关键词匹配度", pct: Math.round(D / 40 * 100) },           // D 独立展示，满分 40
+        { k: "内容规范性",   pct: Math.round(C / 25 * 100) }            // C 满分 25
       ];
 
       function barColor(p) {

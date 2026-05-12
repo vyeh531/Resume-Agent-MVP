@@ -10,7 +10,7 @@ const { DatabaseSync } = require("node:sqlite");
 const path = require("path");
 const crypto = require("crypto");
 
-const DB_PATH = path.join(__dirname, "mentor_kb-v2.db");
+const DB_PATH = path.join(__dirname, "mentor_kb-v5.db");
 
 // ── 建立連線（單例）──────────────────────────────────────────
 let _db = null;
