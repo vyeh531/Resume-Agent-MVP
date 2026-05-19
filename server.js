@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const multer = require("multer");
 const { scoreResumeATS } = require("./ats-scorer");
+const { scoreResumeRuleBased } = require("./ats-rule-scorer");
 const { parsePDF, parseDocx } = require("./file-parser");
 const db = require("./database");
 const Anthropic = require("@anthropic-ai/sdk");
@@ -299,6 +300,93 @@ app.post("/api/mentor-advice", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// ══════════════════════════════════════════════════════════════
+//  ATS Public API  —  /api/v1/ats/*
+//  兩個引擎，相同請求格式，方便同事測試比較
+//
+//  請求（application/json）：
+//    { resumeText, jobTitle?, jdText? }
+//
+//  請求（multipart/form-data）：
+//    file=<resume.pdf|.docx|.txt>, jobTitle?, jdText?
+//
+//  回應：{ success, engine, data, timestamp }
+// ══════════════════════════════════════════════════════════════
+
+// 解析上傳文件 → 純文字的 helper
+async function resolveResumeText(req) {
+  if (req.file) {
+    const { originalname, buffer } = req.file;
+    const ext = path.extname(originalname).toLowerCase();
+    if (ext === ".pdf")  return await parsePDF(buffer);
+    if (ext === ".docx") return await parseDocx(buffer);
+    if (ext === ".txt")  return buffer.toString("utf-8");
+    throw new Error("不支援的檔案格式：" + ext);
+  }
+  if (req.body.resumeText) return req.body.resumeText;
+  throw new Error("請提供 resumeText（文字）或上傳 file（PDF / DOCX / TXT）");
+}
+
+// ── POST /api/v1/ats/rule  （規則評分，不需 API Key） ────────
+app.post("/api/v1/ats/rule", upload.single("file"), async (req, res) => {
+  try {
+    const resumeText = await resolveResumeText(req);
+    const { jobTitle, jdText } = req.body;
+    console.log("[ATS-Rule] jobTitle:", jobTitle || "N/A", "| textLen:", resumeText.length);
+    const data = scoreResumeRuleBased(resumeText, jobTitle, jdText);
+    res.json({ success: true, engine: "rule-based", data, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error("[ATS-Rule] Error:", err.message);
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST /api/v1/ats/ai  （Claude AI 評分，需 ANTHROPIC_API_KEY） ──
+app.post("/api/v1/ats/ai", upload.single("file"), async (req, res) => {
+  try {
+    if (!process.env.ANTHROPIC_API_KEY)
+      return res.status(503).json({ success: false, error: "Server has no ANTHROPIC_API_KEY configured" });
+    const resumeText = await resolveResumeText(req);
+    const { jobTitle, jdText } = req.body;
+    console.log("[ATS-AI] jobTitle:", jobTitle || "N/A", "| textLen:", resumeText.length);
+    const result = await scoreResumeATS(resumeText, jobTitle, jdText);
+    // 統一包裝回傳格式
+    const data = {
+      engine:     "claude-ai",
+      jobTitle:   jobTitle || null,
+      hasJD:      !!jdText,
+      total:      result.basicScore,
+      risk:       result.riskLevel,
+      dimensions: {
+        A: { score: result.itemScores?.A ?? null, max: 15, label: "格式兼容性" },
+        B: { score: result.itemScores?.B ?? null, max: 10, label: "資訊完整性" },
+        C: { score: result.itemScores?.C ?? null, max: 25, label: "內容品質"   },
+        D: { score: result.itemScores?.D ?? null, max: 40, label: "JD關鍵字匹配（核心）" },
+        E: { score: result.itemScores?.E ?? null, max: 10, label: "投遞完成度" },
+      },
+      problems:    result.keyProblems,
+      suggestions: result.suggestions,
+      improvement: result.improvementExpectation,
+      rawResponse: result.rawResponse,
+    };
+    res.json({ success: true, engine: "claude-ai", data, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error("[ATS-AI] Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /api/v1/ats/health  （確認 server + API key 狀態） ───
+app.get("/api/v1/ats/health", (req, res) => {
+  res.json({
+    success:   true,
+    server:    "ok",
+    ruleEngine: "ready",
+    aiEngine:   process.env.ANTHROPIC_API_KEY ? "ready" : "no-key",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });

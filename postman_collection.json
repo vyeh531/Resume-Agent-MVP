@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "Resume ATS API",
+    "description": "ATS 簡歷評分 API — 兩個引擎：規則式（免費）& Claude AI（需 Key）\n\n本地啟動：cd Resume-Agent-MVP && node server.js\nServer 預設跑在 http://localhost:3000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "description": "修改這裡換成你的 server 地址"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/ats/health",
+        "description": "確認 server 狀態，以及 AI 引擎是否有 API Key"
+      }
+    },
+    {
+      "name": "1. 規則評分 — 純文字 (JSON)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ats/rule",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resumeText\": \"在這裡貼上簡歷全文（純文字）\",\n  \"jobTitle\": \"Software Engineer\",\n  \"jdText\": \"在這裡貼上 JD 全文（可選，不填則通用估算）\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "【規則引擎，不需 API Key，秒回】\n\n- resumeText：必填，簡歷純文字\n- jobTitle：選填，目標職位\n- jdText：選填，JD 全文（不填則 D 維度最高 18 分）\n\n回傳：total, risk, dimensions {A/B/C/D/E}, problems, suggestions"
+      }
+    },
+    {
+      "name": "2. 規則評分 — 上傳 PDF",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ats/rule",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "description": "上傳 PDF / DOCX / TXT 簡歷"
+            },
+            {
+              "key": "jobTitle",
+              "value": "Product Manager",
+              "type": "text"
+            },
+            {
+              "key": "jdText",
+              "value": "We are looking for a PM with experience in roadmap planning, stakeholder management, and data-driven decision making. Proficiency in SQL and Jira required.",
+              "type": "text"
+            }
+          ]
+        },
+        "description": "上傳 PDF 簡歷 + JD 文字，規則引擎評分"
+      }
+    },
+    {
+      "name": "3. AI 評分 — 純文字 (JSON)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ats/ai",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resumeText\": \"在這裡貼上簡歷全文（純文字）\",\n  \"jobTitle\": \"Software Engineer\",\n  \"jdText\": \"在這裡貼上 JD 全文（建議填寫，AI 可做精準關鍵字分析）\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "【Claude AI 引擎，需 server 設置 ANTHROPIC_API_KEY，約 10-20 秒】\n\n回傳與規則引擎相同格式，另有 rawResponse（Claude 完整回答）\n\n若 server 沒有 API Key，回傳 503 錯誤"
+      }
+    },
+    {
+      "name": "4. AI 評分 — 上傳 PDF",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ats/ai",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "description": "上傳 PDF / DOCX / TXT 簡歷"
+            },
+            {
+              "key": "jobTitle",
+              "value": "Data Analyst",
+              "type": "text"
+            },
+            {
+              "key": "jdText",
+              "value": "Looking for a data analyst with SQL, Python, Tableau, and Excel skills. Experience in A/B testing and business intelligence preferred.",
+              "type": "text"
+            }
+          ]
+        },
+        "description": "上傳 PDF 簡歷 + JD 文字，Claude AI 引擎評分"
+      }
+    },
+    {
+      "name": "5. 解析文件（只取文字）",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/parse-file",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "description": "PDF / DOCX / TXT"
+            },
+            {
+              "key": "type",
+              "value": "pdf",
+              "type": "text",
+              "description": "pdf | docx | txt"
+            }
+          ]
+        },
+        "description": "只做文件解析，回傳純文字。可用來先把 PDF 轉成文字，再貼入評分請求"
+      }
+    }
+  ]
+}

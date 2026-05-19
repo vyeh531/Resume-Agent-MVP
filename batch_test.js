@@ -12,9 +12,13 @@ const path = require("path");
 const pdf  = require("pdf-parse");
 const { DatabaseSync } = require("node:sqlite");
 
-const TEST_DIR = path.join(__dirname, "..", "..", "..", "Desktop", "test_mvp");
+const BASE_DIR  = path.join(__dirname, "..", "..", "..", "Desktop", "test_mvp");
+const TEST_DIRS = [
+  path.join(BASE_DIR, "test1"),   // 子資料夾模式（bob / lucas / ...）
+  path.join(BASE_DIR, "test2"),   // 平鋪模式（Aaron_Li_Resume.pdf + JD.txt）
+];
 const DB_PATH  = path.join(__dirname, "mentor_kb-v5.db");
-const OUT_FILE = path.join(TEST_DIR, "batch_results.txt");
+const OUT_FILE = path.join(BASE_DIR, "batch_results.txt");
 
 async function readPDF(p) { return (await pdf(fs.readFileSync(p))).text; }
 const readTXT = p => fs.readFileSync(p, "utf-8");
@@ -489,35 +493,68 @@ function formatReport(folder, ats, mentors) {
   return lines.join("\n");
 }
 
+// ── 收集所有（label, pdfPath, txtPath）配對 ───────────────────
+// 支援兩種結構：
+//   A) 子資料夾模式：test_mvp/bob/resume.pdf + jd.txt
+//   B) 平鋪模式：test2/Aaron_Li_Resume.pdf + Aaron Li JD.txt
+function collectCandidates(dir) {
+  if (!fs.existsSync(dir)) return [];
+  const entries = fs.readdirSync(dir);
+  const subdirs = entries.filter(e => fs.statSync(path.join(dir, e)).isDirectory());
+
+  // ── 模式 A：子資料夾 ──────────────────────────────────────
+  // 排除本身也是 TEST_DIRS 成員的子目錄（避免重複掃描 test2 等）
+  const otherDirs = new Set(TEST_DIRS.map(d => path.resolve(d)));
+  const validSubdirs = subdirs.filter(e => !otherDirs.has(path.resolve(path.join(dir, e))));
+  if (validSubdirs.length > 0) {
+    return validSubdirs.sort().flatMap(folder => {
+      const sub   = path.join(dir, folder);
+      const files = fs.readdirSync(sub);
+      const pdf   = files.find(f => f.toLowerCase().endsWith(".pdf"));
+      const txt   = files.find(f => f.toLowerCase().endsWith(".txt"));
+      if (!pdf || !txt) { console.log(`[跳過] ${folder}（缺 PDF 或 TXT）`); return []; }
+      return [{ label: folder, pdfPath: path.join(sub, pdf), txtPath: path.join(sub, txt) }];
+    });
+  }
+
+  // ── 模式 B：平鋪（PDF + TXT 直接在目錄中） ───────────────
+  const pdfs = entries.filter(f => f.toLowerCase().endsWith(".pdf")).sort();
+  return pdfs.flatMap(pdfFile => {
+    // 取姓名前綴（去掉 _Resume / Resume 等後綴）
+    const base   = pdfFile.replace(/[_\s]?resume\.pdf$/i, "").replace(/\.pdf$/i, "");
+    const first  = base.split(/[_\s]/)[0].toLowerCase();  // 取第一個詞做模糊匹配
+    const txt    = entries.find(f =>
+      f.toLowerCase().endsWith(".txt") && f.toLowerCase().includes(first)
+    );
+    if (!txt) { console.log(`[跳過] ${pdfFile}（找不到對應 TXT）`); return []; }
+    const label = base.replace(/_/g, " ");
+    return [{ label, pdfPath: path.join(dir, pdfFile), txtPath: path.join(dir, txt) }];
+  });
+}
+
 // ── 主流程 ────────────────────────────────────────────────────
 async function main() {
-  if (!fs.existsSync(TEST_DIR)) { console.error("找不到:", TEST_DIR); process.exit(1); }
   const db = new DatabaseSync(DB_PATH);
   const output = [];
   const header = `resume_batch_test v3  —  ${new Date().toISOString()}\n改前 = 學生簡歷原文  |  改後 = 規則式重寫可直接貼上\n\n`;
   process.stdout.write(header);
   output.push(header);
 
-  const folders = fs.readdirSync(TEST_DIR)
-    .filter(d => fs.statSync(path.join(TEST_DIR, d)).isDirectory()).sort();
+  // 合併所有目錄的候選人，自動跳過不存在的目錄
+  const candidates = TEST_DIRS.flatMap(d => collectCandidates(d));
+  if (candidates.length === 0) { console.error("找不到任何候選人資料"); process.exit(1); }
 
-  for (const folder of folders) {
-    const dir   = path.join(TEST_DIR, folder);
-    const files = fs.readdirSync(dir);
-    const pdfFile = files.find(f => f.toLowerCase().endsWith(".pdf"));
-    const txtFile = files.find(f => f.toLowerCase().endsWith(".txt"));
-    if (!pdfFile || !txtFile) { console.log(`[跳過] ${folder}`); continue; }
-
-    process.stdout.write(`處理中：${folder} ...\n`);
+  for (const { label, pdfPath, txtPath } of candidates) {
+    process.stdout.write(`處理中：${label} ...\n`);
     let resumeText, jdText;
     try {
-      resumeText = fixCompactedText(await readPDF(path.join(dir, pdfFile)));
-      jdText     = readTXT(path.join(dir, txtFile));
-    } catch (e) { console.error(`[錯誤] ${folder}:`, e.message); continue; }
+      resumeText = fixCompactedText(await readPDF(pdfPath));
+      jdText     = readTXT(txtPath);
+    } catch (e) { console.error(`[錯誤] ${label}:`, e.message); continue; }
 
     const ats     = scoreATS(resumeText, jdText);
     const mentors = getMentorAdvice(resumeText, jdText);
-    const report  = formatReport(folder, ats, mentors);
+    const report  = formatReport(label, ats, mentors);
 
     process.stdout.write(report);
     output.push(report);
