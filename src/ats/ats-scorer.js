@@ -238,7 +238,43 @@ const CATEGORY_PHRASES = {
     "splunk", "datadog", "prometheus", "grafana", "wireshark",
     "servicenow", "active directory", "jira", "confluence",
     // Legal tools
-    "westlaw", "lexisnexis", "bloomberg law"
+    "westlaw", "lexisnexis", "bloomberg law",
+    // Statistics / Research tools
+    "stata", "rstudio", "r programming", "sas", "eviews", "nvivo", "maxqda", "atlas.ti",
+    // Finance / Banking / IB tools
+    "bloomberg terminal", "capital iq", "factset", "refinitiv", "pitchbook",
+    "argus", "dealogic",
+    // HR / People Ops tools
+    "workday", "bamboohr", "rippling", "lattice", "culture amp", "15five",
+    "paylocity", "ukg", "ceridian", "icims", "greenhouse", "lever",
+    // Architecture / Civil / GIS tools
+    "revit", "arcgis", "qgis", "rhino", "grasshopper", "sketchup",
+    "civil 3d", "navisworks", "infraworks",
+    // Productivity / Project Management tools
+    "powerpoint", "microsoft powerpoint", "microsoft word", "google workspace",
+    "google sheets", "google slides", "google docs", "notion", "asana",
+    "trello", "monday.com", "clickup", "smartsheet", "ms project", "basecamp",
+    // Customer Success / Support tools
+    "zendesk", "intercom", "freshdesk", "gainsight", "totango", "churnzero",
+    // Chemical / Process Engineering tools
+    "aspen plus", "aspen hysys", "chemcad", "hysys",
+    // Healthcare / Clinical EHR tools
+    "meditech", "allscripts", "athenahealth", "nextgen",
+    // Education / LMS tools
+    "canvas lms", "blackboard", "moodle", "google classroom",
+    // Additional SW Engineering — languages & frameworks
+    "vue.js", "angular", "svelte", "django", "flask", "spring", "spring boot",
+    "express.js", "nestjs", "ruby on rails", "swift", "kotlin", "flutter",
+    "dart", "react native", "c#", "c sharp", "golang", "scala",
+    "mysql", "sqlite", "cassandra", "dynamodb", "supabase", "firebase",
+    "celery", "rabbitmq", "kafka", "nginx", "linux", "bash", "shell scripting",
+    "java", "ruby", "php", "perl", "haskell", "elixir",
+    "webpack", "vite", "babel", "eslint", "jest", "pytest", "selenium",
+    "postman", "graphql", "grpc", "openapi", "swagger",
+    "langsmith", "openai api", "anthropic api", "cohere", "vertex ai",
+    "dvc", "mlflow", "weights and biases", "wandb", "ray", "triton",
+    "tableau prep", "looker", "metabase", "power automate", "apache flink",
+    "hadoop", "hive", "presto", "databricks"
   ],
   core_skills: [
     // Finance / Accounting
@@ -317,7 +353,107 @@ const CATEGORY_PHRASES = {
     "environmental impact assessment", "life cycle assessment", "lca",
     "ghg inventory", "carbon footprint", "sustainability reporting",
     "esg reporting", "environmental compliance", "waste management",
-    "air quality monitoring", "remediation", "iso 14001"
+    "air quality monitoring", "remediation", "iso 14001",
+    // HR / Talent Acquisition
+    "talent acquisition", "recruiting", "sourcing", "candidate screening",
+    "employee relations", "performance review", "compensation and benefits",
+    "compensation & benefits", "benefits administration", "workforce planning",
+    "succession planning", "learning and development", "l&d", "employee engagement",
+    "diversity and inclusion", "dei", "hr business partner", "hrbp", "hris",
+    "talent management", "employer branding", "organizational design",
+    "headcount planning", "attrition analysis", "people analytics",
+    "onboarding program", "offboarding", "exit interviews",
+    // Management Consulting
+    "case analysis", "structured problem solving", "hypothesis-driven",
+    "market sizing", "benchmarking", "operating model", "management consulting",
+    "strategy consulting", "business case development", "go-to-market strategy",
+    "competitive benchmarking", "issue tree", "mece", "top-down communication",
+    "executive communication", "client-facing", "stakeholder alignment",
+    // Economics / Policy / Quantitative Research
+    "econometrics", "economic modeling", "policy analysis", "cost-benefit analysis",
+    "causal inference", "panel data", "time series analysis", "microeconomics",
+    "macroeconomics", "quantitative research", "qualitative research",
+    "survey design", "survey methodology", "literature review",
+    "academic research", "research design", "statistical modeling",
+    "instrumental variables", "difference-in-differences", "regression discontinuity",
+    "natural experiment", "randomized controlled trial", "rct",
+    // Supply Chain / Operations Management
+    "procurement", "strategic sourcing", "demand planning", "inventory management",
+    "vendor management", "supplier management", "supply chain management",
+    "logistics management", "warehouse management", "fulfillment", "order management",
+    "capacity planning", "s&op", "sales and operations planning",
+    "rfp management", "contract negotiation", "purchase order management",
+    "supplier evaluation", "supplier development", "vendor onboarding",
+    "last-mile logistics", "reverse logistics", "kitting",
+    // Architecture / Civil Engineering / Urban Planning
+    "building information modeling", "bim", "construction documents",
+    "structural design", "site analysis", "urban planning", "urban design",
+    "zoning", "land use planning", "construction management", "cost estimating",
+    "sustainable design", "passive design", "landscape design",
+    "civil engineering", "geotechnical engineering", "transportation planning",
+    "stormwater management", "traffic engineering", "pavement design",
+    "foundation design", "retaining wall design", "site grading",
+    // Education / Instructional Design
+    "curriculum development", "lesson planning", "instructional design",
+    "e-learning", "learning management system", "lms", "classroom management",
+    "differentiated instruction", "assessment design", "student outcomes",
+    "pedagogy", "tutoring", "academic advising", "educational technology",
+    "edtech", "formative assessment", "summative assessment",
+    "project-based learning", "blended learning", "distance learning",
+    // Social Sciences / Psychology / Research Methods
+    "content analysis", "thematic analysis", "ethnography", "focus groups",
+    "interview research", "academic writing", "psychological assessment",
+    "behavior analysis", "cognitive research", "discourse analysis",
+    "grounded theory", "mixed methods", "action research",
+    // Healthcare / Nursing / Clinical (non-lab)
+    "patient care", "clinical assessment", "patient education",
+    "medication administration", "electronic health records", "ehr", "emr",
+    "triage", "care coordination", "population health", "public health",
+    "epidemiology", "community health", "health informatics", "nursing",
+    "patient advocacy", "discharge planning", "clinical documentation",
+    "health coaching", "case management",
+    // Chemical Engineering / Process
+    "chemical process design", "reaction engineering", "heat transfer",
+    "mass transfer", "thermodynamics", "separation processes",
+    "process simulation", "process safety", "hazop", "process optimization",
+    "scale-up", "pilot plant", "distillation", "absorption", "extraction",
+    // Aerospace / Advanced Mechanical
+    "aerodynamics", "computational fluid dynamics", "cfd",
+    "structural mechanics", "propulsion systems", "systems integration",
+    "orbital mechanics", "avionics", "flight dynamics", "astrodynamics",
+    "composite materials", "fatigue analysis",
+    // Customer Success / Account Management
+    "customer success", "customer onboarding", "renewal management",
+    "account management", "churn reduction", "upsell", "cross-sell",
+    "quarterly business review", "qbr", "customer health scoring",
+    "voice of customer", "net promoter score", "nps management",
+    "customer retention", "product adoption", "time to value",
+    // Investment / Finance — Advanced
+    "dcf analysis", "discounted cash flow", "financial due diligence",
+    "lbo modeling", "comparable company analysis", "precedent transactions",
+    "capital markets", "portfolio management", "risk management",
+    "asset management", "investment analysis", "equity research",
+    "fixed income", "derivatives", "options pricing", "hedge fund",
+    "private equity", "venture capital", "mergers and acquisitions",
+    // Sales / Business Development
+    "sales strategy", "pipeline management", "account planning",
+    "business development", "crm management", "cold outreach",
+    "prospecting", "quota attainment", "revenue generation",
+    "solution selling", "consultative selling",
+    // Operations Research / Optimization
+    "linear programming", "integer programming", "stochastic modeling",
+    "simulation modeling", "operations research", "queuing theory",
+    "network optimization", "combinatorial optimization",
+    // Communications / Journalism / Media
+    "journalism", "news writing", "editorial", "media production",
+    "video production", "audio production", "podcast production",
+    "broadcast journalism", "investigative reporting", "feature writing",
+    "press release", "media outreach",
+    // Social Work / Nonprofit
+    "community organizing", "crisis intervention", "counseling",
+    "social work", "child welfare", "advocacy", "program evaluation",
+    "grant writing", "fundraising", "volunteer management",
+    "nonprofit management", "community development"
   ],
   domain_keywords: [
     // Finance / Accounting
@@ -412,7 +548,82 @@ const CATEGORY_PHRASES = {
     "technical debt", "version control", "data pipeline",
     "microservices architecture", "service-oriented", "event-driven",
     "statistical significance", "hypothesis testing", "regression analysis",
-    "a/b testing", "multivariate testing", "experiment design"
+    "a/b testing", "multivariate testing", "experiment design",
+    // HR / People Ops domain
+    "headcount", "attrition", "talent pipeline", "workforce development",
+    "employee lifecycle", "employer brand", "employee value proposition",
+    "diversity equity inclusion", "dei initiatives", "employee retention",
+    "people operations", "hris implementation", "payroll processing",
+    "total rewards", "job leveling", "career pathing",
+    // Management Consulting domain
+    "workstream", "deliverable", "client engagement", "engagement management",
+    "strategic recommendation", "value creation framework", "deck",
+    "management presentation", "c-suite communication", "board presentation",
+    // Economics / Policy domain
+    "fiscal policy", "monetary policy", "labor market", "gdp", "inflation",
+    "impact evaluation", "program evaluation", "policy brief",
+    "cost effectiveness analysis", "welfare economics", "public finance",
+    "income inequality", "poverty reduction", "development economics",
+    "behavioral economics", "experimental economics",
+    // Supply Chain domain
+    "lead time", "on-time delivery", "otd", "fill rate", "service level",
+    "sku", "bom", "bill of materials", "mrp", "material requirements planning",
+    "just-in-time", "jit", "lean supply chain", "vendor performance",
+    "spend analysis", "total cost of ownership", "tco", "rfq",
+    "purchase order", "raw materials", "finished goods", "wip",
+    "cross-docking", "3pl", "4pl", "freight", "incoterms",
+    // Architecture / Civil domain
+    "building code", "master plan", "site plan", "floor plan", "schematic design",
+    "design development", "construction administration", "shop drawings",
+    "mixed-use development", "transit-oriented development",
+    "urban mobility", "geotechnical", "surveying", "infrastructure design",
+    "stormwater", "grading", "utility design", "right of way",
+    // Education domain
+    "student achievement", "learning outcomes", "stem education",
+    "k-12", "higher education", "professional development",
+    "training and development", "accreditation", "learning objectives",
+    "course design", "syllabus development", "faculty development",
+    // Healthcare domain (clinical/operational)
+    "value-based care", "health outcomes", "patient satisfaction",
+    "clinical workflow", "telemedicine", "telehealth", "care management",
+    "disease management", "preventive care", "chronic disease management",
+    "population health management", "utilization management",
+    "health equity", "social determinants of health", "sdoh",
+    // Social Sciences / Nonprofit domain
+    "social impact", "community engagement", "policy advocacy",
+    "nonprofit management", "grant writing", "fundraising",
+    "program management", "community development", "civic engagement",
+    "capacity building", "stakeholder engagement", "coalition building",
+    // Customer Success domain
+    "health score", "product adoption", "customer journey",
+    "expansion revenue", "net revenue retention", "nrr",
+    "gross revenue retention", "grr", "logo retention",
+    "customer segmentation", "tier management", "executive sponsor",
+    // Aerospace / Defense domain
+    "faa regulations", "mil-spec", "airworthiness", "propulsion",
+    "systems engineering", "avionics", "flight test", "certification",
+    // Investment / Finance domain
+    "investment banking", "private equity", "venture capital",
+    "asset management", "hedge fund", "capital markets",
+    "equity research", "fixed income", "credit analysis",
+    "lbo", "ipo", "spac", "syndication", "underwriting",
+    "fund administration", "nav", "aum",
+    // Sales / Revenue domain
+    "pipeline", "quota", "bookings", "annual recurring revenue",
+    "net new revenue", "expansion", "win rate", "average deal size",
+    "sales cycle", "territory management", "channel sales",
+    "partner management", "reseller", "distributor",
+    // Operations Research / Analytics domain
+    "optimization problem", "constraint satisfaction", "heuristic",
+    "monte carlo", "discrete event simulation", "supply-demand balancing",
+    // Communications / Media domain
+    "media relations", "press coverage", "editorial calendar",
+    "content calendar", "newsroom", "beat reporting", "source development",
+    "interview skills", "fact-checking", "ap style",
+    // Chemical / Process domain
+    "batch processing", "continuous processing", "gmp manufacturing",
+    "process validation", "technology transfer", "scale-up", "cmc",
+    "environmental health and safety", "ehs", "process hazard analysis"
   ],
   action_verbs: [
     // Finance / Data / Tech
@@ -442,7 +653,35 @@ const CATEGORY_PHRASES = {
     "acquire", "engage", "convert", "segment", "target",
     // IT / Security
     "secure", "patch", "monitor", "migrate", "provision", "automate",
-    "architect", "harden", "encrypt", "detect", "respond"
+    "architect", "harden", "encrypt", "detect", "respond",
+    // HR / Talent
+    "recruit", "source", "screen", "hire", "onboard", "coach", "retain",
+    "interview", "assess candidates", "headhunt",
+    // Education / Training
+    "teach", "instruct", "educate", "tutor", "facilitate learning",
+    "scaffold", "differentiate", "advise",
+    // Supply Chain / Ops
+    "procure", "replenish", "expedite", "fulfil", "ship", "receive",
+    "inspect", "warehouse", "distribute",
+    // Healthcare / Clinical
+    "administer", "treat", "counsel", "refer", "triage", "diagnose",
+    "prescribe", "assess", "document",
+    // Architecture / Civil
+    "draft", "permit", "survey", "inspect", "estimate",
+    // Consulting / Strategy
+    "synthesize", "frame", "scope", "size", "hypothesize",
+    "benchmark", "advise", "pitch",
+    // Sales / BD
+    "prospect", "close", "upsell", "cross-sell", "negotiate",
+    // Communications / Media
+    "write", "edit", "proofread", "publish", "broadcast",
+    // Finance / Investment
+    "model", "value", "underwrite", "syndicate", "allocate", "hedge",
+    // Research / Social Sciences
+    "observe", "code", "transcribe", "interpret", "test",
+    // General additions
+    "transform", "scale", "pilot", "revamp", "overhaul", "standardize",
+    "digitize", "automate", "integrate", "centralize", "consolidate"
   ],
   nice_to_have: [
     // Finance / Accounting
@@ -471,7 +710,46 @@ const CATEGORY_PHRASES = {
     "bar admission", "juris doctor", "jd", "llm", "paralegal certificate",
     // Environmental
     "leed certified", "iso 14001 certified", "sustainability certification",
-    "quantum computing", "game development", "embedded systems", "rust", "c++"
+    "quantum computing", "game development", "embedded systems", "rust", "c++",
+    // HR Certifications
+    "shrm-cp", "shrm-scp", "phr", "sphr", "shrm certified",
+    "talent management certified",
+    // Finance / Banking Certifications
+    "cfa", "cfa level 1", "cfa candidate", "cfa level 2", "cfa charterholder",
+    "series 7", "series 63", "series 79", "frm", "caia",
+    "chartered financial analyst",
+    // Consulting / Strategy
+    "case competition", "management consulting internship",
+    "strategy internship", "consulting internship",
+    // Architecture
+    "leed ap", "are", "architect registration examination",
+    "registered architect",
+    // Supply Chain Certifications
+    "apics cpim", "apics cscp", "cltd", "cscmp",
+    "certified supply chain professional",
+    // Engineering Certifications
+    "fe exam", "eit", "fundamentals of engineering", "pe license",
+    // Data / Cloud Certifications
+    "google data analytics certificate", "tableau certified",
+    "databricks certified", "aws solutions architect",
+    "azure data engineer", "google cloud professional",
+    // Project Management Certifications
+    "pmp certified", "capm", "agile certified", "scrum master", "csm",
+    "safe agile", "prince2",
+    // Finance Additional
+    "acca", "cma", "enrolled agent", "ea", "cfp",
+    // Legal Additional
+    "bar prep", "law review", "moot court",
+    // Language / Cultural
+    "bilingual", "trilingual", "multilingual", "toefl", "ielts",
+    "hsk", "delf", "goethe", "jlpt",
+    // Research
+    "published research", "peer-reviewed publication", "conference presentation",
+    "research fellowship", "grant recipient",
+    // General Nice-to-Have Experience
+    "startup experience", "nonprofit experience", "government experience",
+    "international internship", "study abroad", "exchange program",
+    "dean's list", "honor society", "honors thesis", "capstone project"
   ]
 };
 
@@ -1831,6 +2109,274 @@ function analyzeWriteGoodIssues(bulletTexts) {
   }
 }
 
+function checkRepetitiveVerbs(bulletLines) {
+  const verbCounts = {};
+  for (const line of bulletLines) {
+    const stripped = line.trim().replace(/^[^a-zA-Z]+/, "");
+    const firstWord = stripped.split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, "");
+    if (!firstWord || firstWord.length < 3) continue;
+    verbCounts[firstWord] = (verbCounts[firstWord] || 0) + 1;
+  }
+  const repetitive = Object.entries(verbCounts)
+    .filter(([, count]) => count >= 2)
+    .sort(([, a], [, b]) => b - a)
+    .map(([verb, count]) => ({ verb, count }));
+  const maxCount = repetitive.length ? repetitive[0].count : 0;
+  const maxVerb  = repetitive.length ? repetitive[0].verb  : null;
+  return { repetitive, maxCount, maxVerb };
+}
+
+// ── Candidate profile detection ──────────────────────────────────────────────
+
+function detectSeniority(expEntries) {
+  let totalMonths = 0;
+  for (const entry of expEntries) {
+    const dr = entry.dateRange;
+    const text = entry.titleLines.join(" ").toLowerCase();
+    const isIntern = /intern|internship|co-?op|contractor|temp\b|temporary|part[- ]time|volunteer/i.test(text);
+    if (!isIntern && dr.durationMonths > 0) {
+      totalMonths += Math.min(dr.durationMonths, 72);
+    }
+  }
+  if (totalMonths < 24) return "entry_level";
+  if (totalMonths < 60) return "mid_level";
+  return "senior";
+}
+
+function buildProfile({ expEntries, isRecentGraduate, targetRole, resumeRole, hasWillingToRelocate, allChina, hasAnyChinaExp }) {
+  const seniority = detectSeniority(expEntries);
+  let candidateType;
+  if (isRecentGraduate || seniority === "entry_level") candidateType = "early_career";
+  else if (targetRole.role !== "general" && resumeRole.role !== targetRole.role) candidateType = "career_changer";
+  else candidateType = "experienced";
+  const market = allChina ? "china" : hasAnyChinaExp ? "mixed" : "us";
+  return {
+    roleFamily: targetRole.role,
+    targetRole: targetRole.role,
+    seniority,
+    candidateType,
+    market,
+    willingToRelocate: hasWillingToRelocate
+  };
+}
+
+// ── Problem tags ─────────────────────────────────────────────────────────────
+
+const PROBLEM_TAG_DEFS = {
+  // A
+  outdated_resume:           { dimension: "A", topic: "resume_maintenance",    severity: "medium",   retrievalWeight: 0.5  },
+  non_chronological_order:   { dimension: "A", topic: "format",                severity: "high",     retrievalWeight: 0.3  },
+  inconsistent_date_format:  { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.2  },
+  missing_section_dates:     { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.2  },
+  file_naming_issue:         { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.15 },
+  // B
+  missing_summary:           { dimension: "B", topic: "resume_structure",      severity: "high",     retrievalWeight: 0.6  },
+  missing_gpa:               { dimension: "B", topic: "education_completeness", severity: "medium",  retrievalWeight: 0.4  },
+  missing_coursework:        { dimension: "B", topic: "education_completeness", severity: "medium",  retrievalWeight: 0.35 },
+  missing_contact_info:      { dimension: "B", topic: "searchability",         severity: "high",     retrievalWeight: 0.5  },
+  missing_exp_location:      { dimension: "B", topic: "searchability",         severity: "low",      retrievalWeight: 0.25 },
+  // C
+  insufficient_quantification: { dimension: "C", topic: "content_quality",    severity: "high",     retrievalWeight: 0.7  },
+  weak_verbs:                { dimension: "C", topic: "content_quality",       severity: "medium",   retrievalWeight: 0.6  },
+  passive_voice:             { dimension: "C", topic: "content_quality",       severity: "medium",   retrievalWeight: 0.5  },
+  repetitive_verbs:          { dimension: "C", topic: "content_quality",       severity: "low",      retrievalWeight: 0.4  },
+  low_bullet_coverage:       { dimension: "C", topic: "content_quality",       severity: "medium",   retrievalWeight: 0.5  },
+  short_tenure_unexplained:  { dimension: "C", topic: "career_narrative",      severity: "high",     retrievalWeight: 0.6  },
+  // D
+  keyword_gap_critical:      { dimension: "D", topic: "keyword_alignment",     severity: "critical", retrievalWeight: 0.9  },
+  keyword_gap_major:         { dimension: "D", topic: "keyword_alignment",     severity: "high",     retrievalWeight: 0.75 },
+  keyword_gap_minor:         { dimension: "D", topic: "keyword_alignment",     severity: "medium",   retrievalWeight: 0.5  },
+  missing_tools:             { dimension: "D", topic: "tools_alignment",       severity: "high",     retrievalWeight: 0.7  },
+  // E
+  all_china_experience:      { dimension: "E", topic: "market_fit",            severity: "critical", retrievalWeight: 0.9  },
+  partial_china_experience:  { dimension: "E", topic: "market_fit",            severity: "high",     retrievalWeight: 0.7  },
+  no_relocate_signal:        { dimension: "E", topic: "market_fit",            severity: "medium",   retrievalWeight: 0.5  },
+  // F
+  role_mismatch:             { dimension: "F", topic: "career_positioning",    severity: "high",     retrievalWeight: 0.8  },
+  job_title_mismatch:        { dimension: "F", topic: "career_positioning",    severity: "medium",   retrievalWeight: 0.55 },
+  summary_missing_role:      { dimension: "F", topic: "career_positioning",    severity: "medium",   retrievalWeight: 0.5  },
+  career_growth_optimization:{ dimension: "F", topic: "career_growth",         severity: "low",      retrievalWeight: 0.35 }
+};
+
+function makeTag(tagKey) {
+  const def = PROBLEM_TAG_DEFS[tagKey];
+  if (!def) return null;
+  return { tag: tagKey, ...def };
+}
+
+function buildProblemTags({
+  resumeOutdated, isChronological, inconsistentDates, inconsistentMonthStyle,
+  educationHasDates, projectsHasDates, fileNameIssues,
+  hasSummary, isRecentGraduate, hasEducation, hasGPA, hasCoursework,
+  emailValid, phoneValid, expLocationResult,
+  quantifiedCount, weakPhraseCount, writeGoodResult, repetitiveVerbResult,
+  coreSkillBulletCoverage, shortTenures,
+  hasJD, jdMatchRatio, keywordMatch,
+  allChina, hasAnyChinaExp, hasWillingToRelocate,
+  targetRole, resumeRole, jobTitleAligned, summaryMentionsRole, total
+}) {
+  const tags = [];
+  const push = (key) => { const t = makeTag(key); if (t) tags.push(t); };
+
+  // A
+  if (resumeOutdated) push("outdated_resume");
+  if (!isChronological) push("non_chronological_order");
+  if (inconsistentDates || inconsistentMonthStyle) push("inconsistent_date_format");
+  if ((hasEducation && !educationHasDates) || !projectsHasDates) push("missing_section_dates");
+  if (fileNameIssues && fileNameIssues.length) push("file_naming_issue");
+
+  // B
+  if (!hasSummary && !isRecentGraduate) push("missing_summary");
+  if (hasEducation && !hasGPA) push("missing_gpa");
+  if (hasEducation && !hasCoursework) push("missing_coursework");
+  if (!emailValid || !phoneValid) push("missing_contact_info");
+  if (expLocationResult && !expLocationResult.allHaveLocation) push("missing_exp_location");
+
+  // C
+  if (quantifiedCount < 3) push("insufficient_quantification");
+  if (weakPhraseCount >= 3) push("weak_verbs");
+  if (writeGoodResult?.passiveCount >= 2) push("passive_voice");
+  if (repetitiveVerbResult?.maxCount >= 2) push("repetitive_verbs");
+  if (coreSkillBulletCoverage < 0.4) push("low_bullet_coverage");
+  if (shortTenures && shortTenures.length > 0) push("short_tenure_unexplained");
+
+  // D
+  if (hasJD) {
+    if (jdMatchRatio < 0.3) push("keyword_gap_critical");
+    else if (jdMatchRatio < 0.5) push("keyword_gap_major");
+    else if (jdMatchRatio < 0.7) push("keyword_gap_minor");
+    if ((keywordMatch?.comparison?.tools?.missing?.length || 0) > 2) push("missing_tools");
+  }
+
+  // E
+  if (allChina) push("all_china_experience");
+  else if (hasAnyChinaExp) push("partial_china_experience");
+  if (!hasWillingToRelocate && (allChina || hasAnyChinaExp)) push("no_relocate_signal");
+
+  // F
+  if (targetRole.role !== "general" && resumeRole.role !== targetRole.role) push("role_mismatch");
+  if (jobTitleAligned && !jobTitleAligned.aligned) push("job_title_mismatch");
+  if (!summaryMentionsRole) push("summary_missing_role");
+  if (total >= 70) push("career_growth_optimization");
+
+  // Sort: critical → high → medium → low
+  const order = { critical: 0, high: 1, medium: 2, low: 3 };
+  return tags.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+}
+
+// ── Retrieval query ──────────────────────────────────────────────────────────
+
+function buildRetrievalQuery(profile, problemTags, priorityMissingKeywords) {
+  const topics = [...new Set(problemTags.map(t => t.topic))];
+  const tagNames = problemTags.map(t => t.tag);
+  const priorityKeywords = priorityMissingKeywords
+    .filter(k => k.priority === "high" || k.priority === "medium")
+    .map(k => k.term)
+    .slice(0, 5);
+
+  const seniorityExpansion = {
+    entry_level: ["entry_level", "early_career", "universal"],
+    mid_level:   ["mid_level", "universal"],
+    senior:      ["senior", "universal"]
+  };
+
+  const queryText = [
+    profile.seniority,
+    profile.roleFamily,
+    ...topics.slice(0, 3),
+    ...tagNames.slice(0, 3)
+  ].join(" ");
+
+  return {
+    roleFamily: profile.roleFamily,
+    targetRole: profile.targetRole,
+    seniority: profile.seniority,
+    topics,
+    problemTags: tagNames,
+    priorityKeywords,
+    queryText,
+    filters: {
+      roleFamily: [profile.roleFamily, "universal"],
+      seniority: seniorityExpansion[profile.seniority] || ["universal"]
+    }
+  };
+}
+
+// ── Diagnostics (frontend-friendly summary) ───────────────────────────────────
+
+function buildDiagnostics({ emailValid, phoneValid, hasLinkedIn, hasPortfolio, hasSummary,
+  hasEducation, hasExperience, inconsistentDates, inconsistentMonthStyle,
+  wordCount, exactJobTitle, jobTitle, quantifiedCount }) {
+  return {
+    searchability: {
+      hasEmail: emailValid,
+      hasPhone: phoneValid,
+      hasLinkedIn,
+      hasPortfolio,
+      hasSummary,
+      hasEducation,
+      hasExperience,
+      dateFormattingValid: !inconsistentDates && !inconsistentMonthStyle,
+      wordCount
+    },
+    jobTitleMatch: {
+      exactMatch: exactJobTitle?.exact || false,
+      targetTitle: exactJobTitle?.targetTitle || jobTitle || "",
+      severity: (exactJobTitle?.penalty ?? 0) === 0 ? "none" : "low"
+    },
+    measurableResults: {
+      count: quantifiedCount,
+      status: quantifiedCount >= 8 ? "strong"
+            : quantifiedCount >= 5 ? "good"
+            : quantifiedCount >= 3 ? "fair"
+            : "weak"
+    }
+  };
+}
+
+// ── Priority missing keywords ─────────────────────────────────────────────────
+
+function generateKeywordReason(term, type, roleName) {
+  switch (type) {
+    case "hard_skill": return `Core skill expected for ${roleName} roles; add to experience bullets or skills section to improve ATS match.`;
+    case "tool":       return `Commonly required tool in ${roleName} job descriptions; add to skills if you have experience with it.`;
+    case "domain":     return `Domain keyword that signals ${roleName} knowledge; consider adding to summary or experience context.`;
+    case "soft_skill": return `Action verb from the JD; can be naturally incorporated into existing experience bullets.`;
+    case "nice_to_have": return `Nice-to-have qualification; add if applicable to your background.`;
+    default:           return `Appears in the JD; adding it can improve overall keyword match rate.`;
+  }
+}
+
+function buildPriorityMissingKeywords(keywordMatch, targetRole) {
+  const comparison = keywordMatch?.comparison || {};
+  const roleName = targetRole?.role?.replace(/_/g, " ") || "this";
+
+  const categoryConfig = [
+    { key: "core_skills",     priority: "high",   type: "hard_skill"   },
+    { key: "tools",           priority: "high",   type: "tool"         },
+    { key: "domain_keywords", priority: "medium", type: "domain"       },
+    { key: "action_verbs",    priority: "low",    type: "soft_skill"   },
+    { key: "nice_to_have",    priority: "low",    type: "nice_to_have" }
+  ];
+
+  const result = [];
+  for (const { key, priority, type } of categoryConfig) {
+    const missing = comparison[key]?.missing || [];
+    for (const term of missing.slice(0, 4)) {
+      result.push({
+        term,
+        priority,
+        category: type,
+        safeToAdd: true,
+        reason: generateKeywordReason(term, type, roleName)
+      });
+    }
+  }
+
+  const order = { high: 0, medium: 1, low: 2 };
+  return result.sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9)).slice(0, 10);
+}
+
 function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const normalized = normalizeText(resumeText);
   if (!normalized.trim()) throw new Error("resumeText is required");
@@ -1850,6 +2396,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const inconsistentMonthStyle = hasInconsistentMonthStyle(normalizeText(resumeText));
   const rawBullets = getBulletLines(normalized).map(l => l.replace(/^[-•*]\s*/, ""));
   const writeGoodResult = analyzeWriteGoodIssues(rawBullets);
+  const repetitiveVerbResult = checkRepetitiveVerbs(getBulletLines(normalized));
   const verbDiversity = analyzeVerbDiversity(rawBullets);
   const skillBalance  = analyzeSkillBalance(rawBullets);
   const experienceBullets = bulletsFromSection(experienceProjectsText);
@@ -1933,6 +2480,8 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   if (countWeakPhrases(normalized) >= 3) C -= 1;
   if (writeGoodResult.passiveCount >= 5) C -= 1;
   else if (writeGoodResult.passiveCount >= 2) C -= 0.5;
+  if (repetitiveVerbResult.maxCount >= 3) C -= 1;
+  else if (repetitiveVerbResult.maxCount >= 2) C -= 0.5;
 
   // Verb diversity: penalise when the same verb is overused
   if (verbDiversity.verbBulletCount >= 5) {
@@ -2016,6 +2565,14 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const resumeRole = detectRoleFamily(normalized);
   F = clamp(F, 0, DIMENSION_MAX.F);
 
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  const hasExperience = Boolean(expText.trim());
+
+  const profile = buildProfile({
+    expEntries, isRecentGraduate, targetRole, resumeRole,
+    hasWillingToRelocate, allChina, hasAnyChinaExp
+  });
+
   const rawTotal = A + B + C + D_final + E + F;
   const formatPenaltyTriggered = A < 8 * 0.6 || B < 7 * 0.6;
   const formatPenaltyReason = [];
@@ -2033,6 +2590,32 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const hasEducation = /education|university|college|bachelor|master|degree/i.test(normalized);
   const phonePresent = analyzePhone(normalized).present;
   const inconsistentDates = hasInconsistentDateFormat(normalized);
+
+  const priorityMissingKeywords = buildPriorityMissingKeywords(keywordMatch, targetRole);
+
+  const problemTagsInput = {
+    resumeOutdated, isChronological, inconsistentDates, inconsistentMonthStyle,
+    educationHasDates, projectsHasDates, fileNameIssues: fileNameResult.issues,
+    hasSummary, isRecentGraduate, hasEducation, hasGPA, hasCoursework,
+    emailValid, phoneValid: phoneInfo.valid, expLocationResult,
+    quantifiedCount, weakPhraseCount, writeGoodResult, repetitiveVerbResult,
+    coreSkillBulletCoverage: coreBulletSignal.coverage, shortTenures,
+    hasJD, jdMatchRatio, keywordMatch,
+    allChina, hasAnyChinaExp, hasWillingToRelocate,
+    targetRole, resumeRole, jobTitleAligned, summaryMentionsRole, total
+  };
+  const problemTags = buildProblemTags(problemTagsInput);
+
+  const diagnostics = buildDiagnostics({
+    emailValid, phoneValid: phoneInfo.valid,
+    hasLinkedIn: /linkedin\.com\/in\/|linkedin/i.test(normalized),
+    hasPortfolio: /\b\w[\w-]*\.(me|dev|io|app|site|co)\b/i.test(normalized) || /github\.io/i.test(normalized),
+    hasSummary, hasEducation, hasExperience,
+    inconsistentDates, inconsistentMonthStyle,
+    wordCount, exactJobTitle, jobTitle, quantifiedCount
+  });
+
+  const retrievalQuery = buildRetrievalQuery(profile, problemTags, priorityMissingKeywords);
 
   const problems = buildProblems({
     hasEmail, hasJD, jdMatchRatio, quantifiedCount, strongVerbCount, impactCount,
@@ -2072,6 +2655,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
       exactJobTitle,
       scoreCaps,
       writeGoodResult,
+      repetitiveVerbResult,
       verbDiversity,
       skillBalance,
       resumeOutdated,
@@ -2165,6 +2749,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
         exactJobTitle,
         scoreCaps,
         writeGoodResult,
+        repetitiveVerbResult,
         verbDiversity,
         skillBalance,
         resumeOutdated
@@ -2176,7 +2761,12 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     dimensionProblems,
     improvement: formatPenaltyTriggered
       ? `先解决格式/信息问题，修复后预计提升至 ${Math.min(90, rawTotal + potentialGain)}`
-      : `${total} → ${Math.min(90, total + potentialGain)}（保守估计）`
+      : `${total} → ${Math.min(90, total + potentialGain)}（保守估计）`,
+    profile,
+    problemTags,
+    retrievalQuery,
+    diagnostics,
+    priorityMissingKeywords,
   };
 }
 
@@ -2261,6 +2851,8 @@ function buildDimensionProblems(ctx) {
   if (ctx.weakPhraseCount >= 3) C.push(`发现 ${ctx.weakPhraseCount} 处弱表达（helped、assisted、responsible for 等）`);
   if (checks.writeGoodResult?.passiveCount >= 5) C.push(`检测到 ${checks.writeGoodResult.passiveCount} 处被动语态，建议改为主动句式（如 "was developed by" → "developed"）`);
   else if (checks.writeGoodResult?.passiveCount >= 2) C.push(`发现 ${checks.writeGoodResult.passiveCount} 处被动语态，建议优先使用主动动词`);
+  if (checks.repetitiveVerbResult?.maxCount >= 3) C.push(`动词 "${checks.repetitiveVerbResult.maxVerb}" 重复出现 ${checks.repetitiveVerbResult.maxCount} 次，建议替换为多样化的动作动词以提升 ATS 吸引力`);
+  else if (checks.repetitiveVerbResult?.maxCount >= 2) C.push(`动词 "${checks.repetitiveVerbResult.maxVerb}" 重复出现 2 次，建议每条 bullet 使用不同动词，避免表达单一`);
   if (checks.coreSkillBulletCoverage < 0.4) C.push("核心技能在 bullet 中的覆盖率不足 40%");
   else if (checks.coreSkillBulletCoverage < 0.7) C.push("核心技能 bullet 覆盖率未达 70%，可进一步强化");
   if (ctx.shortTenures && ctx.shortTenures.length > 0) {
