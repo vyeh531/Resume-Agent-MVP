@@ -18,3 +18,4 @@ npm-debug.log*
 .env
 .env.local
 mentor_kb-v5.db
+*.db
