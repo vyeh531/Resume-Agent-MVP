@@ -513,65 +513,124 @@
   })();
 
   // ── 3. Mentors (all 4, no paywall) ────────────────────────────
-  // ── One advice group (P0/P1/P2 block) ──
-  function renderAdviceGroup(item) {
-    const ba = item.beforeAfter || {};
-    const hasFake = (ba.after || "").includes("[[");
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  const sectionLabelMap = {
+    summary:"Summary", skills:"Skills", experience:"Experience",
+    projects:"Projects", education:"Education", overall:"Overall"
+  };
+  function sectionLabel(s){ return sectionLabelMap[s] || "Overall"; }
+
+  function priorityLabel(p){
+    if(!p) return "medium";
+    if(p==="high"||p==="P0") return "high";
+    if(p==="medium"||p==="P1") return "medium";
+    return "low";
+  }
+  function priorityBadge(p){
+    const lv = priorityLabel(p);
+    const styles = {
+      high:  "background:rgba(224,112,112,.12);color:#c0392b;",
+      medium:"background:rgba(233,168,76,.12);color:#b7830a;",
+      low:   "background:rgba(100,191,123,.12);color:#2f6b4f;"
+    };
+    const labels = { high:"P0 必改", medium:"P1 建议改", low:"P2 加分" };
+    return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;${styles[lv]}">${labels[lv]}</span>`;
+  }
+
+  // ── One advice item (new DB format) ──
+  function renderAdviceItem(item, idx) {
+    const insight = item.mentorInsight || "";
+    const example = item.example || "";
+    const hrPerspective = item.hrPerspective || "";
     return `
-      <div class="priority-issue" style="margin-top:14px;">
-        <span class="priority-tag ${priorityClass(item.priority)}">${item.priority || "P0 必改"}</span>
-        <span class="priority-text">${item.issue || ""}</span>
+      <div style="margin-top:${idx>0?'18px':'14px'};">
+        ${idx>0?'<hr style="border:none;border-top:1px dashed var(--line);margin:0 0 18px;">':''}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          ${priorityBadge(item.priority)}
+          <span style="font-size:13px;font-weight:700;color:var(--ink);">${escapeHtml(item.title)}</span>
+          <span class="cred-pill" style="margin-left:auto;flex-shrink:0;">${escapeHtml(sectionLabel(item.targetSection))}</span>
+        </div>
+        <p style="margin:0 0 8px;font-size:13px;color:var(--ink-soft);line-height:1.6;">${escapeHtml(item.problemSummary)}</p>
+        <p style="margin:0;font-size:14px;line-height:1.7;">${escapeHtml(item.actionSummary)}</p>
+        ${insight ? `<div class="advice-section" style="margin-top:10px;"><h4>导师洞察</h4><p>${escapeHtml(insight)}</p></div>` : ""}
+        ${example ? `<div class="advice-example"><div class="advice-example-head"><div class="title"><span class="check">✓</span><span>改写示例</span></div><button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(example)}'>📋 复制</button></div><div class="advice-example-body"><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${escapeHtml(example)}</span></div></div>` : ""}
+        ${hrPerspective ? `<div class="advice-section advice-section--plain" style="margin-top:8px;"><h4>HR 视角</h4><p>${escapeHtml(hrPerspective)}</p></div>` : ""}
       </div>
-      ${item.strategy ? `<div class="advice-section" style="margin-top:12px;"><h4>导师筛选策略</h4><p>${highlightFake(item.strategy)}</p></div>` : ""}
-      ${item.current ? `<div class="advice-section advice-section--plain"><h4>你的现状</h4><p>${highlightFake(item.current)}</p></div>` : ""}
-      <div class="advice-section advice-section--plain"><h4>建议</h4><div style="font-size:14px;line-height:1.7;">${formatAdvice(item.advice || "")}</div></div>
-      ${ba.after ? `
-      <div class="advice-example">
-        <div class="advice-example-head">
-          <div class="title"><span class="check">✓</span><span>改写示例</span></div>
-          <button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(ba.after)}'>📋 复制</button>
-        </div>
-        <div class="advice-example-body">
-          ${ba.before ? `<div style="margin-bottom:8px;"><span class="label" style="color:var(--rose,#e07070);">改写前：</span><br/><span style="font-size:13px;color:var(--ink-soft);font-family:var(--mono,monospace);">${ba.before}</span></div>` : ""}
-          <div><span class="label">改写后：</span><br/><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${highlightFake(ba.after)}</span></div>
-          ${hasFake ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-mute);font-family:var(--mono);"><mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-size:10px;">橙色数字</mark> 为 AI 估算，请替换为你的真实数据</div>` : ""}
-        </div>
-      </div>` : ""}
     `;
   }
 
-  // ── Full mentor card (header + career_path + 3 advice groups) ──
-  function renderMentorCard(m, idx) {
+  // ── Full premium mentor card (new DB format with logo) ──
+  function renderPremiumMentorCard(m, idx) {
+    const logo = m.companyLogo
+      ? `<img src="${escapeAttr(m.companyLogo)}" alt="${escapeHtml(m.company||'')}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff;padding:5px;">`
+      : `<div style="font-size:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${escapeHtml((m.company||"M")[0])}</div>`;
+    const badges = (m.badges||[]).map(b=>`<span class="cred-pill">${escapeHtml(b)}</span>`).join("");
+    const advice = (m.adviceItems||[]).slice(0,3).map((item,i)=>renderAdviceItem(item,i)).join("");
+    return `
+      <article class="mentor-detail">
+        <div style="font-size:11px;color:var(--ink-mute);font-family:var(--mono);letter-spacing:.04em;margin-bottom:8px;">导师 ${idx+1} / 4</div>
+        <header class="mentor-detail-head">
+          ${logo}
+          <div class="info">
+            <div class="company">${escapeHtml(m.company||"")}</div>
+            <div class="role">${escapeHtml(m.mentorName||"导师")} · ${escapeHtml(m.mentorTitle||"")}</div>
+            ${m.mentorSubtitle?`<div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(m.mentorSubtitle)}</div>`:""}
+          </div>
+        </header>
+        <div class="cred-pills" style="margin-top:10px;">${badges}</div>
+        ${advice}
+      </article>
+    `;
+  }
+
+  // ── Legacy format (old Claude AI mentors) ──
+  function renderLegacyMentorCard(m, idx) {
     const creds = Array.isArray(m.credentials) ? m.credentials : (m.tag ? [m.tag] : []);
     const logo = m.avatar || (m.company && m.company[0]) || "M";
     const adviceList = Array.isArray(m.adviceList) && m.adviceList.length > 0
       ? m.adviceList
       : [{ priority: m.priority, issue: m.issue, strategy: m.strategy, current: m.current, advice: m.advice, beforeAfter: m.beforeAfter || {} }];
     const groups = adviceList.map((item, i) => {
+      const ba = item.beforeAfter || {};
       const divider = i > 0 ? `<hr style="border:none;border-top:1px dashed var(--line);margin:20px 0 4px;">` : "";
-      return divider + renderAdviceGroup(item);
+      return divider + `
+        <div class="priority-issue" style="margin-top:14px;">
+          <span class="priority-tag ${item.priority&&item.priority.startsWith('P1')?'priority-tag--p1':item.priority&&item.priority.startsWith('P2')?'priority-tag--p2':''}">${item.priority||"P0 必改"}</span>
+          <span class="priority-text">${item.issue||""}</span>
+        </div>
+        ${item.strategy?`<div class="advice-section" style="margin-top:12px;"><h4>导师筛选策略</h4><p>${highlightFake(item.strategy)}</p></div>`:""}
+        ${item.current?`<div class="advice-section advice-section--plain"><h4>你的现状</h4><p>${highlightFake(item.current)}</p></div>`:""}
+        <div class="advice-section advice-section--plain"><h4>建议</h4><div style="font-size:14px;line-height:1.7;">${formatAdvice(item.advice||"")}</div></div>
+        ${ba.after?`<div class="advice-example"><div class="advice-example-head"><div class="title"><span class="check">✓</span><span>改写示例</span></div><button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(ba.after)}'>📋 复制</button></div><div class="advice-example-body">${ba.before?`<div style="margin-bottom:8px;"><span class="label" style="color:var(--rose);">改写前：</span><br/><span style="font-size:13px;color:var(--ink-soft);font-family:var(--mono);">${ba.before}</span></div>`:""}<div><span class="label">改写后：</span><br/><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono);">${highlightFake(ba.after)}</span></div></div></div>`:""}
+      `;
     }).join("");
     return `
       <article class="mentor-detail">
         <header class="mentor-detail-head">
           <div class="company-logo" style="font-size:${m.avatar?'22px':'14px'};width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${logo}</div>
           <div class="info">
-            <div class="company">导师 ${idx + 1} · ${m.company || ""}</div>
-            <div class="role">${formatMentorName(m.name)} · ${m.role || ""}</div>
+            <div class="company">导师 ${idx+1} · ${m.company||""}</div>
+            <div class="role">${formatMentorName(m.name)} · ${m.role||""}</div>
           </div>
         </header>
-        <div class="cred-pills" style="margin-top:10px;">
-          ${creds.map(c => `<span class="cred-pill">${c}</span>`).join("")}
-        </div>
-        ${m.career_path ? `<div style="margin-top:8px;margin-bottom:4px;font-size:12px;color:var(--ink-soft);"><b style="color:var(--ink);font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</b>　${m.career_path}</div>` : ""}
+        <div class="cred-pills" style="margin-top:10px;">${creds.map(c=>`<span class="cred-pill">${c}</span>`).join("")}</div>
+        ${m.career_path?`<div style="margin-top:8px;margin-bottom:4px;font-size:12px;color:var(--ink-soft);"><b style="color:var(--ink);font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</b>　${m.career_path}</div>`:""}
         ${groups}
       </article>
     `;
   }
 
-  const mentors = s.mentorAdvice;
-  if (mentors && mentors.length > 0) {
-    document.getElementById("mentorsList").innerHTML = mentors.map((m, i) => renderMentorCard(m, i)).join("");
+  // Prefer new premium format; fall back to legacy AI format
+  const premiumMentors = s.premiumMentors;
+  const legacyMentors = s.mentorAdvice;
+  if (premiumMentors && premiumMentors.length > 0) {
+    document.getElementById("mentorsList").innerHTML = premiumMentors.map((m,i)=>renderPremiumMentorCard(m,i)).join("");
+  } else if (legacyMentors && legacyMentors.length > 0) {
+    document.getElementById("mentorsList").innerHTML = legacyMentors.map((m,i)=>renderLegacyMentorCard(m,i)).join("");
   } else {
     document.getElementById("mentorsList").innerHTML = `<p style="color:var(--ink-soft);font-size:14px;padding:16px 0;">导师建议加载失败，请返回首页重新提交简历。</p>`;
   }

@@ -56,8 +56,21 @@ async function submitResume(form) {
     const targetJob = job || "根据 JD 分析";
     const atsRaw    = await scoreResumeAPI(resumeText, targetJob, jd);
     const atsResult = formatATSResult(atsRaw);
-    Store.set({ resumeName: file.name, jobTitle: targetJob, targetLabel: targetJob, jdText: jd, resumeText, atsResult, submittedAt: Date.now(), isPaid: false, mentorAdvice: null });
-    showLoader("诊断完成！", "导师建议先使用 mock 数据，正在跳转报告页面…");
+    Store.set({
+      resumeName: file.name,
+      jobTitle: targetJob,
+      targetLabel: targetJob,
+      jdText: jd,
+      resumeText,
+      atsResult,
+      freeMentorAdvice: atsRaw.freeMentorAdvice || null,
+      lockedAdvicePreview: atsRaw.lockedAdvicePreview || null,
+      premiumMentors: atsRaw.premiumMentors || null,
+      submittedAt: Date.now(),
+      isPaid: false,
+      mentorAdvice: null
+    });
+    showLoader("诊断完成！", "已匹配免费导师建议，正在跳转报告页面…");
     setTimeout(() => { window.location.href = "login.html"; }, 800);
   } catch(err) {
     errorBox.textContent = "❌ " + (err.message || "未知错误");

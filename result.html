@@ -523,7 +523,10 @@
   });
 
   function stripHtml(html){ return String(html).replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, ""); }
-  function escapeAttr(s){ return s.replace(/'/g, "&apos;").replace(/"/g, "&quot;"); }
+  function escapeAttr(s){ return String(s || "").replace(/'/g, "&apos;").replace(/"/g, "&quot;"); }
+  function escapeHtml(s){
+    return String(s || "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+  }
   function copyExample(btn){
     const raw = btn.getAttribute("data-content").replace(/&apos;/g, "'").replace(/&quot;/g, '"');
     // Strip [[...]] markers when copying
@@ -616,8 +619,77 @@
     `;
   }
 
+  function problemLabel(tag) {
+    const labels = {
+      low_jd_keyword_match: "JD Match 偏低",
+      low_hard_skill_match: "关键词缺失",
+      missing_priority_keywords: "关键词缺失",
+      missing_exact_job_title: "岗位定位不清",
+      weak_summary_role_alignment: "岗位定位不清",
+      weak_target_role_alignment: "岗位定位不清",
+      weak_experience_keyword_evidence: "经历证据不足",
+      keywords_only_in_skills: "经历证据不足",
+      resume_not_tailored_to_jd: "未针对 JD"
+    };
+    return labels[tag] || String(tag || "").replace(/_/g, " ");
+  }
+
+  function renderAtsEvidence() {
+    const dims = atsResult.dimensions || atsResult.raw?.dimensions || {};
+    const jdScore = atsResult.raw?.scores?.jdMatch?.score ?? atsResult.jdMatchRatio;
+    const chips = [
+      jdScore !== null && jdScore !== undefined ? `JD Match ${jdScore}${String(jdScore).includes("%") ? "" : "%"}` : "",
+      dims.D ? `D ${dims.D.score}/${dims.D.max}` : "",
+      dims.F ? `F ${dims.F.score}/${dims.F.max}` : ""
+    ].filter(Boolean);
+    if (!chips.length) return "";
+    return `<div class="cred-pills" style="margin-top:10px;">${chips.map(c => `<span class="cred-pill">${escapeHtml(c)}</span>`).join("")}</div>`;
+  }
+
+  function renderApiMentorHeader(m) {
+    const badges = Array.isArray(m.badges) ? m.badges : [];
+    const logo = m.companyLogo
+      ? `<img src="${escapeHtml(m.companyLogo)}" alt="${escapeHtml(m.company || "mentor")}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff;padding:6px;">`
+      : `<div class="company-logo" style="font-size:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${escapeHtml((m.company || "M")[0])}</div>`;
+    return `
+      <header class="mentor-detail-head">
+        ${logo}
+        <div class="info">
+          <div class="company">${escapeHtml(m.company || "Amazon")}</div>
+          <div class="role">${escapeHtml(m.mentorName || "Y 导师")} · ${escapeHtml(m.mentorTitle || "简历策略师")}</div>
+        </div>
+      </header>
+      <div class="cred-pills" style="margin-top:10px;">
+        ${badges.map(c => `<span class="cred-pill">${escapeHtml(c)}</span>`).join("")}
+      </div>
+    `;
+  }
+
+  function renderApiAdviceItem(item, i) {
+    const section = item.targetSection ? `<span class="cred-pill">${escapeHtml(item.targetSection)}</span>` : "";
+    return `
+      <div class="advice-section advice-section--plain" style="margin-top:14px;">
+        <h4>导师建议 ${i + 1}</h4>
+        <p style="font-weight:650;color:var(--ink);margin-bottom:6px;">${escapeHtml(item.title)}</p>
+        <p>${escapeHtml(item.problemSummary)}</p>
+        <p style="margin-top:8px;">${escapeHtml(item.actionSummary)}</p>
+        ${section ? `<div class="cred-pills" style="margin-top:8px;">${section}</div>` : ""}
+      </div>
+    `;
+  }
+
   // ===== Render free mentor (1 mentor, 3 advice groups) =====
   function renderFreeMentor(m) {
+    if (Array.isArray(m.adviceItems)) {
+      document.getElementById("mentorFree").innerHTML =
+        renderApiMentorHeader(m) +
+        m.adviceItems.slice(0, 3).map(renderApiAdviceItem).join("");
+      return;
+    }
+    if (m && Array.isArray(m.adviceItems)) {
+      renderFreeMentorPlan(m);
+      return;
+    }
     const adviceList = Array.isArray(m.adviceList) && m.adviceList.length > 0
       ? m.adviceList
       : [{ priority: m.priority, issue: m.issue, strategy: m.strategy, current: m.current, advice: m.advice, beforeAfter: m.beforeAfter || {} }];
@@ -626,6 +698,77 @@
       return divider + renderAdviceGroup(item, "copyExample");
     }).join("");
     document.getElementById("mentorFree").innerHTML = renderMentorHeader(m) + groups;
+  }
+
+  function sectionLabel(section) {
+    const labels = {
+      summary: "Summary",
+      skills: "Skills",
+      experience: "Experience",
+      projects: "Projects",
+      education: "Education",
+      overall: "Overall",
+    };
+    return labels[section] || "Overall";
+  }
+
+  function problemLabel(tag) {
+    const labels = {
+      low_jd_keyword_match: "JD Match 偏低",
+      low_hard_skill_match: "核心技能缺失",
+      missing_exact_job_title: "岗位原词缺失",
+      weak_summary_role_alignment: "岗位定位不清",
+      weak_experience_keyword_evidence: "经历证据不足",
+      keywords_only_in_skills: "关键词只在 Skills",
+      low_measurable_results: "量化成果偏弱",
+      missing_linkedin: "LinkedIn 缺失",
+      missing_portfolio: "Portfolio 缺失",
+      resume_not_tailored_to_jd: "简历未贴合 JD",
+    };
+    return labels[tag] || String(tag || "").replace(/_/g, " ");
+  }
+
+  function renderAtsEvidenceChips(ats) {
+    const raw = ats?.raw || ats || {};
+    const chips = [];
+    const jdScore = raw.scores?.jdMatch?.score;
+    const dimD = raw.dimensions?.D;
+    const dimF = raw.dimensions?.F;
+    if (jdScore !== undefined) chips.push(`JD Match ${jdScore}/100`);
+    if (dimD) chips.push(`D 关键词 ${dimD.score}/${dimD.max}`);
+    if (dimF) chips.push(`F 职位相关 ${dimF.score}/${dimF.max}`);
+    return chips.map(c => `<span class="cred-pill">${escapeHtml(c)}</span>`).join("");
+  }
+
+  function renderFreeMentorPlan(m) {
+    const logo = m.companyLogo
+      ? `<img src="${escapeAttr(m.companyLogo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:contain;">`
+      : `<div class="company-logo" style="font-size:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${escapeHtml((m.company || "M")[0])}</div>`;
+    const badges = (m.badges || []).map(b => `<span class="cred-pill">${escapeHtml(b)}</span>`).join("");
+    const problemChips = (m.matchedProblems || []).slice(0, 5).map(p => `<span class="cred-pill">${escapeHtml(problemLabel(p))}</span>`).join("");
+    const adviceHtml = (m.adviceItems || []).slice(0, 3).map((item, index) => `
+      <article class="advice-section advice-section--plain" style="margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+          <h4 style="margin:0;">导师建议 ${index + 1}</h4>
+          <span class="cred-pill">${escapeHtml(sectionLabel(item.targetSection))}</span>
+        </div>
+        <div style="font-weight:700;margin-bottom:6px;">${escapeHtml(item.title)}</div>
+        <p style="margin:0 0 8px;color:var(--ink-soft);">${escapeHtml(item.problemSummary)}</p>
+        <p style="margin:0;line-height:1.7;">${escapeHtml(item.actionSummary)}</p>
+      </article>
+    `).join("");
+    document.getElementById("mentorFree").innerHTML = `
+      <div style="font-size:12px;color:var(--ink-soft);font-family:var(--mono);margin-bottom:10px;">导师 1 / 4 · 免费试读</div>
+      <header class="mentor-detail-head">
+        ${logo}
+        <div class="info">
+          <div class="company">${escapeHtml(m.company || "")}</div>
+          <div class="role">${escapeHtml(m.mentorName || "Y导师")} · ${escapeHtml(m.mentorTitle || "简历策略师")}</div>
+        </div>
+      </header>
+      <div class="cred-pills" style="margin-top:10px;">${badges}</div>
+      ${adviceHtml}
+    `;
   }
 
   // ===== Render locked mentors (blurred preview of 3 remaining) =====
@@ -662,8 +805,68 @@
     document.getElementById("lockedMentorsArea").innerHTML = html;
   }
 
+  function renderLockedAdvicePreview(preview) {
+    if (!preview) return;
+    const lockedMentors = preview.lockedMentors || [];
+    if (lockedMentors.length > 0) {
+      const cards = lockedMentors.map(m => {
+        const logo = m.companyLogo
+          ? `<img src="${escapeAttr(m.companyLogo)}" alt="${escapeHtml(m.company || '')}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff;padding:5px;">`
+          : `<div style="font-size:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${escapeHtml((m.company || "M")[0])}</div>`;
+        const badges = (m.badges || []).map(b => `<span class="cred-pill">${escapeHtml(b)}</span>`).join("");
+        const hints = (m.adviceHint || []).map((h, i) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;filter:blur(3.5px);user-select:none;pointer-events:none;">
+            <span class="cred-pill" style="flex-shrink:0;">${escapeHtml(sectionLabel(h.targetSection))}</span>
+            <span style="font-size:13px;font-weight:600;">${escapeHtml(h.title)}</span>
+          </div>
+        `).join("");
+        return `
+          <article class="locked-mentor-v2" style="position:relative;overflow:hidden;">
+            <header class="head" style="display:flex;align-items:center;gap:12px;">
+              ${logo}
+              <div class="info">
+                <div class="company-name">${escapeHtml(m.company || "")}</div>
+                <div class="role-line">${escapeHtml(m.mentorName || "导师")} · ${escapeHtml(m.mentorTitle || "简历策略师")}</div>
+              </div>
+            </header>
+            <div class="cred-pills" style="margin:8px 0 10px;">${badges}</div>
+            <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.04em;">3 条建议预览</div>
+            ${hints}
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(246,243,236,.55);backdrop-filter:blur(1px);">
+              <div style="text-align:center;">
+                <div style="font-size:20px;margin-bottom:4px;">🔒</div>
+                <div style="font-size:12px;font-weight:600;color:var(--ink);">解锁查看完整建议</div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+      document.getElementById("lockedMentorsArea").innerHTML = cards;
+    } else {
+      const topics = (preview.topics || []).map(t => `<span class="cred-pill">${escapeHtml(t)}</span>`).join("");
+      document.getElementById("lockedMentorsArea").innerHTML = `
+        <article class="locked-mentor-v2">
+          <div style="font-weight:800;margin-bottom:8px;">还有 ${preview.lockedMentorCount ?? 3} 位导师未解锁</div>
+          <div style="color:var(--ink-soft);line-height:1.7;">
+            还有 ${preview.lockedAdviceCount ?? 9} 条建议未解锁<br/>
+            完整报告共 ${preview.totalMentorCount ?? 4} 位导师 · ${preview.totalAdviceCount ?? 12} 条建议
+          </div>
+          <div class="cred-pills" style="margin-top:10px;">${topics}</div>
+          <p style="margin:12px 0 0;color:var(--ink-soft);">${escapeHtml(preview.message || "解锁后查看完整导师建议。")}</p>
+        </article>
+      `;
+    }
+  }
+
   // ===== 读取 localStorage 中已生成的导师建议 =====
   (function renderMentorAdvice() {
+    const publicFreeMentor = s.freeMentorAdvice || s.atsResult?.raw?.freeMentorAdvice || s.atsResult?.freeMentorAdvice;
+    const lockedPreview = s.lockedAdvicePreview || s.atsResult?.raw?.lockedAdvicePreview || s.atsResult?.lockedAdvicePreview;
+    if (publicFreeMentor) {
+      renderFreeMentor(publicFreeMentor);
+      renderLockedAdvicePreview(lockedPreview);
+      return;
+    }
     const mentors = s.mentorAdvice;
     if (mentors && mentors.length > 0) {
       console.log("[Mentor] 从 localStorage 读取", mentors.length, "位导师");

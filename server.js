@@ -7,6 +7,22 @@ const multer = require("multer");
 const { scoreResumeATS } = require("./ats-scorer");
 const { scoreResumeRuleBased } = require("./ats-rule-scorer");
 const { scoreResumeATS: scoreResumeSystem } = require("./src/ats/ats-scorer");
+const {
+  createReportAccessToken,
+  createReportId,
+  formatDebugReport,
+  formatInternalAtsResult,
+  formatPremiumUnlockedReport,
+  formatPublicFreeReport,
+} = require("./src/ats/report-formatter");
+const {
+  retrieveMentorAdvice,
+  selectFreeMentorPlan,
+  selectPremiumMentorPlan,
+  buildLockedAdvicePreview,
+  formatPublicFreeMentorAdvice,
+  formatPremiumMentorReport,
+} = require("./services/mentorAdviceRetrieval");
 const { parsePDF, parseDocx } = require("./file-parser");
 const db = require("./database");
 const Anthropic = require("@anthropic-ai/sdk");
@@ -32,6 +48,7 @@ const upload = multer({
 });
 
 app.use(express.static(path.join(__dirname)));
+app.use("/logos", express.static(path.join(__dirname, "public", "logos")));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -392,27 +409,39 @@ app.post("/api/v1/ats/rule", upload.single("file"), async (req, res) => {
 
     try {
       const data = await callHostedATS({ resumeText, jobTitle, jdText });
-      return res.json({
+      const report = buildAtsReportPayload({
+        ...data,
+        engine: data.engine || "ats-system-api",
+        source: "hosted-api",
+      }, { resumeText, jobTitle, jdText }, req);
+      const payload = {
         success: true,
         engine: "ats-system-api",
         source: "hosted-api",
-        data: {
-          ...data,
-          engine: data.engine || "ats-system-api",
-          source: "hosted-api",
-        },
+        reportId: report.reportId,
+        reportAccessToken: report.reportAccessToken,
+        publicReport: report.publicReport,
+        data: report.publicReport,
         timestamp: new Date().toISOString(),
-      });
+      };
+      logPublicAtsResponseForTesting("ats/rule hosted", payload);
+      return res.json(payload);
     } catch (apiErr) {
       const data = localAtsFallback(resumeText, jobTitle, jdText, apiErr.message);
-      return res.json({
+      const report = buildAtsReportPayload(data, { resumeText, jobTitle, jdText }, req);
+      const payload = {
         success: true,
         engine: data.engine,
         source: "local-fallback",
-        data,
+        reportId: report.reportId,
+        reportAccessToken: report.reportAccessToken,
+        publicReport: report.publicReport,
+        data: report.publicReport,
         warning: apiErr.message,
         timestamp: new Date().toISOString(),
-      });
+      };
+      logPublicAtsResponseForTesting("ats/rule fallback", payload);
+      return res.json(payload);
     }
   } catch (err) {
     console.error("[ATS-System] Error:", err.message);
@@ -425,11 +454,226 @@ app.post("/api/v1/ats/rule-local", upload.single("file"), async (req, res) => {
     const resumeText = await resolveResumeText(req);
     const { jobTitle, jdText } = req.body;
     console.log("[ATS-Rule] jobTitle:", jobTitle || "N/A", "| textLen:", resumeText.length);
-    const data = scoreResumeSystem(resumeText, jobTitle, jdText);
-    res.json({ success: true, engine: "rule-based", data, timestamp: new Date().toISOString() });
+    const rawScoreResult = scoreResumeSystem(resumeText, jobTitle, jdText);
+    const report = buildAtsReportPayload(rawScoreResult, { resumeText, jobTitle, jdText }, req);
+    const payload = {
+      success: true,
+      engine: "rule-based",
+      reportId: report.reportId,
+      reportAccessToken: report.reportAccessToken,
+      publicReport: report.publicReport,
+      data: report.publicReport,
+      timestamp: new Date().toISOString(),
+    };
+    logPublicAtsResponseForTesting("ats/rule-local", payload);
+    res.json(payload);
   } catch (err) {
     console.error("[ATS-Rule] Error:", err.message);
     res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+function buildAtsReportPayload(rawScoreResult, input, req) {
+  const internalAtsResult = formatInternalAtsResult(rawScoreResult, input);
+  const retrievalQuery = internalAtsResult.retrievalQuery;
+  const mentorCandidates = retrieveMentorAdvice(retrievalQuery);
+  const freeMentorPlan = selectFreeMentorPlan(mentorCandidates, internalAtsResult);
+  const premiumMentorPlan = selectPremiumMentorPlan(mentorCandidates, internalAtsResult, freeMentorPlan);
+  const freeAdvice = formatPublicFreeMentorAdvice(freeMentorPlan);
+  const paidAdvice = premiumMentorPlan.slice(1);
+  const premiumMentorReport = formatPremiumMentorReport(premiumMentorPlan, internalAtsResult);
+  logRetrievalDebug({
+    reportContext: input?.jobTitle || rawScoreResult.jobTitle || "unknown",
+    mentorCandidateCount: mentorCandidates.length,
+    strictCandidateCount: mentorCandidates.debug?.strictCandidates ?? 0,
+    fallbackCandidateCount: mentorCandidates.debug?.fallbackCandidates ?? 0,
+    selectedFreeAdviceId: freeAdvice?.mentorId || null,
+    paidAdviceCount: paidAdvice.reduce((sum, mentor) => sum + (mentor.adviceItems?.length || 0), 0),
+    roleMismatchPenalty: mentorCandidates.debug?.maxRoleMismatchPenalty ?? 0,
+    selectedScope: mentorCandidates.debug?.selectedScope || "mentor_plan",
+    rawRows: mentorCandidates.debug?.rawRows ?? 0,
+    eligibleRows: mentorCandidates.debug?.eligibleRows ?? 0,
+    excludedInterviewAdvice: mentorCandidates.debug?.excludedInterviewAdvice ?? 0,
+  });
+  const lockedPreview = buildLockedAdvicePreview(premiumMentorPlan, internalAtsResult);
+  const publicReport = formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview);
+  const premiumReport = formatPremiumUnlockedReport(internalAtsResult, premiumMentorReport);
+  logAdvicePlan(freeMentorPlan, premiumMentorPlan, premiumReport.coverageSummary);
+  const reportId = createReportId();
+  const reportAccessToken = createReportAccessToken();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString();
+
+  db.saveAtsReport({
+    reportId,
+    reportAccessToken,
+    expiresAt,
+    jobTitle: internalAtsResult.jobTitle,
+    hasJD: internalAtsResult.hasJD,
+    total: internalAtsResult.total,
+    risk: internalAtsResult.risk,
+    publicReport,
+    internalAtsResult,
+    retrievalQuery,
+    mentorCandidates,
+    freeAdvice: freeMentorPlan,
+    paidAdvice,
+    premiumReport,
+    paymentStatus: "unpaid",
+    userId: req.headers["x-user-id"] || null,
+  });
+
+  return {
+    reportId,
+    reportAccessToken,
+    publicReport,
+    internalAtsResult,
+    mentorCandidates,
+    freeAdvice: freeMentorPlan,
+    paidAdvice,
+    premiumReport,
+  };
+}
+
+function logRetrievalDebug({
+  reportContext,
+  mentorCandidateCount,
+  strictCandidateCount,
+  fallbackCandidateCount,
+  selectedFreeAdviceId,
+  paidAdviceCount,
+  roleMismatchPenalty,
+  selectedScope,
+  rawRows,
+  eligibleRows,
+  excludedInterviewAdvice,
+}) {
+  if (process.env.LOG_ATS_RETRIEVAL_DEBUG === "false") return;
+  console.log("[Advice Retrieval]", JSON.stringify({
+    reportContext,
+    rawRows,
+    eligibleRows,
+    candidates: mentorCandidateCount,
+    strictCandidates: strictCandidateCount,
+    fallbackCandidates: fallbackCandidateCount,
+    selectedFreeAdvice: selectedFreeAdviceId,
+    selectedScope,
+    excludedInterviewAdvice,
+    paidAdvice: paidAdviceCount,
+    roleMismatchPenalty,
+  }));
+}
+
+function logAdvicePlan(freeMentorPlan, premiumMentorPlan = [], coverageSummary = {}) {
+  if (process.env.LOG_ATS_RETRIEVAL_DEBUG === "false") return;
+  const allAdviceCount = premiumMentorPlan.reduce((sum, mentor) => sum + (mentor.adviceItems?.length || 0), 0);
+  const freeAdviceSources = (freeMentorPlan?.adviceItems || []).map((item) => item.source || "db");
+  console.log("[Advice Plan]", JSON.stringify({
+    freeMentor: freeMentorPlan?.mentorId || null,
+    freeAdviceCount: freeMentorPlan?.adviceItems?.length || 0,
+    freeAdviceSources,
+    roleSafeRejected: freeMentorPlan?.debug?.roleSafeRejected || 0,
+    premiumMentors: premiumMentorPlan.length,
+    premiumAdviceCount: allAdviceCount,
+    lockedAdviceCount: Math.max(0, allAdviceCount - (freeMentorPlan?.adviceItems?.length || 0)),
+    coverageRatio: coverageSummary.coverageRatio ?? 0,
+    coveredProblemTags: coverageSummary.coveredProblemTags || [],
+    uncoveredProblemTags: coverageSummary.uncoveredProblemTags || [],
+  }));
+}
+
+// POST /api/v1/score: public-safe ATS report. Full internals stay server-side.
+app.post("/api/v1/score", upload.single("file"), async (req, res) => {
+  try {
+    const resumeText = await resolveResumeText(req);
+    const { jobTitle, jdText } = req.body;
+    if (!jobTitle && !jdText) {
+      return res.status(400).json({ success: false, error: "jobTitle or jdText is required" });
+    }
+
+    const rawScoreResult = scoreResumeSystem(resumeText, jobTitle, jdText);
+    const report = buildAtsReportPayload(rawScoreResult, { resumeText, jobTitle, jdText }, req);
+
+    const payload = {
+      success: true,
+      reportId: report.reportId,
+      reportAccessToken: report.reportAccessToken,
+      publicReport: report.publicReport,
+      premiumMentors: report.premiumReport?.mentors || null,
+      timestamp: new Date().toISOString(),
+    };
+    logPublicAtsResponseForTesting("score", payload);
+    res.json(payload);
+  } catch (err) {
+    console.error("[ATS-Report] Error:", err.message);
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+function reportTokenFromRequest(req) {
+  return req.headers["x-report-access-token"] || req.body?.reportAccessToken || req.query?.reportAccessToken || null;
+}
+
+function reportUserFromRequest(req) {
+  return req.headers["x-user-id"] ? String(req.headers["x-user-id"]) : null;
+}
+
+app.get("/api/v1/reports/:reportId/public", (req, res) => {
+  try {
+    const access = db.validateReportAccess(req.params.reportId, {
+      token: reportTokenFromRequest(req),
+      userId: reportUserFromRequest(req),
+    });
+    if (!access.ok) {
+      return res.status(access.status || 403).json({ success: false, error: access.error });
+    }
+    res.json({
+      success: true,
+      reportId: req.params.reportId,
+      publicReport: access.report.publicReport,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[ATS-Report] Public load error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/v1/reports/:reportId/unlock", (req, res) => {
+  try {
+    const unlock = db.validateReportUnlock(req.params.reportId, {
+      token: reportTokenFromRequest(req),
+      userId: reportUserFromRequest(req),
+    });
+    if (!unlock.ok) {
+      return res.status(unlock.status || 403).json({ success: false, error: unlock.error });
+    }
+    res.json({
+      success: true,
+      reportId: req.params.reportId,
+      premiumReport: unlock.report.premiumReport || formatPremiumUnlockedReport(unlock.report.internalAtsResult, unlock.report.paidAdvice),
+    });
+  } catch (err) {
+    console.error("[ATS-Report] Unlock error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get("/api/v1/reports/:reportId/debug", (req, res) => {
+  try {
+    const debugAllowed = process.env.NODE_ENV !== "production" ||
+      (process.env.DEBUG_REPORT_SECRET && req.headers["x-debug-secret"] === process.env.DEBUG_REPORT_SECRET);
+    if (!debugAllowed) return res.status(404).json({ success: false, error: "NOT_FOUND" });
+
+    const report = db.getAtsReport(req.params.reportId);
+    if (!report) return res.status(404).json({ success: false, error: "REPORT_NOT_FOUND" });
+    res.json({
+      success: true,
+      reportId: req.params.reportId,
+      debugReport: formatDebugReport(report.internalAtsResult, report.mentorCandidates),
+    });
+  } catch (err) {
+    console.error("[ATS-Report] Debug error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -478,6 +722,22 @@ app.get("/api/v1/ats/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+function logPublicAtsResponseForTesting(label, payload) {
+  if (process.env.LOG_ATS_PUBLIC_RESPONSE === "false") return;
+  const loggedPayload = redactSensitiveLogPayload(payload);
+  console.log(`\n[ATS Public Response][${label}]`);
+  console.log(JSON.stringify(loggedPayload, null, 2));
+  console.log("[/ATS Public Response]\n");
+}
+
+function redactSensitiveLogPayload(payload) {
+  if (process.env.NODE_ENV !== "production") return payload;
+  return {
+    ...payload,
+    reportAccessToken: payload.reportAccessToken ? "[REDACTED]" : payload.reportAccessToken,
+  };
+}
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));

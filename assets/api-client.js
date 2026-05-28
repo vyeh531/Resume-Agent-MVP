@@ -120,10 +120,10 @@ async function scoreResumeAPI(resumeText, jobTitle, jdText) {
   console.log("[API] 开始调用 scoreResumeAPI...");
   console.log("[API] 简历长度:", resumeText.length);
   console.log("[API] 目标岗位:", jobTitle);
-  console.log("[API] 请求地址:", `${API_BASE}/api/v1/ats/rule-local`);
+  console.log("[API] 请求地址:", `${API_BASE}/api/v1/score`);
 
   try {
-    const response = await fetch(`${API_BASE}/api/v1/ats/rule-local`, {
+    const response = await fetch(`${API_BASE}/api/v1/score`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -145,18 +145,20 @@ async function scoreResumeAPI(resumeText, jobTitle, jdText) {
     console.log("[API] 评分结果:", result.data);
 
     // 把 sessionId 存入 localStorage，方便後續重新撈取
-    if (result.sessionId) {
+    if (result.reportId) {
       try {
         const store = JSON.parse(localStorage.getItem("resumeFixMVP") || "{}");
-        store.sessionId = result.sessionId;
+        store.sessionId = result.reportId;
+        store.reportId = result.reportId;
+        store.reportAccessToken = result.reportAccessToken || null;
         localStorage.setItem("resumeFixMVP", JSON.stringify(store));
-        console.log("[API] sessionId 已存入 localStorage:", result.sessionId);
+        console.log("[API] reportId 已存入 localStorage:", result.reportId);
       } catch (e) {
         console.warn("[API] sessionId 寫入 localStorage 失敗:", e.message);
       }
     }
 
-    return result.data;
+    return result.publicReport || result.data;
   } catch (error) {
     console.error("[API Error]", error.message);
     throw error;
@@ -167,7 +169,8 @@ async function scoreResumeAPI(resumeText, jobTitle, jdText) {
 async function loadAnalysisFromServer(sessionId) {
   const id = sessionId || (() => {
     try {
-      return JSON.parse(localStorage.getItem("resumeFixMVP") || "{}").sessionId;
+      const store = JSON.parse(localStorage.getItem("resumeFixMVP") || "{}");
+      return store.reportId || store.sessionId;
     } catch { return null; }
   })();
 
@@ -177,14 +180,17 @@ async function loadAnalysisFromServer(sessionId) {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/api/resume/${id}`);
+    const store = JSON.parse(localStorage.getItem("resumeFixMVP") || "{}");
+    const token = store.reportAccessToken;
+    const query = token ? `?reportAccessToken=${encodeURIComponent(token)}` : "";
+    const response = await fetch(`${API_BASE}/api/v1/reports/${id}/public${query}`);
     if (!response.ok) {
       console.warn("[API] 載入失敗:", response.status);
       return null;
     }
     const result = await response.json();
     console.log("[API] 從 DB 載入評分結果:", id);
-    return result.data;
+    return result.publicReport || result.data;
   } catch (error) {
     console.error("[API] loadAnalysisFromServer error:", error.message);
     return null;
