@@ -29,34 +29,74 @@ function escapeAttr(str) { return String(str).replace(/'/g,"&apos;").replace(/"/
 // ── 1. Student info ──────────────────────────────────────────────
 (function setStudentInfo() {
   const text = s.resumeText || "";
-  function extractSchool(t) {
-    const patterns = [
-      /\b((?:University|College|Institute|School)\s+of\s+[A-Z][A-Za-z]+(?:\s+(?:at|in)\s+[A-Z][A-Za-z]+)?)/,
-      /\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,4}\s+(?:University|College|School|Institute))\b/,
-    ];
-    for (const p of patterns) { const m = t.match(p); if (m) return m[1].trim(); }
-    return null;
+
+  // 1. 找 EDUCATION 段落
+  const eduSectionMatch = text.match(
+    /(?:^|\n)[ \t]*EDUCATION[ \t]*\n([\s\S]{0,2500}?)(?:\n[ \t]*(?:EXPERIENCE|WORK|SKILLS|PROJECTS|CERTIFICATIONS|AWARDS|PUBLICATIONS|SUMMARY|PROFILE|OBJECTIVE|ACTIVITIES|LEADERSHIP)\b|$)/i
+  );
+  const eduText = eduSectionMatch ? eduSectionMatch[1] : text.slice(0, 3000);
+
+  // 2. 找出所有教育條目（每條包含一個 school + 可能的 year + degree）
+  const SCHOOL_RE = /(?:University|College|School|Institute)\b/i;
+  const DEGREE_RE = /\b(?:B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?|Ph\.?D\.?|Bachelor|Master|Doctor|MBA|M\.Eng|B\.Eng|LL\.B|J\.D)\b/i;
+
+  // 把 eduText 分成行，逐行掃描，組成條目
+  const lines = eduText.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const entries = []; // { school, year, degree }
+  let cur = null;
+
+  for (const line of lines) {
+    // 跳過常見雜訊行
+    if (/^(linkedin|education|gpa|grade|activities|honors|awards|dean)/i.test(line)) continue;
+
+    const hasSchool = SCHOOL_RE.test(line);
+    const hasDegree = DEGREE_RE.test(line);
+    const yearMatch = line.match(/\b(20\d{2})\b/g);
+
+    // 新條目：包含 school 關鍵字的行
+    if (hasSchool) {
+      // 去掉 "LinkedIn EDUCATION" 等前綴雜訊
+      let schoolName = line
+        .replace(/^.*?((?:[A-Z][A-Za-z]+\s+)*(?:University|College|School|Institute)(?:\s+of\s+[A-Za-z]+)?)/,'$1')
+        .trim();
+      // 若清理後仍然有多餘的全大寫前綴就再清
+      schoolName = schoolName.replace(/^[A-Z\s]{3,}\s+/, '').trim();
+      cur = { school: schoolName, year: null, degree: null };
+      entries.push(cur);
+    }
+
+    if (cur) {
+      // 抓年份（取最大值 = 畢業年）
+      if (yearMatch) {
+        const yr = Math.max(...yearMatch.map(Number));
+        if (!cur.year || yr > cur.year) cur.year = yr;
+      }
+      // 抓 degree + major
+      if (hasDegree && !cur.degree) {
+        // 嘗試抓完整 degree 名，例如 "M.A. in Mathematics of Finance"
+        const dm = line.match(
+          /\b((?:B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?|Ph\.?D\.?|Bachelor(?:'s)?|Master(?:'s)?|Doctor(?:ate)?|MBA|M\.Eng|B\.Eng|LL\.B|J\.D)[\w.,\s]*?(?:in|of)\s+[A-Z][A-Za-z ,&\-]{2,60}?)(?:\s*[,\(]|\s*\d{4}|$)/i
+        );
+        if (dm) cur.degree = dm[1].trim().replace(/\s+/g, ' ');
+        else cur.degree = line.replace(/^\s*[-•·]\s*/, '').trim().slice(0, 60);
+      }
+    }
   }
-  function extractYear(t) {
-    const explicit = t.match(/(?:Class of|Expected[:\s]+|Graduation[:\s]+|Graduating[:\s]+)(\b20\d{2}\b)/i);
-    if (explicit) return explicit[1];
-    const nearDegree = t.match(/(?:B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?|Bachelor|Master|PhD|Ph\.D)[^\n]{0,80}?\b(20\d{2})\b/i);
-    if (nearDegree) return nearDegree[1];
-    const range = t.match(/\b(20\d{2})\s*[-–]\s*(20\d{2}|Present|Current)/i);
-    if (range) return range[2] === "Present" || range[2] === "Current" ? range[1] : range[2];
-    return null;
+
+  // 3. 取最新條目（年份最大，或最後一條有 school 的）
+  let best = null;
+  for (const e of entries) {
+    if (!best) { best = e; continue; }
+    if ((e.year || 0) > (best.year || 0)) best = e;
   }
-  function extractMajor(t) {
-    const m = t.match(/(?:B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?|Bachelor(?:'s)?|Master(?:'s)?|PhD|Ph\.D)[,.\s]+(?:of\s+)?(?:Science|Arts|Engineering|Applied\s+\w+)?\s*(?:in\s+)?([A-Z][A-Za-z &,\-]+?)(?:\n|,(?!\s*[A-Z]{2}\b)|;|  |\(|\d)/);
-    return m ? m[1].trim().replace(/\s+/g, " ").replace(/,\s*$/, "") : null;
-  }
-  const school = extractSchool(text);
-  const year = extractYear(text);
-  const major = extractMajor(text);
+
   const parts = [];
-  if (year) parts.push(year + "届");
-  if (school) parts.push(school);
-  if (major && major.length < 50) parts.push(major);
+  if (best) {
+    if (best.year) parts.push(best.year + "届");
+    if (best.school) parts.push(best.school);
+    if (best.degree && best.degree.length < 60) parts.push(best.degree);
+  }
+
   const el = document.getElementById("studentInfo");
   if (el) el.textContent = parts.length ? parts.join(" · ") : (s.resumeName || "已上传简历");
 })();
