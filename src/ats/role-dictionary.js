@@ -10,7 +10,7 @@ function loadRoleDictionary() {
     // require() is used so Vercel's bundler automatically includes the JSON
     // in the serverless function package (fs.readFileSync with a dynamic path
     // is not reliably bundled in serverless environments).
-    cachedDictionary = require("../public/ats_role_dictionary.json").roles || [];
+    cachedDictionary = require("../../data/ats/ats_role_dictionary.json").roles || [];
   } catch {
     cachedDictionary = [];
   }

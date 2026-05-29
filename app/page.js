@@ -7,7 +7,7 @@ export default function HomePage() {
       <div className="page">
         <div className="brandbar">
           <div className="brand">
-            <img src="/logo/cropped-cropped-WechatIMG231-1.png" alt="MentorX 蔓藤教育" className="brand-img" />
+            <img src="/logo/MentorX.png" alt="MentorX 蔓藤教育" className="brand-img" />
           </div>
           <div className="brand-meta" style={{fontSize:'10px',letterSpacing:'.08em'}}>Version: Beta</div>
         </div>
@@ -32,20 +32,23 @@ export default function HomePage() {
                   <div className="fu-sub">PDF · Word (.docx/.doc) · 纯文本 (.txt)</div>
                 </div>
                 <div className="fu-success" id="fuSuccess" style={{display:'none'}}>
-                  <div className="fu-check">✓</div>
-                  <div className="fu-info">
-                    <div className="fu-filename" id="fuFilename">resume.pdf</div>
-                    <div className="fu-meta" id="fuMeta">PDF · 已准备好</div>
+                  <div className="fu-icon-done" style={{width:36,height:36,borderRadius:10,background:'rgba(168,213,186,.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:18}}>📄</div>
+                  <div className="fu-info" style={{flex:1,minWidth:0}}>
+                    <div className="fu-filename" id="fuFilename" style={{fontWeight:600,fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}></div>
+                    <div className="fu-meta" id="fuMeta" style={{fontSize:12,color:'var(--ink-soft)',marginTop:2}}></div>
                   </div>
-                  <div className="fu-change">更换</div>
+                  <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0,fontSize:12,fontWeight:600,color:'var(--jade)'}}>
+                    <span style={{width:6,height:6,borderRadius:'50%',background:'var(--jade)',display:'inline-block'}}></span>
+                    已上传
+                  </div>
                 </div>
               </label>
             </div>
 
             <div className="input-group">
               <label className="input-label">目标岗位 <span className="text-mute" style={{fontWeight:400}}>(与 JD 二选一)</span></label>
-              <select className="input" name="job" id="jobSelect">
-                <option value="" disabled defaultValue>-- 选择目标岗位 --</option>
+              <select className="input" name="job" id="jobSelect" defaultValue="">
+                <option value="" disabled>-- 选择目标岗位 --</option>
               </select>
               <span className="input-hint" id="jobSelectHint">加载岗位列表中…</span>
             </div>
@@ -97,32 +100,33 @@ export default function HomePage() {
       </div>
 
       <Script id="load-positions" strategy="afterInteractive">{`
-        (async function loadPositions() {
-          const sel  = document.getElementById("jobSelect");
-          const hint = document.getElementById("jobSelectHint");
-          try {
-            const resp = await fetch("/api/positions");
-            if (!resp.ok) throw new Error("HTTP " + resp.status);
-            const { data } = await resp.json();
-            if (!sel || !data) return;
-            data.forEach(title => {
-              const opt = document.createElement("option");
-              opt.value = title;
-              opt.textContent = title;
-              sel.appendChild(opt);
-            });
-            if (hint) hint.textContent = "已加载 " + data.length + " 个岗位 · 自动匹配技能与薪资";
-          } catch (e) {
-            if (hint) hint.textContent = "无法连接服务器，请手动输入岗位名称";
-            if (sel) {
-              const txt = document.createElement("input");
-              txt.type = "text"; txt.name = "job"; txt.className = "input";
-              txt.placeholder = "例如：Product Manager / Data Analyst";
-              sel.parentNode.replaceChild(txt, sel);
-            }
-          }
-        })();
-      `}</Script>
+  (async function loadPositions() {
+    const sel  = document.getElementById("jobSelect");
+    const hint = document.getElementById("jobSelectHint");
+    try {
+      const resp = await fetch("/api/positions");
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const { data } = await resp.json();
+      if (!sel || !data) return;
+      data.forEach(title => {
+        const opt = document.createElement("option");
+        opt.value = title;
+        opt.textContent = title;
+        sel.appendChild(opt);
+      });
+      if (hint) hint.textContent = "已加载 " + data.length + " 个岗位";
+      if (sel) sel.value = "";
+    } catch (e) {
+      if (hint) hint.textContent = "无法连接服务器";
+      if (sel) {
+        const txt = document.createElement("input");
+        txt.type = "text"; txt.name = "job"; txt.id = "jobSelect"; txt.className = "input";
+        txt.placeholder = "例如：Product Manager / Data Analyst";
+        sel.parentNode.replaceChild(txt, sel);
+      }
+    }
+  })();
+`}</Script>
     </>
   );
 }

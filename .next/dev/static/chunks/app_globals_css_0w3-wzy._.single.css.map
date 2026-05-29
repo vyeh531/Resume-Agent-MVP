@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/globals.css"],"sourcesContent":["@import url('../assets/styles.css');\r\n@import url('../assets/mobile.css');\r\n"],"names":[],"mappings":""}}]
-}

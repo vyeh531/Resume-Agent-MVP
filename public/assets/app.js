@@ -16,6 +16,7 @@ const Store = {
   },
   clear() { try { localStorage.removeItem(STORE_KEY); } catch(e) {} }
 };
+window.Store = Store;
 
 function showLoader(text, subtext) {
   let o = document.querySelector(".loader-overlay");
@@ -52,7 +53,7 @@ async function submitResume(form) {
   try {
     showLoader("准备文件…", "读取简历内容…");
     const resumeText = await readResumeFile(file);
-    showLoader("ATS 正在评分…", "使用本地规则引擎分析简历质量，不调用 AI");
+    showLoader("正在分析简历…", "导师正在读取你的简历内容");
     const atsRaw    = await scoreResumeAPI(resumeText, job || null, jd);
     const atsResult = formatATSResult(atsRaw);
     const targetJob = job || atsRaw.jobTitle || "目标岗位";
@@ -101,7 +102,7 @@ function bindFileUpload() {
       wrap.classList.add("has-file");
       const ext = f.name.split(".").pop().toUpperCase();
       if (fnEl)   fnEl.textContent   = f.name;
-      if (metaEl) metaEl.textContent = ext + " · " + fmtBytes(f.size) + " · 已准备好";
+      if (metaEl) metaEl.textContent = ext + " · " + fmtBytes(f.size);
       if (empty)   empty.style.display   = "none";
       if (success) success.style.display = "flex";
     } else {
@@ -115,7 +116,7 @@ function bindFileUpload() {
 function mockLogin(btn) {
   btn.disabled = true;
   Store.set({ userId: "mock_" + Date.now() });
-  setTimeout(() => { window.location.href = "/analyzing"; }, 800);
+  setTimeout(() => { window.location.href = "/result"; }, 800);
 }
 function mockPayment(btn) {
   btn.disabled = true;
@@ -179,7 +180,13 @@ function toast(msg) {
   t.__hide = setTimeout(() => { t.style.opacity = "0"; }, 2400);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function initPage() {
   bindFileUpload();
   console.log("[App] ready");
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initPage);
+} else {
+  initPage();
+}

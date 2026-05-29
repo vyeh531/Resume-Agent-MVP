@@ -1,8 +1,17 @@
-guardSubmitted();
+const Store = window.Store || {
+  get() { try { return JSON.parse(localStorage.getItem("resumeFixMVP") || "{}"); } catch { return {}; } }
+};
 
-  const M = window.MOCK;
-  const s = Store.get();
-  const atsResult = s.atsResult || {};
+if (typeof guardSubmitted === 'function') {
+  guardSubmitted();
+} else {
+  const s0 = Store.get();
+  if (!s0.resumeName) { window.location.href = "/"; }
+}
+
+const M = window.MOCK;
+const s = Store.get();
+const atsResult = s.atsResult || {};
 
   function atsRiskText(risk) {
     if (risk === "低") return "低风险";

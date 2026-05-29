@@ -26,7 +26,7 @@ export default function LoginPage() {
       <div className="page">
         <div className="brandbar">
           <div className="brand">
-            <img src="/logo/cropped-cropped-WechatIMG231-1.png" alt="MentorX 蔓藤教育" className="brand-img" />
+            <img src="/logo/MentorX.png" alt="MentorX 蔓藤教育" className="brand-img" />
           </div>
           <div className="brand-meta" style={{fontSize:'10px',letterSpacing:'.08em'}}>2 / 5</div>
         </div>
