@@ -2,6 +2,8 @@
   "/api/positions/route": "app/api/positions/route.js",
   "/api/parse-file/route": "app/api/parse-file/route.js",
   "/api/v1/score/route": "app/api/v1/score/route.js",
+  "/api/position-salary/route": "app/api/position-salary/route.js",
+  "/api/position-skills/route": "app/api/position-skills/route.js",
   "/page": "app/page.js",
   "/login/page": "app/login/page.js",
   "/result/page": "app/result/page.js"
