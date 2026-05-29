@@ -78,8 +78,10 @@ function escapeAttr(str) { return String(str).replace(/'/g,"&apos;").replace(/"/
 // 目标岗位 pill
 const targetJobEl = document.getElementById("targetJob");
 if (targetJobEl) {
-  const job = s.jobTitle || "";
-  targetJobEl.textContent = job ? "目标:" + job : "依 JD 自动识别";
+  function isPlaceholderTitle(v) { return !v || /依\s*JD|自动识别|unknown|^目标岗位$/i.test(String(v)); }
+  const job = [s.jobTitle, atsResult.jobTitle, atsResult.raw && atsResult.raw.jobTitle]
+    .find(function(v) { return v && !isPlaceholderTitle(v); }) || "";
+  targetJobEl.textContent = job ? "目标:" + job : "目标:根据 JD 分析";
 }
 
 // ── 2. 标题分数 & core issue ─────────────────────────────────────
@@ -149,7 +151,7 @@ if (rankDetailEl) {
 
 // ── 4. 薪资 & 竞争（从 DB 加载）────────────────────────────────
 (async function loadSalaryFromDB() {
-  const jobTitle = s.jobTitle || "";
+  const jobTitle = s.jobTitle || atsResult.jobTitle || (atsResult.raw && atsResult.raw.jobTitle) || "";
   if (!jobTitle) return;
   try {
     const resp = await fetch(`/api/position-salary?jobTitle=${encodeURIComponent(jobTitle)}`);
@@ -176,7 +178,7 @@ if (rankDetailEl) {
   } catch(e) { console.warn("[Salary]", e.message); }
 })();
 
-// ── 5. Skills（从 DB 加载）──────────────────────────────────────
+// ── 5. Skills ────────────────────────────────────────────────────
 const labelMap = {
   have: `<span class="pill pill-good"><span class="dot"></span>已具备</span>`,
   weak: `<span class="pill pill-warn"><span class="dot"></span>待补强</span>`
@@ -191,32 +193,88 @@ function renderSkillSection(skills) {
   const have  = skills.filter(sk => sk.status === "have").length;
   const weak  = skills.filter(sk => sk.status === "weak").length;
   const total = skills.length;
-  const skillHaveEl   = document.getElementById("skillHave");
-  const skillTotalEl  = document.getElementById("skillTotal");
+  const skillHaveEl    = document.getElementById("skillHave");
+  const skillTotalEl   = document.getElementById("skillTotal");
   const skillSummaryEl = document.getElementById("skillSummary");
-  const skillListTop3El = document.getElementById("skillListTop3");
+  const skillListTop3El    = document.getElementById("skillListTop3");
   const skillPaywallListEl = document.getElementById("skillPaywallList");
-  if (skillHaveEl)    skillHaveEl.textContent  = have;
-  if (skillTotalEl)   skillTotalEl.textContent = total;
+  const expandBtn = document.getElementById("skillExpandToggle");
+  if (skillHaveEl)   skillHaveEl.textContent  = have;
+  if (skillTotalEl)  skillTotalEl.textContent = total;
   if (skillSummaryEl) skillSummaryEl.innerHTML = `
     <span class="skill-have" style="flex:${have}"></span>
     <span class="skill-weak" style="flex:${Math.max(weak, 1)}"></span>`;
   if (skillListTop3El)    skillListTop3El.innerHTML    = skills.slice(0, 3).map(renderSkillRow).join("");
   if (skillPaywallListEl) skillPaywallListEl.innerHTML = skills.slice(3).map(renderSkillRow).join("");
+  // Update expand button label to reflect actual count
+  if (expandBtn && skills.length > 3) {
+    expandBtn.hidden = false;
+    expandBtn.innerHTML = `查看全部 ${total} 项技能 ↓`;
+  } else if (expandBtn) {
+    expandBtn.hidden = true;
+  }
 }
 
-(async function loadSkillsFromDB() {
-  const jobTitle   = s.jobTitle   || "";
-  const resumeText = s.resumeText || "";
-  if (!jobTitle) return;
-  try {
-    const url = `/api/position-skills?jobTitle=${encodeURIComponent(jobTitle)}&resumeText=${encodeURIComponent(resumeText.substring(0, 3000))}`;
-    const resp = await fetch(url);
-    if (!resp.ok) return;
-    const data = await resp.json();
-    if (!data.found || !data.skills || data.skills.length === 0) return;
-    renderSkillSection(data.skills);
-  } catch(e) { console.warn("[Skills]", e.message); }
+// Build skills from JD keyword analysis already in atsResult (client-side, no extra API call needed)
+function buildSkillsFromJD(resumeTextLower) {
+  const breakdown = (atsResult.keywordBreakdown || (atsResult.raw && atsResult.raw.keywordBreakdown) || []);
+  const seen = new Set();
+  const skills = [];
+  for (const cat of breakdown) {
+    for (const term of (cat.matched || [])) {
+      const name = String(term).trim();
+      if (!name || seen.has(name.toLowerCase())) continue;
+      seen.add(name.toLowerCase());
+      skills.push({ name, status: 'have' });
+    }
+    for (const term of (cat.missing || [])) {
+      const name = String(term).trim();
+      if (!name || seen.has(name.toLowerCase())) continue;
+      seen.add(name.toLowerCase());
+      skills.push({ name, status: 'weak' });
+    }
+  }
+  // Also check topMissingKw
+  for (const term of (atsResult.topMissingKw || [])) {
+    const name = String(term).trim();
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    skills.push({ name, status: 'weak' });
+  }
+  return { skills, seen };
+}
+
+(async function loadSkills() {
+  const resumeTextLower = (s.resumeText || "").toLowerCase();
+  const jobTitle = s.jobTitle || atsResult.jobTitle || (atsResult.raw && atsResult.raw.jobTitle) || "";
+
+  // Step 1: build from JD analysis (instant, no API call)
+  const { skills: jdSkills, seen } = buildSkillsFromJD(resumeTextLower);
+
+  // Step 2: supplement from DB (async, only for skills not already in JD list)
+  let dbSkills = [];
+  if (jobTitle) {
+    try {
+      const url = `/api/position-skills?jobTitle=${encodeURIComponent(jobTitle)}&resumeText=${encodeURIComponent(resumeTextLower.substring(0, 3000))}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.found && data.skills) {
+          dbSkills = data.skills.filter(function(sk) {
+            return sk.name && !seen.has(sk.name.toLowerCase());
+          });
+        }
+      }
+    } catch(e) { console.warn("[Skills DB]", e.message); }
+  }
+
+  // Step 3: merge — JD skills first (most relevant), then DB supplements
+  const merged = [...jdSkills, ...dbSkills].map(function(sk, i) {
+    return { priority: i + 1, name: sk.name, status: sk.status };
+  });
+
+  if (merged.length === 0) return;
+  renderSkillSection(merged);
 })();
 
 // Toggle paywall

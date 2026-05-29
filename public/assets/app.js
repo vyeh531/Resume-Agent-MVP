@@ -35,7 +35,7 @@ function showLoader(text, subtext, rotate) {
     o.innerHTML = '<div class="loader-container"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text"></div><div class="loader-subtext"></div></div>';
     document.body.appendChild(o);
     const s = document.createElement("style");
-    s.textContent = ".loader-overlay{position:fixed;inset:0;background:rgba(24,24,22,.88);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s}.loader-overlay.show{opacity:1;pointer-events:auto}.loader-container{text-align:center;color:#f6f3ec;padding:0 24px}.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}.loader-dots span{width:12px;height:12px;border-radius:50%;background:#a8d5ba;animation:ldBounce 1.4s infinite ease-in-out both}.loader-dots span:nth-child(1){animation-delay:-.32s}.loader-dots span:nth-child(2){animation-delay:-.16s}@keyframes ldBounce{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}.loader-text{font-size:18px;font-weight:600;margin-bottom:8px;transition:opacity .3s}.loader-subtext{font-size:14px;opacity:.7;transition:opacity .3s}";
+    s.textContent = ".loader-overlay{position:fixed;inset:0;background:rgba(15,23,42,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s}.loader-overlay.show{opacity:1;pointer-events:auto}.loader-container{text-align:center;color:#f8fafc;padding:0 32px;max-width:320px}.loader-dots{display:flex;gap:10px;justify-content:center;margin-bottom:24px}.loader-dots span{width:11px;height:11px;border-radius:50%;background:#6ee7b7;animation:ldBounce 1.4s infinite ease-in-out both}.loader-dots span:nth-child(1){animation-delay:-.32s}.loader-dots span:nth-child(2){animation-delay:-.16s}@keyframes ldBounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}.loader-text{font-size:19px;font-weight:700;margin-bottom:10px;transition:opacity .35s;color:#f8fafc;letter-spacing:-.01em}.loader-subtext{font-size:14px;color:#94a3b8;line-height:1.5;transition:opacity .35s}";
     document.head.appendChild(s);
   }
   const textEl    = o.querySelector(".loader-text");
@@ -87,7 +87,7 @@ async function submitResume(form) {
     showLoader("正在分析简历…", "导师正在读取你的简历内容", true);
     const atsRaw    = await scoreResumeAPI(resumeText, job || null, jd);
     const atsResult = formatATSResult(atsRaw);
-    const targetJob = job || atsRaw.jobTitle || "目标岗位";
+    const targetJob = job || atsRaw.jobTitle || "";
     Store.set({
       resumeName: file.name,
       jobTitle: targetJob,
@@ -157,7 +157,7 @@ function mockPayment(btn) {
 
 function guardSubmitted() {
   const s = Store.get();
-  if (!s.resumeName || !s.jobTitle) window.location.href = "/";
+  if (!s.resumeName) window.location.href = "/";
 }
 function guardPaid() {
   const s = Store.get();

@@ -1034,7 +1034,8 @@ function relatedTagsForCard(card = {}, targetProblemTags = []) {
     const tag = problem.tag;
     if (!tag) continue;
     if (cardReasons.includes(tag) || text.includes(tag.replace(/_/g, " "))) tags.push(tag);
-    else if (/keyword|关键词|jd|ats/.test(text) && /keyword|jd|hard_skill|priority/.test(tag)) tags.push(tag);
+    // Only match keyword/ATS tags if the card is specifically about JD/keyword matching, not generic format cards
+    else if (/keyword|关键词|jd match|岗位匹配|ats.*keyword/.test(text) && /keyword|jd|hard_skill|priority/.test(tag)) tags.push(tag);
     else if (/summary|定位|position/.test(text) && /summary|role|title|position/.test(tag)) tags.push(tag);
     else if (/experience|bullet|经历|证据/.test(text) && /experience|evidence|skills_only/.test(tag)) tags.push(tag);
     else if (/量化|result|impact|成果/.test(text) && /measurable|result|action/.test(tag)) tags.push(tag);
@@ -1043,12 +1044,41 @@ function relatedTagsForCard(card = {}, targetProblemTags = []) {
   return [...new Set(tags)].slice(0, 3);
 }
 
+// Returns true if the card's own problem summary is topically aligned with its advice
+// (i.e. we should use the DB summary rather than generating from ATS data)
+function cardHasOwnDiagnosis(card) {
+  const summary = card.problemSummary || card.user_problem_summary || card.P_mentor || "";
+  if (!summary || summary.trim().length < 10) return false;
+  const adviceText = `${card.title || ""} ${card.actionSummary || ""} ${card.topic || ""}`.toLowerCase();
+  const summaryText = summary.toLowerCase();
+  // Check that the summary is topically related to the card's own advice
+  // (not just a generic keyword/JD diagnosis that could belong to any card)
+  const isGenericKeywordDiagnosis = /jd.*匹配|关键词.*不足|ats.*过滤|hard skill.*缺|技能词.*缺/.test(summaryText);
+  if (isGenericKeywordDiagnosis) return false;
+  // The summary should share content words with the card's advice
+  const adviceWords = adviceText.split(/\W+/).filter(w => w.length > 3);
+  const summaryWords = new Set(summaryText.split(/\W+/).filter(w => w.length > 3));
+  const overlap = adviceWords.filter(w => summaryWords.has(w)).length;
+  return overlap >= 2 || summary.length > 40;
+}
+
 function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremiumFields = false, internalAtsResult = {}, usedDiagnosisTags = new Set()) {
   const relatedProblemTags = card.relatedProblemTags || relatedTagsForCard(card, targetProblemTags);
   const defaultAction = "优先把目标岗位关键词、相关技能和经历证据放到 Summary、Skills 和 Experience 中。";
 
-  // Always generate diagnosis from the CURRENT user's ATS data, not the original DB user's problem summary
-  const currentDiagnosis = generateUserDiagnosis(relatedProblemTags, targetProblemTags, internalAtsResult, usedDiagnosisTags);
+  // Use the card's own DB problem summary when it's topically relevant to the card's advice.
+  // Only fall back to generating from ATS data when the card has no relevant own summary.
+  let currentDiagnosis;
+  if (cardHasOwnDiagnosis(card)) {
+    currentDiagnosis = cleanAndTruncate(
+      card.currentDiagnosis || card.problemSummary || card.user_problem_summary || card.P_mentor,
+      300, ""
+    );
+    if (currentDiagnosis) usedDiagnosisTags.add("__card_own__");
+  }
+  if (!currentDiagnosis) {
+    currentDiagnosis = generateUserDiagnosis(relatedProblemTags, targetProblemTags, internalAtsResult, usedDiagnosisTags);
+  }
   const action = cleanAndTruncate(
     card.action || card.actionSummary || defaultAction,
     500, defaultAction

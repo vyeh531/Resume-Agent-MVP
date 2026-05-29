@@ -61,28 +61,33 @@ function readTextFile(file) {
   });
 }
 
+// 安全读取 response body，返回 { ok, json, text, status }
+async function safeParseResponse(response) {
+  const status = response.status;
+  const raw = await response.text();
+  let json = null;
+  try { json = JSON.parse(raw); } catch {}
+  return { ok: response.ok, status, json, text: raw };
+}
+
 // 上传并解析 PDF
 async function uploadAndParsePDF(file) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("type", "pdf");
 
-  try {
-    const response = await fetch(`${API_BASE}/api/parse-file`, {
-      method: "POST",
-      body: formData,
-    });
+  const response = await fetch(`${API_BASE}/api/parse-file`, {
+    method: "POST",
+    body: formData,
+  });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "PDF 解析失败");
-    }
-
-    const result = await response.json();
-    return result.text;
-  } catch (error) {
-    throw new Error(`PDF 解析失败: ${error.message}`);
+  const { ok, status, json } = await safeParseResponse(response);
+  if (!ok) {
+    const msg = (json && json.error) || `服务器错误 (${status})，请重试或换用 .txt 格式`;
+    throw new Error(msg);
   }
+  if (!json || !json.text) throw new Error("PDF 解析结果为空，可能是扫描版 PDF，请改用文字版");
+  return json.text;
 }
 
 // 上传并解析 DOCX
@@ -91,22 +96,18 @@ async function uploadAndParseDocx(file) {
   formData.append("file", file);
   formData.append("type", "docx");
 
-  try {
-    const response = await fetch(`${API_BASE}/api/parse-file`, {
-      method: "POST",
-      body: formData,
-    });
+  const response = await fetch(`${API_BASE}/api/parse-file`, {
+    method: "POST",
+    body: formData,
+  });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Word 文件解析失败");
-    }
-
-    const result = await response.json();
-    return result.text;
-  } catch (error) {
-    throw new Error(`Word 文件解析失败: ${error.message}`);
+  const { ok, status, json } = await safeParseResponse(response);
+  if (!ok) {
+    const msg = (json && json.error) || `服务器错误 (${status})，请重试`;
+    throw new Error(msg);
   }
+  if (!json || !json.text) throw new Error("Word 文件解析结果为空");
+  return json.text;
 }
 
 // 调用 ATS 评分 API

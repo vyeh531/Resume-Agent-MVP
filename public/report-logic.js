@@ -146,7 +146,7 @@ function renderSkillList(skills){
   if (insightEl) insightEl.innerHTML = `<span class="ico">💡</span>你已掌握 <b>${have}/${skills.length}</b> 项核心技能，还有 <b>${weak} 项</b>待补强。${weak > 0 ? "招聘官 8 秒就能看出你没用岗位语言写简历，建议重点补强缺失关键词。" : "技能覆盖率良好，建议进一步量化成果。"}`;
 }
 (async function loadSkills(){
-  const jobTitle = s.jobTitle || "";
+  const jobTitle = s.jobTitle || atsResult.jobTitle || (atsResult.raw && atsResult.raw.jobTitle) || "";
   const resumeText = s.resumeText || "";
   if (!jobTitle) return;
   try {

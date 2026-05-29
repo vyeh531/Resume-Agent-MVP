@@ -52,9 +52,59 @@ function titleCaseRole(value) {
     .trim();
 }
 
+/**
+ * Try to extract a job title directly from JD text.
+ * Looks for explicit markers first, then falls back to first short capitalized line.
+ */
+function extractTitleFromJD(jdText) {
+  if (!jdText || typeof jdText !== "string") return null;
+  const text = jdText.trim();
+
+  // 1. Explicit label markers (EN + ZH, including 【岗位】 bracket format)
+  const labelPatterns = [
+    /【(?:岗位|职位|职称|职务|招聘岗位|应聘岗位)】\s*[：:]\s*([^\n【]+)/,
+    /^(?:岗位|职位|职称|职务|招聘职位|应聘职位)\s*[：:\-–]\s*(.+)/m,
+    /^(?:job\s+title|position|role|title)\s*[:\-–]\s*(.+)/im,
+    /(?:we(?:'re|\s+are)\s+(?:looking|hiring|seeking)\s+(?:for\s+)?(?:an?\s+)?)([\w\s\-\/]+?)(?:\s*(?:to|who|that|\.|,|$))/i,
+    /(?:join\s+us\s+as\s+(?:an?\s+)?)([\w\s\-\/]+?)(?:\s*(?:\.|,|$))/i,
+  ];
+  for (const re of labelPatterns) {
+    const m = text.match(re);
+    if (m) {
+      const title = (m[1] || "").trim().replace(/[.!?。！？]$/, "").trim();
+      if (title.length >= 2 && title.length <= 60) return title;
+    }
+  }
+
+  // 2. First non-empty line that looks like a job title
+  //    (short, not a sentence, not all-caps noise like "JOB DESCRIPTION")
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const line of lines.slice(0, 6)) {
+    // Skip lines that are obviously headers / noise
+    if (/^(job\s+description|about\s+(us|the\s+role|this\s+role)|overview|summary|responsibilities|requirements|qualifications)/i.test(line)) continue;
+    if (/^[A-Z\s\-&]+$/.test(line) && line.length > 30) continue; // all-caps long header
+    if (line.length < 3 || line.length > 70) continue;
+    // Looks title-like if it has mixed case or is 1-4 words
+    const wordCount = line.split(/\s+/).length;
+    if (wordCount <= 6 && !/[.?!。？！]$/.test(line)) return line;
+  }
+
+  return null;
+}
+
 function inferCanonicalTargetRole(rawScoreResult, input = {}) {
+  // Priority 1: user-typed jobTitle (most explicit)
+  if (input.jobTitle && !isPlaceholderTitle(input.jobTitle)) {
+    return { role: snakeCase(input.jobTitle), display: input.jobTitle };
+  }
+
+  // Priority 2: extract directly from JD label (Position:, 【岗位】: etc.) — exact beats generic patterns
+  const labelExtracted = extractTitleFromJD(input.jdText);
+  if (labelExtracted) {
+    return { role: snakeCase(labelExtracted), display: labelExtracted };
+  }
+
   const candidates = [
-    input.jobTitle,
     rawScoreResult.jobTitle,
     rawScoreResult.metrics?.checks?.exactJobTitle?.targetTitle,
     ...(rawScoreResult.metrics?.keywordProfile?.target_role || []),
@@ -62,6 +112,13 @@ function inferCanonicalTargetRole(rawScoreResult, input = {}) {
     rawScoreResult.profile?.targetRole,
   ].filter((value) => value && !isPlaceholderTitle(value));
 
+  // Priority 3: candidates from score result
+  const firstCandidate = candidates.find((value) => snakeCase(value) !== "general");
+  if (firstCandidate) {
+    return { role: snakeCase(firstCandidate), display: titleCaseRole(firstCandidate) };
+  }
+
+  // Priority 4: generic rolePatterns against full text (fallback only)
   const text = `${candidates.join(" ")} ${input.jdText || ""}`.toLowerCase();
   const rolePatterns = [
     { role: "software_development_engineer", display: "Software Development Engineer", pattern: /\bsoftware development engineer\b|\bsde\b/ },
@@ -69,21 +126,35 @@ function inferCanonicalTargetRole(rawScoreResult, input = {}) {
     { role: "full_stack_engineer", display: "Full Stack Engineer", pattern: /\bfull[-\s]?stack\b/ },
     { role: "frontend_engineer", display: "Frontend Engineer", pattern: /\bfront[-\s]?end\b/ },
     { role: "backend_engineer", display: "Backend Engineer", pattern: /\bback[-\s]?end\b/ },
+    { role: "data_engineer", display: "Data Engineer", pattern: /\bdata engineer\b/ },
     { role: "data_analyst", display: "Data Analyst", pattern: /\bdata analyst\b/ },
-    { role: "data_scientist", display: "Data Scientist", pattern: /\bdata scientist\b|\bmachine learning\b/ },
-    { role: "product_manager", display: "Product Manager", pattern: /\bproduct manager\b|\bpm\b/ },
+    { role: "data_scientist", display: "Data Scientist", pattern: /\bdata scientist\b/ },
+    { role: "machine_learning_engineer", display: "Machine Learning Engineer", pattern: /\bmachine learning engineer\b|\bml engineer\b/ },
+    { role: "ai_engineer", display: "AI Engineer", pattern: /\bai engineer\b|\bartificial intelligence engineer\b/ },
+    { role: "product_manager", display: "Product Manager", pattern: /\bproduct manager\b|\bsenior pm\b/ },
+    { role: "product_designer", display: "Product Designer", pattern: /\bproduct designer\b/ },
+    { role: "ux_designer", display: "UX Designer", pattern: /\bux designer\b|\bui\/ux\b|\bux\/ui\b/ },
     { role: "financial_analyst", display: "Financial Analyst", pattern: /\bfinancial analyst\b/ },
-    { role: "accounting", display: "Accounting", pattern: /\baccountant\b|\baccounting\b/ },
+    { role: "investment_analyst", display: "Investment Analyst", pattern: /\binvestment analyst\b/ },
+    { role: "accounting", display: "Accountant", pattern: /\baccountant\b|\baccounting\b/ },
+    { role: "business_analyst", display: "Business Analyst", pattern: /\bbusiness analyst\b|\bba\b/ },
+    { role: "marketing_manager", display: "Marketing Manager", pattern: /\bmarketing manager\b/ },
+    { role: "marketing_analyst", display: "Marketing Analyst", pattern: /\bmarketing analyst\b/ },
+    { role: "operations_manager", display: "Operations Manager", pattern: /\boperations manager\b/ },
+    { role: "project_manager", display: "Project Manager", pattern: /\bproject manager\b|\bpmp\b/ },
+    { role: "consultant", display: "Consultant", pattern: /\bconsultant\b/ },
+    { role: "attorney", display: "Attorney", pattern: /\battorney\b|\blawyer\b/ },
+    { role: "paralegal", display: "Paralegal", pattern: /\bparalegal\b/ },
+    { role: "hr_manager", display: "HR Manager", pattern: /\bhr manager\b|\bhuman resources manager\b/ },
+    { role: "recruiter", display: "Recruiter", pattern: /\brecruiter\b|\btalent acquisition\b/ },
+    { role: "sales_representative", display: "Sales Representative", pattern: /\bsales representative\b|\baccount executive\b/ },
+    { role: "research_analyst", display: "Research Analyst", pattern: /\bresearch analyst\b/ },
+    { role: "supply_chain", display: "Supply Chain Analyst", pattern: /\bsupply chain\b/ },
   ];
   const matched = rolePatterns.find((item) => item.pattern.test(text));
   if (matched) return matched;
 
-  const first = candidates.find((value) => snakeCase(value) !== "general");
-  if (first) {
-    const role = snakeCase(first);
-    return { role, display: titleCaseRole(role) };
-  }
-  return { role: "unknown", display: "依 JD 自动识别" };
+  return { role: "unknown", display: null };
 }
 
 function buildInternalJobTitle(rawScoreResult, input = {}) {
@@ -655,7 +726,7 @@ function formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview) {
     version: internalAtsResult.version,
     schemaVersion: "ats_response_v0.2.0",
     scoringMode: internalAtsResult.scoringMode,
-    jobTitle: internalAtsResult.jobTitle === "unknown" ? "依 JD 自动识别" : internalAtsResult.jobTitle,
+    jobTitle: (internalAtsResult.jobTitle === "unknown" || !internalAtsResult.jobTitle) ? null : internalAtsResult.jobTitle,
     hasJD: internalAtsResult.hasJD,
     total: internalAtsResult.total,
     risk: internalAtsResult.risk,
@@ -719,8 +790,8 @@ function stripDiagnostics(diagnostics) {
     searchability: diagnostics.searchability,
     jobTitleMatch: {
       exactMatch: diagnostics.jobTitleMatch.exactMatch,
-      targetTitle: diagnostics.jobTitleMatch.targetTitle === "unknown"
-        ? "依 JD 自动识别"
+      targetTitle: (diagnostics.jobTitleMatch.targetTitle === "unknown" || !diagnostics.jobTitleMatch.targetTitle)
+        ? null
         : diagnostics.jobTitleMatch.targetTitle,
       severity: diagnostics.jobTitleMatch.severity,
     },

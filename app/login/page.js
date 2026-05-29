@@ -73,7 +73,11 @@ export default function LoginPage() {
           const s = JSON.parse(localStorage.getItem("resumeFixMVP") || "{}");
           if (s.resumeName) document.getElementById("resumeFileName").textContent = s.resumeName;
           else document.getElementById("resumeFileName").textContent = "(未检测到简历,请回到首页上传)";
-          if (s.jobTitle) document.getElementById("resumeJobTitle").textContent = "目标岗位:" + s.jobTitle;
+          var atsR = s.atsResult || {};
+          function isPlaceholder(v) { return !v || /依\s*JD|自动识别|unknown|^目标岗位$/i.test(String(v)); }
+          var jobT = [s.jobTitle, atsR.jobTitle, atsR.raw && atsR.raw.jobTitle].find(function(v){ return v && !isPlaceholder(v); }) || "";
+          var jobEl = document.getElementById("resumeJobTitle");
+          if (jobEl) jobEl.textContent = jobT ? "目标岗位:" + jobT : "目标岗位:根据 JD 分析";
         })();
         window.mockLogin = function(btn){
           btn.disabled = true;

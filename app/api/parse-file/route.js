@@ -1,4 +1,4 @@
-import { parsePDF, parseDocx } from '../../../file-parser';
+export const runtime = 'nodejs';
 
 export async function POST(request) {
   try {
@@ -14,8 +14,11 @@ export async function POST(request) {
 
     let text = '';
     if (type === 'pdf' || ext === 'pdf') {
+      // Dynamic require avoids module-level load failure with pdf-parse
+      const { parsePDF } = require('../../../file-parser');
       text = await parsePDF(buffer);
     } else if (type === 'docx' || ext === 'docx') {
+      const { parseDocx } = require('../../../file-parser');
       text = await parseDocx(buffer);
     } else if (type === 'txt' || ext === 'txt') {
       text = buffer.toString('utf-8');
@@ -30,6 +33,6 @@ export async function POST(request) {
     return Response.json({ success: true, text, fileName, length: text.length });
   } catch (error) {
     console.error('[Parser Error]', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message || 'Parse failed' }, { status: 500 });
   }
 }
