@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 
 const db = require("../database");
 // pg pool is retrieved lazily via db.getPool()
@@ -323,6 +323,199 @@ function inferAdviceIntent(row) {
   return "resume_positioning";
 }
 
+// ── Issue-first matching helpers ──────────────────────────────────────────────
+
+const ISSUE_SPECIFIC_TAGS = new Set([
+  "weak_quantification", "weak_action_verbs", "vague_impact", "bullet_too_generic",
+  "weak_summary", "unclear_positioning", "low_readability",
+  "low_measurable_results", "weak_result_orientation", "weak_action_verb",
+]);
+const UNIVERSAL_TAGS = new Set([
+  "format_issue", "readability_issue", "missing_contact_info", "objective_outdated",
+  "formatting_penalty_triggered", "outdated_resume", "missing_linkedin", "missing_portfolio",
+]);
+const FUNCTION_GROUP_FAMILIES = {
+  finance_group: ["finance", "accounting", "financial_analyst", "investment", "risk"],
+  data_group: ["data_analyst", "data_scientist", "business_analyst", "bi_analyst"],
+  marketing_group: ["marketing", "growth", "social_media", "brand", "content"],
+};
+
+/**
+ * Infer how transferable an advice segment is across roles/industries.
+ * Returns: "role_specific" | "function_specific" | "issue_specific" | "universal"
+ * Note: this is different from inferAdviceScope() which returns resume_ats/interview_prep/etc.
+ */
+function inferAdviceTransferabilityScope(row) {
+  const rowFamilies = splitCsv(row.role_family || row.roleFamily || "").filter((f) => f !== "universal");
+  const tags = splitCsv(row.problem_tags);
+  const text = rowText(row);
+
+  // Universal: explicitly tagged universal or format/contact/objective issues
+  if (rowFamilies.length === 0 || rowFamilies.includes("universal")) {
+    if (tags.some((t) => UNIVERSAL_TAGS.has(t)) || /format|contact|objective|length|layout|section.?order/i.test(text)) {
+      return "universal";
+    }
+  }
+
+  // Issue-specific: problem tags that cross industry lines
+  if (tags.some((t) => ISSUE_SPECIFIC_TAGS.has(t)) && rowFamilies.length === 0) return "issue_specific";
+
+  // Role-bound: check if within a shared function group → function_specific
+  if (rowFamilies.length > 0 && !rowFamilies.includes("universal")) {
+    for (const [, group] of Object.entries(FUNCTION_GROUP_FAMILIES)) {
+      if (rowFamilies.some((f) => group.includes(f))) return "function_specific";
+    }
+    return "role_specific";
+  }
+
+  // Issue-specific fallback (prefer over role_specific for cross-industry problems)
+  if (tags.some((t) => ISSUE_SPECIFIC_TAGS.has(t))) return "issue_specific";
+  return "issue_specific";
+}
+
+const ROLE_SENSITIVITY_BY_PROBLEM_TAG = {
+  low_jd_keyword_match: 0.75,
+  missing_domain_keywords: 0.85,
+  low_hard_skill_match: 0.80,
+  missing_priority_keywords: 0.75,
+  weak_target_role_alignment: 0.55,
+  weak_summary_role_alignment: 0.50,
+  weak_summary: 0.45,
+  unclear_positioning: 0.45,
+  generic_resume_positioning: 0.50,
+  resume_not_tailored_to_jd: 0.65,
+  weak_experience_keyword_evidence: 0.55,
+  keywords_only_in_skills: 0.50,
+  weak_quantification: 0.25,
+  weak_action_verbs: 0.20,
+  vague_impact: 0.25,
+  bullet_too_generic: 0.20,
+  low_measurable_results: 0.25,
+  weak_result_orientation: 0.25,
+  format_issue: 0.10,
+  readability_issue: 0.10,
+  formatting_penalty_triggered: 0.10,
+  missing_contact_info: 0.05,
+  missing_linkedin: 0.08,
+  objective_outdated: 0.05,
+  outdated_resume: 0.05,
+};
+
+function getActionabilityScore(card) {
+  const text = `${card.action || card.actionSummary || ""} ${card.reason || ""}`.trim();
+  if (!text) return 0.3;
+  const len = text.length;
+  const lengthScore = Math.min(1, len / 200);
+  const hasVerb = /\b(删除|改成|补上|在|把|加入|建议|优先|先|add|remove|replace|rewrite|change|update|include|删掉|写进|嵌入|调整|改写|移除)\b/i.test(text);
+  const hasConcrete = /\d|%|关键词|bullet|section|summary|skills|experience|jd|ats|岗位词/i.test(text);
+  return Math.min(1, (lengthScore * 0.4) + (hasVerb ? 0.35 : 0) + (hasConcrete ? 0.25 : 0));
+}
+
+function getSpecificityScore(card) {
+  const text = `${card.title || ""} ${card.action || card.actionSummary || ""} ${card.mentorLens || ""}`.trim();
+  if (!text) return 0.3;
+  const hasExample = /例如|比如|e\.g\.|such as|例子|如：|like:|比如说/i.test(text);
+  const hasSection = /summary|skills|experience|education|projects|bullet|section/i.test(text);
+  const hasNumber = /\d/.test(text);
+  const len = Math.min(1, text.length / 150);
+  return Math.min(1, (hasExample ? 0.35 : 0) + (hasSection ? 0.25 : 0) + (hasNumber ? 0.15 : 0) + len * 0.25);
+}
+
+function getTransferabilityScore(card) {
+  const scope = card._transferabilityScope || inferAdviceTransferabilityScope(card);
+  switch (scope) {
+    case "universal": return 1.0;
+    case "issue_specific": return 0.80;
+    case "function_specific": return 0.55;
+    case "role_specific": return 0.30;
+    default: return 0.60;
+  }
+}
+
+function getProblemFitScore(card, problemTags = []) {
+  if (!problemTags.length) return card.retrieval_score || 0;
+  const related = relatedTagsForCard(card, problemTags);
+  if (!related.length) return Math.min(0.3, card.retrieval_score || 0);
+  const severities = new Map(problemTags.map((p) => [typeof p === "string" ? p : p.tag, p.severity || "medium"]));
+  const weightedFit = related.reduce((sum, tag) => sum + severityWeight(severities.get(tag) || "medium"), 0);
+  const maxPossible = problemTags.slice(0, 3).reduce((sum, p) => sum + severityWeight(p.severity || "medium"), 0) || 1;
+  return Math.min(1, weightedFit / maxPossible);
+}
+
+function inferTopicCluster(card) {
+  const text = `${card.title || ""} ${card.adviceIntent || ""} ${card.topic || ""} ${card.targetSection || ""}`.toLowerCase();
+  const tags = card.relatedProblemTags || [];
+  if (tags.some((t) => /jd_keyword|hard_skill|keyword_gap|priority_keyword/.test(t)) || /keyword|jd match|技能词|硬技能/.test(text)) return "JD Match";
+  if (/summary|定位|about|headline|positioning/.test(text)) return "Summary Positioning";
+  if (tags.some((t) => /role_alignment|target_role|exact_title/.test(t)) || /role.alignment|方向|岗位定位/.test(text)) return "Role Alignment";
+  if (/skill|工具|技能区/.test(text)) return "Skills Section";
+  if ((/experience|bullet|经历/.test(text)) && /impact|成果|量化|result/.test(text)) return "Bullet Impact";
+  if (/quantif|量化|数字|数据|measure/.test(text)) return "Quantification";
+  if (/action verb|动词|用词/.test(text)) return "Action Verbs";
+  if (/format|格式|layout|版式/.test(text)) return "Format";
+  if (/ats|machine|系统识别/.test(text)) return "ATS Screening";
+  if (/hr|招聘|recruiter|筛选/.test(text)) return "HR Screening";
+  if (/readability|阅读|可读/.test(text)) return "Readability";
+  return "Overall";
+}
+
+function inferMentorFitType(card, userProfile = {}) {
+  const transferScope = card._transferabilityScope || inferAdviceTransferabilityScope(card);
+  const rowFamilies = splitCsv(card.roleFamily || card.role_family || "");
+  const userFamily = normalizeTerm(userProfile.roleFamily || "");
+  const hasSameRole = userFamily && rowFamilies.includes(userFamily);
+
+  if (transferScope === "universal") return "ats_universal";
+  if (card.adviceIntent === "resume_jd_keyword_fix" && transferScope !== "role_specific") return "ats_universal";
+  if (hasSameRole) return "same_role";
+  if (transferScope === "function_specific") return "same_function";
+  if (transferScope === "issue_specific") return "cross_domain_high_relevance";
+  if (rowFamilies.includes("universal")) return "ats_universal";
+  return "cross_domain_high_relevance";
+}
+
+function generateAdviceExplanationMetadata(card, userProfile = {}) {
+  const transferScope = card._transferabilityScope || inferAdviceTransferabilityScope(card);
+  const mentorFitType = inferMentorFitType(card, userProfile);
+  const topicCluster = card._topicCluster || inferTopicCluster(card);
+  const tags = card.relatedProblemTags || [];
+  const problemFit = getProblemFitScore(card, userProfile.problemTags || []);
+  const roleMismatch = card.roleMismatchPenalty || 0;
+  const roleFit = Math.max(0, 1 - roleMismatch);
+  const confidenceScore = Math.round(
+    (problemFit * 0.50 + roleFit * 0.20 + getTransferabilityScore(card) * 0.30) * 100
+  ) / 100;
+
+  let matchReason = "";
+  if (mentorFitType === "ats_universal") {
+    matchReason = "这是 ATS 通用建议，适用于所有岗位，不依赖特定产业背景。";
+  } else if (mentorFitType === "same_role") {
+    matchReason = "这位导师与你的目标职位方向一致，建议与你的岗位需求高度对齐。";
+  } else if (mentorFitType === "same_function") {
+    matchReason = "导师与你属于同一职能领域，这条建议在该职能内可安全复用。";
+  } else if (mentorFitType === "recruiter_perspective") {
+    matchReason = "这条建议来自 HR / Recruiter 视角，聚焦筛选逻辑，不依赖特定产业背景。";
+  } else if (mentorFitType === "cross_domain_high_relevance") {
+    if (transferScope === "issue_specific") {
+      const tagName = tags[0] ? tags[0].replace(/_/g, " ") : "简历问题";
+      matchReason = `虽然导师来自不同产业，但这条建议处理的是跨职位通用的「${tagName}」问题，可直接应用。`;
+    } else {
+      matchReason = "这条建议虽来自跨领域导师，但精准对应你当前的简历问题，属于跨领域高相关建议。";
+    }
+  } else {
+    matchReason = "这条建议与你当前 ATS 简历问题高度相关。";
+  }
+
+  return {
+    adviceTransferScope: transferScope,
+    matchReason,
+    mentorFitType,
+    coveredProblemTags: tags,
+    topicCluster,
+    confidenceScore,
+  };
+}
+
 function isEligibleForAtsResumeReport(row) {
   const scope = inferAdviceScope(row);
   const text = rowText(row);
@@ -444,27 +637,45 @@ function buildMatchedReasons(row, retrievalQuery = {}) {
   return [...new Set(reasons)];
 }
 
-function cleanAndTruncate(value, maxLength = 140, fallback = "") {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
+// Circled digit codepoints U+2460-U+2469 (①-⑩) and U+2776-U+277F (❶-❿)
+function isEnumChar(ch) {
+  if (!ch) return false;
+  var cp = ch.codePointAt(0);
+  return (cp >= 0x2460 && cp <= 0x2469) || (cp >= 0x2776 && cp <= 0x277F);
+}
+
+function cleanAndTruncate(value, maxLength, fallback) {
+  maxLength = maxLength == null ? 140 : maxLength;
+  fallback = fallback == null ? '' : fallback;
+  var text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text) return fallback;
   if (text.length <= maxLength) return text;
-  const slice = text.slice(0, maxLength);
-  const sentenceEnd = Math.max(
+  var slice = text.slice(0, maxLength);
+  var sentenceEnd = Math.max(
     slice.lastIndexOf("。"), slice.lastIndexOf("."), slice.lastIndexOf("！"),
-    slice.lastIndexOf("!"), slice.lastIndexOf("？"), slice.lastIndexOf("?")
+    slice.lastIndexOf("!"),      slice.lastIndexOf("？"), slice.lastIndexOf("?")
   );
   if (sentenceEnd >= 24) return slice.slice(0, sentenceEnd + 1).trim();
-  const commaEnd = Math.max(slice.lastIndexOf("，"), slice.lastIndexOf(","), slice.lastIndexOf("；"), slice.lastIndexOf(";"));
-  let cut = commaEnd >= 24 ? slice.slice(0, commaEnd).trim() : slice.trim();
-  cut = cut.replace(/[\s([{（【《"'“‘,:;，；、]+$/u, "").trim();
-  const lastSpace = cut.lastIndexOf(" ");
+  var commaEnd = -1;
+  ["，", ","].forEach(function(sep) {
+    var idx = slice.lastIndexOf(sep);
+    if (idx >= 24) commaEnd = Math.max(commaEnd, idx);
+  });
+  // Accept ；/; as break only when NOT followed by an enumeration marker
+  ["；", ";"].forEach(function(sep) {
+    var idx = slice.lastIndexOf(sep);
+    if (idx >= 24 && !isEnumChar(text[idx + 1])) commaEnd = Math.max(commaEnd, idx);
+  });
+  var cut = commaEnd >= 24 ? slice.slice(0, commaEnd).trim() : slice.trim();
+  cut = cut.replace(/[\s([{,:]+$/, "").trim();
+  var lastSpace = cut.lastIndexOf(" ");
   if (/^[\x00-\x7F]+$/.test(cut) && lastSpace > Math.floor(maxLength * 0.55)) {
     cut = cut.slice(0, lastSpace).trim();
   }
-  if (!cut || /如\s*[a-z]?$/i.test(cut) || /[(（【《]$/.test(cut)) {
-    return fallback || `${text.slice(0, Math.max(1, maxLength - 3)).trim()}...`;
+  if (!cut || /[(（\[{]$/.test(cut)) {
+    return fallback || (text.slice(0, Math.max(1, maxLength - 3)).trim() + "...");
   }
-  return `${cut}...`;
+  return cut + "...";
 }
 
 function truncateAtSentence(value, maxLength = 140) {
@@ -483,7 +694,7 @@ function formatAdviceCardForPublic(row, retrievalQuery = {}) {
     adviceId: row.chunk_id || `seg_${row.id}`,
     title: row.advice_card_title || row.topic,
     problemSummary: cleanAndTruncate(row.user_problem_summary || row.P_mentor, 180),
-    actionSummary: cleanAndTruncate(roleSafeActionSummary(row, retrievalQuery), 220),
+    actionSummary: cleanAndTruncate(roleSafeActionSummary(row, retrievalQuery), 500),
     mentorInsight: row.I_insight || "",
     example: row.E_example || "",
     hrPerspective: row.HR_os || "",
@@ -840,7 +1051,7 @@ function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremi
   const currentDiagnosis = generateUserDiagnosis(relatedProblemTags, targetProblemTags, internalAtsResult, usedDiagnosisTags);
   const action = cleanAndTruncate(
     card.action || card.actionSummary || defaultAction,
-    280, defaultAction
+    500, defaultAction
   );
   // mentorLens: new schema field; for DB-adapted rows derive from P_mentor if helpful
   const mentorLens = card.mentorLens || "";
@@ -1068,18 +1279,29 @@ function calculateAdviceCoverage(adviceItems = [], problemTags = []) {
 function adviceSelectionScore(card, targetProblemTags, coveredTags, selectedCards = []) {
   const related = relatedTagsForCard(card, targetProblemTags);
   const uncovered = related.filter((tag) => !coveredTags.has(tag));
-  const severity = targetProblemTags
-    .filter((item) => uncovered.includes(item.tag))
-    .reduce((sum, item) => sum + severityWeight(item.severity), 0);
+
+  const problemFitScore = getProblemFitScore(card, targetProblemTags);
+  const actionabilityScore = getActionabilityScore(card);
+  const specificityScore = getSpecificityScore(card);
+  const transferabilityScore = getTransferabilityScore(card);
   const roleFitScore = Math.max(0, 1 - (card.roleMismatchPenalty || 0));
-  const diversityBonus = selectedCards.some((item) => item.topic === card.topic || item.adviceIntent === card.adviceIntent) ? 0 : 1;
-  // 覆蓋未處理問題的權重提升為最高優先（0.50），確保每條建議都在解決新問題
+  const retrievalScore = card.retrieval_score || 0;
+
+  // Bonus for covering new uncovered problems
+  const uncoveredBonus = Math.min(1, uncovered.length / 2);
+  // Topic diversity bonus
+  const selectedTopics = new Set(selectedCards.map((c) => c._topicCluster || inferTopicCluster(c)));
+  const thisCluster = card._topicCluster || inferTopicCluster(card);
+  const topicDiversityBonus = selectedTopics.has(thisCluster) ? 0 : 0.12;
+
   return (
-    0.15 * (card.retrieval_score || 0) +
-    0.50 * Math.min(1, uncovered.length / 2) +  // 未覆蓋問題數量
-    0.20 * Math.min(1, severity) +               // 問題嚴重程度
-    0.05 * roleFitScore +
-    0.10 * diversityBonus                        // 話題多樣性
+    0.35 * (problemFitScore * 0.6 + uncoveredBonus * 0.4) +
+    0.20 * actionabilityScore +
+    0.15 * specificityScore +
+    0.15 * transferabilityScore +
+    0.10 * roleFitScore +
+    0.05 * retrievalScore +
+    topicDiversityBonus
   );
 }
 
@@ -1119,19 +1341,40 @@ const BIG_TECH_COMPANIES = new Set([
 ]);
 
 function mentorMatchScore(bucket, targetProblemTags, targetRoleFamily = "") {
+  const cards = bucket.cards || [];
+  if (!cards.length) return 0;
+
+  // Top-k average card score (not sum — prevents large buckets winning by volume)
+  const topK = Math.min(3, cards.length);
+  const cardScores = cards.map((card) => adviceSelectionScore(card, targetProblemTags, new Set(), []));
+  cardScores.sort((a, b) => b - a);
+  const avgTopKScore = cardScores.slice(0, topK).reduce((s, v) => s + v, 0) / topK;
+
+  // Weighted problem coverage (severity-aware)
   const covered = new Set();
-  let score = 0;
-  for (const card of bucket.cards || []) {
-    score += card.retrieval_score || 0;
-    relatedTagsForCard(card, targetProblemTags).forEach((tag) => covered.add(tag));
-  }
-  // 不再給大廠加分，純粹以問題覆蓋率和相關性排名
+  for (const card of cards) relatedTagsForCard(card, targetProblemTags).forEach((tag) => covered.add(tag));
+  const totalSeverity = targetProblemTags.reduce((s, p) => s + severityWeight(p.severity || "medium"), 0) || 1;
+  const coveredSeverity = targetProblemTags
+    .filter((p) => covered.has(p.tag))
+    .reduce((s, p) => s + severityWeight(p.severity || "medium"), 0);
+  const weightedCoverage = coveredSeverity / totalSeverity;
+
+  // Role fit: bonus not penalty — cross-domain is OK if coverage is high
   const bucketFamilies = bucket.roleFamilies || [];
   const normalized = normalizeTerm(targetRoleFamily || "");
-  const roleFamilyBonus =
-    bucketFamilies.includes("universal") || (normalized && bucketFamilies.includes(normalized)) ? 1.0 : 0;
-  // 問題覆蓋率權重提高到 0.6（最重要的指標）
-  return score + covered.size * 0.6 + roleFamilyBonus;
+  const roleFitScore = (bucketFamilies.includes("universal") || (normalized && bucketFamilies.includes(normalized))) ? 1.0 : 0.4;
+
+  // Advice diversity: reward buckets with varied topic clusters
+  const clusters = new Set(cards.map((c) => c._topicCluster || inferTopicCluster(c)));
+  const diversityScore = Math.min(1, clusters.size / 3);
+
+  return (
+    0.35 * weightedCoverage +
+    0.25 * avgTopKScore +
+    0.20 * roleFitScore +
+    0.10 * diversityScore +
+    0.10 * qualityNormalized(cards[0]?.retrieval_score)
+  );
 }
 
 function selectDiverseMentors(mentorBuckets, targetCount, targetProblemTags = [], targetRoleFamily = "") {
@@ -1208,46 +1451,107 @@ function fallbackMentor(index, internalAtsResult, coveredTags = new Set()) {
 function selectFreeMentorPlan(candidates, internalAtsResult) {
   const targetProblemTags = problemTagsFromInternal(internalAtsResult).slice(0, 6);
   const profile = internalAtsResult.profile || {};
+  const roleFamily = profile.roleFamily || "";
+  const userProfile = { roleFamily, problemTags: targetProblemTags };
+
   let roleSafeRejected = 0;
-  const freeCandidates = candidates.filter((card) =>
+  // Step 1: filter eligible free candidates
+  const eligibleCandidates = candidates.filter((card) =>
     (card.unlockTier === "free" || card.safeToShowFree) &&
     card.adviceIntent !== "application_timing" &&
     !["interview_prep", "behavioral_interview"].includes(card.adviceScope)
   ).filter((card) => {
-    const safe = isAdviceRoleSafe(card, internalAtsResult.jobTitle || profile.targetRole, profile.roleFamily);
+    const safe = isAdviceRoleSafe(card, internalAtsResult.jobTitle || profile.targetRole, roleFamily);
     if (!safe) roleSafeRejected += 1;
     return safe;
   });
-  const buckets = groupAdviceByMentor(freeCandidates);
-  const roleFamily = profile.roleFamily || "";
-  // Hard filter: only allow mentors whose role_family matches the target (or is universal/empty)
-  const roleSafeBuckets = buckets.filter((b) => isBucketRoleSafe(b, roleFamily));
-  const candidateBuckets = roleSafeBuckets.length > 0 ? roleSafeBuckets : buckets;
 
-  // 純粹以問題相關性選出最匹配的導師（不優先大廠）
-  const bucket = selectDiverseMentors(candidateBuckets, 1, targetProblemTags, roleFamily)[0];
+  // Annotate each candidate with transferability scope + topic cluster (cached to avoid recomputation)
+  for (const card of eligibleCandidates) {
+    card._transferabilityScope = card._transferabilityScope || inferAdviceTransferabilityScope(card);
+    card._topicCluster = card._topicCluster || inferTopicCluster(card);
+  }
+
+  // Step 2: Issue-first — rank problems by severity, find best advice per problem
+  const rankedProblems = [...targetProblemTags].sort((a, b) => severityWeight(b.severity) - severityWeight(a.severity));
+  const selectedCards = [];
+  const usedCardIds = new Set();
+  const coveredTags = new Set();
+
+  for (const problem of rankedProblems.slice(0, 3)) {
+    if (selectedCards.length >= 3) break;
+    const bestCard = eligibleCandidates
+      .filter((card) => !usedCardIds.has(card.adviceId))
+      .filter((card) => relatedTagsForCard(card, targetProblemTags).includes(problem.tag))
+      .sort((a, b) => {
+        const sa = getProblemFitScore(a, [problem]) * 0.5 + getActionabilityScore(a) * 0.3 + (1 - (a.roleMismatchPenalty || 0)) * 0.2;
+        const sb = getProblemFitScore(b, [problem]) * 0.5 + getActionabilityScore(b) * 0.3 + (1 - (b.roleMismatchPenalty || 0)) * 0.2;
+        return sb - sa;
+      })[0];
+    if (bestCard) {
+      selectedCards.push(bestCard);
+      usedCardIds.add(bestCard.adviceId);
+      relatedTagsForCard(bestCard, targetProblemTags).forEach((t) => coveredTags.add(t));
+    }
+  }
+
+  // Step 3: Fill remaining slots with diverse high-score candidates
+  if (selectedCards.length < 3) {
+    const remaining = eligibleCandidates
+      .filter((card) => !usedCardIds.has(card.adviceId))
+      .sort((a, b) => adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards));
+    for (const card of remaining) {
+      if (selectedCards.length >= 3) break;
+      selectedCards.push(card);
+      usedCardIds.add(card.adviceId);
+      relatedTagsForCard(card, targetProblemTags).forEach((t) => coveredTags.add(t));
+    }
+  }
+
+  // Step 4: Convert to advice items
+  const usedDiagnosisTags = new Set();
+  let adviceItems = selectedCards.map((card, i) => {
+    const item = toAdviceItem(card, targetProblemTags, i, true, internalAtsResult, usedDiagnosisTags);
+    const meta = generateAdviceExplanationMetadata(card, userProfile);
+    item.matchReason = meta.matchReason;
+    item.mentorFitType = meta.mentorFitType;
+    item.topicCluster = meta.topicCluster;
+    item.confidenceScore = meta.confidenceScore;
+    item.adviceTransferScope = meta.adviceTransferScope;
+    return item;
+  });
+
+  adviceItems = normalizeFreeAdviceLanes(adviceItems, internalAtsResult);
+
+  // Step 5: Choose displayed mentor — pick best bucket that covers most problems
   let plan;
-  if (!bucket) {
+  if (eligibleCandidates.length === 0 && selectedCards.length === 0) {
     plan = fallbackMentor(0, internalAtsResult);
   } else {
-    const coveredTags = new Set();
-    const adviceItems = selectTopAdviceForMentor(bucket, targetProblemTags, 3, coveredTags, internalAtsResult);
-    // Use real bucket mentor data; fall back only for fields not available in bucket
-    const mergedBucket = {
+    const buckets = groupAdviceByMentor(eligibleCandidates.length > 0 ? eligibleCandidates : candidates);
+    const roleSafeBuckets = buckets.filter((b) => isBucketRoleSafe(b, roleFamily));
+    const candidateBuckets = roleSafeBuckets.length > 0 ? roleSafeBuckets : buckets;
+    const bestBucket = selectDiverseMentors(candidateBuckets, 1, targetProblemTags, roleFamily)[0];
+
+    const mergedBucket = bestBucket ? {
       ...DEFAULT_FREE_MENTOR_PROFILE,
-      ...bucket,
-      company: bucket.company || DEFAULT_FREE_MENTOR_PROFILE.company,
-      companyLogo: bucket.companyLogo || null,  // no logo = show initials, not Amazon
-      mentorTitle: bucket.mentorTitle || DEFAULT_FREE_MENTOR_PROFILE.mentorTitle,
-      careerPathDisplay: bucket.careerPathDisplay || null,
-    };
-    plan = mentorFromBucket(mergedBucket, normalizeFreeAdviceLanes(adviceItems, internalAtsResult), targetProblemTags, 0);
+      ...bestBucket,
+      company: bestBucket.company || DEFAULT_FREE_MENTOR_PROFILE.company,
+      companyLogo: bestBucket.companyLogo || null,
+      mentorTitle: bestBucket.mentorTitle || DEFAULT_FREE_MENTOR_PROFILE.mentorTitle,
+      careerPathDisplay: bestBucket.careerPathDisplay || null,
+    } : { ...DEFAULT_FREE_MENTOR_PROFILE };
+
+    plan = mentorFromBucket(mergedBucket, adviceItems, targetProblemTags, 0);
   }
+
   Object.defineProperty(plan, "debug", {
     enumerable: false,
     value: {
       roleSafeRejected,
       freeAdviceSources: (plan.adviceItems || []).map((item) => item.source || "db"),
+      issueFirst: true,
+      problemsRanked: rankedProblems.map((p) => p.tag),
     },
   });
   return plan;
@@ -1261,26 +1565,80 @@ function selectPremiumMentorPlan(candidates, internalAtsResult, freeMentorPlan =
   const profile = internalAtsResult.profile || {};
   const targetProblemTags = problemTagsFromInternal(internalAtsResult);
   const roleFamily = profile.roleFamily || "";
-  const buckets = groupAdviceByMentor(candidates.filter((card) =>
+  const userProfile = { roleFamily, problemTags: targetProblemTags };
+
+  // Annotate candidates with scope + cluster
+  for (const card of candidates) {
+    card._transferabilityScope = card._transferabilityScope || inferAdviceTransferabilityScope(card);
+    card._topicCluster = card._topicCluster || inferTopicCluster(card);
+  }
+
+  const eligibleCandidates = candidates.filter((card) =>
     !["interview_prep", "behavioral_interview"].includes(card.adviceScope) &&
     isAdviceRoleSafe(card, internalAtsResult.jobTitle || profile.targetRole, roleFamily)
-  ));
-  // Hard filter: only allow mentors in the same role_family (or universal)
+  );
+
+  const buckets = groupAdviceByMentor(eligibleCandidates);
   const roleSafeBuckets = buckets.filter((b) => isBucketRoleSafe(b, roleFamily));
   const candidateBuckets = roleSafeBuckets.length >= 4 ? roleSafeBuckets : roleSafeBuckets.length > 0 ? roleSafeBuckets : buckets;
   const selectedBuckets = selectDiverseMentors(candidateBuckets, 4, targetProblemTags, roleFamily);
   const coveredTags = new Set();
+  // Track topic cluster usage across all 12 cards for diversity enforcement
+  const clusterCounts = new Map();
+  const CLUSTER_MAX = 2; // max cards per cluster (except critical problems)
+  const criticalTags = new Set(targetProblemTags.filter((p) => p.severity === "critical" || p.severity === "high").map((p) => p.tag));
   const mentors = [];
 
   if (freeMentorPlan) {
     mentors.push(freeMentorPlan);
-    freeMentorPlan.adviceItems.forEach((item) => (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag)));
+    freeMentorPlan.adviceItems.forEach((item) => {
+      (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
+      const cluster = item.topicCluster || inferTopicCluster(item);
+      clusterCounts.set(cluster, (clusterCounts.get(cluster) || 0) + 1);
+    });
   }
 
   for (const bucket of selectedBuckets) {
     if (mentors.length >= 4) break;
     if (mentors.some((mentor) => mentor.mentorId === bucket.mentorId)) continue;
-    const adviceItems = selectTopAdviceForMentor(bucket, targetProblemTags, 3, coveredTags, internalAtsResult);
+
+    // Select top advice for this mentor, enforcing cluster diversity
+    const usedDiagnosisTags = new Set();
+    const selectedItems = [];
+    const bucketCards = [...(bucket.cards || [])].sort((a, b) =>
+      adviceSelectionScore(b, targetProblemTags, coveredTags, selectedItems) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedItems)
+    );
+
+    for (const card of bucketCards) {
+      if (selectedItems.length >= 3) break;
+      const cluster = card._topicCluster || inferTopicCluster(card);
+      const clusterCount = clusterCounts.get(cluster) || 0;
+      const isCritical = (card.relatedProblemTags || []).some((t) => criticalTags.has(t));
+      if (clusterCount >= CLUSTER_MAX && !isCritical) continue;
+
+      const item = toAdviceItem(card, targetProblemTags, selectedItems.length, true, internalAtsResult, usedDiagnosisTags);
+      const meta = generateAdviceExplanationMetadata(card, userProfile);
+      item.matchReason = meta.matchReason;
+      item.mentorFitType = meta.mentorFitType;
+      item.topicCluster = meta.topicCluster;
+      item.confidenceScore = meta.confidenceScore;
+      item.adviceTransferScope = meta.adviceTransferScope;
+
+      selectedItems.push(item);
+      (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
+      clusterCounts.set(cluster, clusterCount + 1);
+    }
+
+    // Fill any remaining slots without cluster constraint
+    if (selectedItems.length < 3) {
+      const extras = selectTopAdviceForMentor(
+        { ...bucket, cards: bucketCards.filter((c) => !selectedItems.some((i) => i.adviceId === c.adviceId)) },
+        targetProblemTags, 3 - selectedItems.length, coveredTags, internalAtsResult
+      );
+      selectedItems.push(...extras);
+    }
+
+    const adviceItems = selectedItems.slice(0, 3);
     mentors.push(mentorFromBucket(bucket, adviceItems, targetProblemTags, mentors.length));
   }
 
@@ -1434,19 +1792,25 @@ function formatPublicFreeMentorAdvice(freeMentorPlan, internalAtsResult = {}) {
       return {
         adviceId: item.adviceId,
         title: item.title,
-        // ── New schema fields (PART 1 / PART 7 — all included in free tier) ──
+        // ── New schema fields ──
         mentorLens: item.mentorLens || "",
         currentDiagnosis,
         action,
         reason: item.reason || "",
         evidence: buildAdviceEvidence(item, null, internalAtsResult),
-        // ── Backward-compat aliases (PART 8) ──
+        // ── Explanation metadata (issue-first) ──
+        matchReason: item.matchReason || "",
+        mentorFitType: item.mentorFitType || "",
+        topicCluster: item.topicCluster || inferTopicCluster(item),
+        confidenceScore: item.confidenceScore || null,
+        adviceTransferScope: item.adviceTransferScope || "",
+        // ── Backward-compat aliases ──
         problemSummary: currentDiagnosis,
         actionSummary: action,
         targetSection: item.targetSection || "overall",
         relatedProblemTags: item.relatedProblemTags || [],
         priority: item.priority || "medium",
-        // Rich mentor voice fields — same quality as paid, just no rewrite
+        // Rich mentor voice fields
         mentorInsight: item.mentorInsight || item.I_insight || "",
         example: item.example || item.E_example || "",
         hrPerspective: item.hrPerspective || item.HR_os || "",
@@ -1471,10 +1835,16 @@ function formatPremiumMentorReport(premiumMentorPlan, internalAtsResult) {
         action,
         reason: item.reason || "",
         evidence: buildAdviceEvidence(item, null, internalAtsResult),
+        // Explanation metadata
+        matchReason: item.matchReason || "",
+        mentorFitType: item.mentorFitType || "",
+        topicCluster: item.topicCluster || inferTopicCluster(item),
+        confidenceScore: item.confidenceScore || null,
+        adviceTransferScope: item.adviceTransferScope || "",
         // Backward compat
         problemSummary: currentDiagnosis,
         actionSummary: action,
-        // Paid-only premium fields (PART 7)
+        // Paid-only premium fields
         mentorInsight: item.mentorInsight || "",
         example: item.example || "",
         hrPerspective: item.hrPerspective || "",
@@ -1502,6 +1872,15 @@ module.exports = {
   inferRoleFamilyFromJobTitle,
   inferAdviceScope,
   inferAdviceIntent,
+  inferAdviceTransferabilityScope,
+  inferTopicCluster,
+  inferMentorFitType,
+  generateAdviceExplanationMetadata,
+  getActionabilityScore,
+  getSpecificityScore,
+  getTransferabilityScore,
+  getProblemFitScore,
+  ROLE_SENSITIVITY_BY_PROBLEM_TAG,
   isEligibleForAtsResumeReport,
   isAdviceRoleSafe,
   hasConflictingRoleExamples,

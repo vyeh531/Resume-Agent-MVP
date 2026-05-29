@@ -255,55 +255,121 @@ function priorityBadge(p) {
   const lv = (p === "high" || p === "critical" || p === "P0") ? "high"
            : (p === "medium" || p === "P1") ? "medium" : "low";
   const cfg = {
-    high:   { dot:"#EF4444", bg:"#FEF2F2", color:"#B91C1C", border:"#FECACA", label:"P0 必改" },
-    medium: { dot:"#F97316", bg:"#FFF7ED", color:"#C2410C", border:"#FED7AA", label:"P1 建议改" },
-    low:    { dot:"#3B82F6", bg:"#EFF6FF", color:"#1D4ED8", border:"#BFDBFE", label:"P2 加分项" },
+    high:   { dot:"#DC2626", bg:"#FFF1F1", color:"#991B1B", border:"#FCA5A5", label:"P0 必改" },
+    medium: { dot:"#EA580C", bg:"#FFF7ED", color:"#9A3412", border:"#FDBA74", label:"P1 建议改" },
+    low:    { dot:"#2563EB", bg:"#EFF6FF", color:"#1D4ED8", border:"#BFDBFE", label:"P2 加分项" },
   };
   const c = cfg[lv] || cfg.medium;
-  return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:${c.bg};color:${c.color};border:1px solid ${c.border};"><span style="width:6px;height:6px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${c.label}</span>`;
+  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:${c.bg};color:${c.color};border:1px solid ${c.border};letter-spacing:.01em;"><span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${c.label}</span>`;
 }
 
+const FIT_TYPE_CONFIG = {
+  same_role:                { label:"同职位导师",  bg:"#EFF6FF", color:"#1D4ED8", border:"#BFDBFE" },
+  same_industry:            { label:"同产业导师",  bg:"#F0FDF4", color:"#15803D", border:"#BBF7D0" },
+  same_function:            { label:"同职能导师",  bg:"#F0FDF4", color:"#166534", border:"#BBF7D0" },
+  cross_domain_high_relevance: { label:"跨领域高相关", bg:"#FFF7ED", color:"#92400E", border:"#FDE68A" },
+  ats_universal:            { label:"ATS 通用建议", bg:"#F5F3FF", color:"#5B21B6", border:"#DDD6FE" },
+  recruiter_perspective:    { label:"HR 视角",     bg:"#FFF1F2", color:"#9F1239", border:"#FECDD3" },
+};
+
 function renderApiAdviceItem(item, i) {
-  const diagnosis = item.currentDiagnosis || item.problemSummary || "";
-  const action    = item.action || item.actionSummary || "";
-  const insight   = item.mentorInsight || "";
-  const example   = item.example || "";
-  const hrPov     = item.hrPerspective || "";
+  const diagnosis   = item.currentDiagnosis || item.problemSummary || "";
+  const action      = item.action || item.actionSummary || "";
+  const insight     = item.mentorInsight || "";
+  const hrPov       = item.hrPerspective || "";
+  const matchReason = item.matchReason || "";
+  const fitType     = item.mentorFitType || "";
+  const topicCluster = item.topicCluster || sectionLabel(item.targetSection);
+
+  const fitCfg = FIT_TYPE_CONFIG[fitType];
+  const fitChip = fitCfg
+    ? `<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:${fitCfg.bg};color:${fitCfg.color};border:1px solid ${fitCfg.border};">${fitCfg.label}</span>` : "";
+
   const evidenceChips = (item.evidence || []).length
-    ? `<div class="cred-pills" style="margin-top:6px;">${item.evidence.map(e => `<span class="cred-pill">${escapeHtml(e)}</span>`).join("")}</div>` : "";
-  const divider = i > 0 ? `<div style="height:1px;background:linear-gradient(to right,transparent,#DDD6CA,transparent);margin:20px 0;"></div>` : "";
+    ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;">${item.evidence.map(e =>
+        `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">${escapeHtml(e)}</span>`
+      ).join("")}</div>` : "";
+
+  const divider = i > 0
+    ? `<div style="height:1px;background:linear-gradient(to right,transparent,rgba(0,0,0,0.07),transparent);margin:22px 0;"></div>` : "";
+
   return `${divider}
-    <div style="margin-top:${i > 0 ? "0" : "12px"};">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+    <div style="margin-top:${i > 0 ? "0" : "4px"};">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
         ${priorityBadge(item.priority)}
-        <span style="font-size:11px;color:#9CA3AF;font-weight:500;">导师建议 ${i + 1}</span>
-        <span style="margin-left:auto;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;flex-shrink:0;">${escapeHtml(sectionLabel(item.targetSection))}</span>
+        ${topicCluster ? `<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;">${escapeHtml(topicCluster)}</span>` : ""}
+        ${fitChip}
       </div>
-      <h4 style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;line-height:1.4;">${escapeHtml(item.title)}</h4>
-      ${diagnosis ? `<div style="display:flex;gap:10px;background:#F8F7F4;border-left:3px solid #D1C9B8;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><span style="font-size:15px;flex-shrink:0;">💡</span><div><div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:4px;">你的现状</div><p style="margin:0;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(diagnosis)}</p>${evidenceChips}</div></div>` : ""}
-      ${action ? `<div style="display:flex;gap:10px;background:#F0FDF4;border-left:3px solid #4ADE80;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><span style="font-size:15px;flex-shrink:0;">⚡</span><div><div style="font-size:11px;font-weight:700;color:#15803D;margin-bottom:4px;">建议你先做</div><p style="margin:0;font-size:13px;line-height:1.65;color:#166534;font-weight:600;">${escapeHtml(action)}</p></div></div>` : ""}
-      ${insight ? `<div style="background:#F5F3FF;border-left:3px solid #C4B5FD;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:4px;">导师视角</div><p style="margin:0;font-size:13px;line-height:1.65;color:#4C1D95;">${escapeHtml(insight)}</p></div>` : ""}
-      ${hrPov ? `<div style="background:#FFF7ED;border-left:3px solid #FED7AA;border-radius:0 10px 10px 0;padding:10px 14px;margin-top:8px;"><div style="font-size:11px;font-weight:700;color:#C2410C;margin-bottom:3px;">HR 视角</div><p style="margin:0;font-size:12px;line-height:1.6;color:#9A3412;">${escapeHtml(hrPov)}</p></div>` : ""}
+      ${matchReason ? `<div style="display:flex;align-items:flex-start;gap:7px;background:#FAFAF8;border-radius:8px;padding:7px 10px;margin-bottom:12px;border:1px solid rgba(0,0,0,0.05);"><span style="font-size:11px;flex-shrink:0;opacity:.5;margin-top:1px;">💬</span><p style="margin:0;font-size:11.5px;line-height:1.55;color:#78716C;font-style:italic;">${escapeHtml(matchReason)}</p></div>` : ""}
+      <h4 style="margin:0 0 13px;font-size:15px;font-weight:700;color:#111827;line-height:1.4;">${escapeHtml(item.title)}</h4>
+      ${diagnosis ? `<div style="margin-bottom:11px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+          <span style="width:3px;height:14px;background:#D4A574;border-radius:2px;flex-shrink:0;"></span>
+          <span style="font-size:11px;font-weight:700;color:#92400E;letter-spacing:.02em;">你的现状</span>
+        </div>
+        <p style="margin:0 0 0 9px;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(diagnosis)}</p>
+        ${evidenceChips ? `<div style="margin-left:9px;">${evidenceChips}</div>` : ""}
+      </div>` : ""}
+      ${action ? `<div style="background:#F6FEF9;border:1px solid #D1FAE5;border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="width:18px;height:18px;border-radius:50%;background:#059669;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:#fff;font-weight:700;">✓</span>
+          <span style="font-size:11px;font-weight:700;color:#065F46;letter-spacing:.02em;">建议你先做</span>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#065F46;font-weight:600;">${escapeHtml(action)}</p>
+      </div>` : ""}
+      ${(insight || hrPov) ? `<div style="background:#FAFAF9;border:1px solid rgba(0,0,0,0.05);border-radius:10px;padding:11px 13px;margin-top:8px;">
+        <div style="font-size:10.5px;font-weight:700;color:#9CA3AF;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase;">补充视角</div>
+        ${insight ? `<div style="${hrPov ? "margin-bottom:8px;" : ""}">
+          <span style="font-size:11px;font-weight:600;color:#6D28D9;background:#F5F3FF;padding:2px 7px;border-radius:99px;margin-right:6px;">导师</span>
+          <span style="font-size:12.5px;line-height:1.6;color:#374151;">${escapeHtml(insight)}</span>
+        </div>` : ""}
+        ${hrPov ? `<div>
+          <span style="font-size:11px;font-weight:600;color:#B45309;background:#FFFBEB;padding:2px 7px;border-radius:99px;margin-right:6px;">HR</span>
+          <span style="font-size:12.5px;line-height:1.6;color:#374151;">${escapeHtml(hrPov)}</span>
+        </div>` : ""}
+      </div>` : ""}
     </div>`;
+}
+
+function mentorInitials(name) {
+  const clean = String(name || "").replace(/[导师]/g, "").trim();
+  return clean.slice(0, 2) || (name || "M").slice(0, 1);
 }
 
 function renderFreeMentor(m) {
   const mentorFreeEl = document.getElementById("mentorFree");
   if (!mentorFreeEl || !m) return;
-  const badges = (m.badges || []).map(b => `<span class="cred-pill">${escapeHtml(b)}</span>`).join("");
+
+  const name = m.mentorName || "导师";
+  const initials = mentorInitials(name);
+  const company = m.company || "";
+  const title = m.mentorTitle || "";
+  const careerPath = m.careerPathDisplay || "";
+  const companyMeta = [company, title].filter(Boolean).join(" · ");
   const adviceHtml = (m.adviceItems || []).slice(0, 3).map(renderApiAdviceItem).join("");
-  const companyMeta = [m.company, m.mentorTitle].filter(Boolean).join(" · ");
+
+  // Covered problem chips (shown as context tags at the top)
+  const matchedTags = (m.matchedProblems || []).slice(0, 4).map(t =>
+    `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">${escapeHtml(String(t).replace(/_/g," "))}</span>`
+  ).join("");
+
   mentorFreeEl.innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">
-      <div class="mentor-avatar-placeholder" style="width:48px;height:48px;border-radius:50%;background:var(--paper-deep);border:1px solid var(--line);flex-shrink:0;"></div>
-      <div style="flex:1;min-width:0;">
-      <div style="font-size:20px;font-weight:700;color:var(--ink);line-height:1.2;">${escapeHtml(m.mentorName || "导师")}</div>
-      ${companyMeta ? `<div style="font-size:12px;color:var(--ink-mute);margin-top:3px;">${escapeHtml(companyMeta)}</div>` : ""}
-      ${m.careerPathDisplay ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:4px;"><b style="font-size:11px;font-family:var(--mono);color:var(--ink-soft);">职业路径</b>　${escapeHtml(m.careerPathDisplay)}</div>` : ""}
+    <div style="background:#FFFDF7;border:1px solid rgba(0,0,0,0.07);border-radius:20px;padding:20px 20px 18px;box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#E8D5B7,#C8A46E);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:700;color:#78350F;letter-spacing:.03em;">${escapeHtml(initials)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:18px;font-weight:700;color:#111827;line-height:1.2;">${escapeHtml(name)}</span>
+            <span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:#FEF9C3;color:#713F12;border:1px solid #FDE68A;">免费试读</span>
+          </div>
+          ${companyMeta ? `<div style="font-size:12px;color:#6B7280;margin-top:3px;">${escapeHtml(companyMeta)}</div>` : ""}
+          ${careerPath ? `<div style="font-size:11.5px;color:#9CA3AF;margin-top:2px;"><span style="font-weight:600;color:#A8A29E;">职业路径</span> · ${escapeHtml(careerPath)}</div>` : ""}
+        </div>
       </div>
-    </div>
-    <div style="height:1px;background:var(--line);margin:0 0 16px;"></div>
-    ${adviceHtml}`;
+      ${matchedTags ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">${matchedTags}</div>` : ""}
+      <div style="height:1px;background:rgba(0,0,0,0.05);margin:0 0 18px;"></div>
+      ${adviceHtml}
+    </div>`;
 }
 
 function renderLockedAdvicePreview(preview) {

@@ -18,7 +18,16 @@ const Store = {
 };
 window.Store = Store;
 
-function showLoader(text, subtext) {
+let _loaderRotateTimer = null;
+const ANALYSIS_MESSAGES = [
+  ["正在分析简历…",        "导师正在读取你的简历内容"],
+  ["正在匹配导师…",        "从 1,300+ 位导师中筛选最适合的大佬"],
+  ["正在评估 ATS 兼容性…", "检测关键词匹配与岗位相关度"],
+  ["正在生成个性化建议…",  "结合你的目标岗位定制优化方向"],
+  ["即将完成…",            "正在整理诊断报告"],
+];
+
+function showLoader(text, subtext, rotate) {
   let o = document.querySelector(".loader-overlay");
   if (!o) {
     o = document.createElement("div");
@@ -26,14 +35,36 @@ function showLoader(text, subtext) {
     o.innerHTML = '<div class="loader-container"><div class="loader-dots"><span></span><span></span><span></span></div><div class="loader-text"></div><div class="loader-subtext"></div></div>';
     document.body.appendChild(o);
     const s = document.createElement("style");
-    s.textContent = ".loader-overlay{position:fixed;inset:0;background:rgba(24,24,22,.88);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s}.loader-overlay.show{opacity:1;pointer-events:auto}.loader-container{text-align:center;color:#f6f3ec;padding:0 24px}.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}.loader-dots span{width:12px;height:12px;border-radius:50%;background:#a8d5ba;animation:ldBounce 1.4s infinite ease-in-out both}.loader-dots span:nth-child(1){animation-delay:-.32s}.loader-dots span:nth-child(2){animation-delay:-.16s}@keyframes ldBounce{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}.loader-text{font-size:18px;font-weight:600;margin-bottom:8px}.loader-subtext{font-size:14px;opacity:.7}";
+    s.textContent = ".loader-overlay{position:fixed;inset:0;background:rgba(24,24,22,.88);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s}.loader-overlay.show{opacity:1;pointer-events:auto}.loader-container{text-align:center;color:#f6f3ec;padding:0 24px}.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}.loader-dots span{width:12px;height:12px;border-radius:50%;background:#a8d5ba;animation:ldBounce 1.4s infinite ease-in-out both}.loader-dots span:nth-child(1){animation-delay:-.32s}.loader-dots span:nth-child(2){animation-delay:-.16s}@keyframes ldBounce{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}.loader-text{font-size:18px;font-weight:600;margin-bottom:8px;transition:opacity .3s}.loader-subtext{font-size:14px;opacity:.7;transition:opacity .3s}";
     document.head.appendChild(s);
   }
-  o.querySelector(".loader-text").textContent    = text    || "";
-  o.querySelector(".loader-subtext").textContent = subtext || "";
+  const textEl    = o.querySelector(".loader-text");
+  const subtextEl = o.querySelector(".loader-subtext");
+  textEl.textContent    = text    || "";
+  subtextEl.textContent = subtext || "";
   o.classList.add("show");
+
+  // Stop any previous rotation
+  if (_loaderRotateTimer) { clearInterval(_loaderRotateTimer); _loaderRotateTimer = null; }
+
+  if (rotate) {
+    let idx = 0;
+    _loaderRotateTimer = setInterval(() => {
+      idx = (idx + 1) % ANALYSIS_MESSAGES.length;
+      // Fade out → update → fade in
+      textEl.style.opacity = "0";
+      subtextEl.style.opacity = "0";
+      setTimeout(() => {
+        textEl.textContent    = ANALYSIS_MESSAGES[idx][0];
+        subtextEl.textContent = ANALYSIS_MESSAGES[idx][1];
+        textEl.style.opacity = "1";
+        subtextEl.style.opacity = "0.7";
+      }, 300);
+    }, 2000);
+  }
 }
 function hideLoader() {
+  if (_loaderRotateTimer) { clearInterval(_loaderRotateTimer); _loaderRotateTimer = null; }
   const o = document.querySelector(".loader-overlay");
   if (o) o.classList.remove("show");
 }
@@ -53,7 +84,7 @@ async function submitResume(form) {
   try {
     showLoader("准备文件…", "读取简历内容…");
     const resumeText = await readResumeFile(file);
-    showLoader("正在分析简历…", "导师正在读取你的简历内容");
+    showLoader("正在分析简历…", "导师正在读取你的简历内容", true);
     const atsRaw    = await scoreResumeAPI(resumeText, job || null, jd);
     const atsResult = formatATSResult(atsRaw);
     const targetJob = job || atsRaw.jobTitle || "目标岗位";

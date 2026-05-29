@@ -1,7 +1,6 @@
 {
-  "/api/position-salary/route": "app/api/position-salary/route.js",
-  "/api/position-skills/route": "app/api/position-skills/route.js",
+  "/result/page": "app/result/page.js",
   "/page": "app/page.js",
   "/login/page": "app/login/page.js",
-  "/result/page": "app/result/page.js"
+  "/payment/page": "app/payment/page.js"
 }
