@@ -1,0 +1,34 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,3303,(e,a,s)=>{a.exports=e.r(79520)},10091,e=>{"use strict";var a=e.i(43476),s=e.i(3303);e.s(["default",0,function(){return(0,a.jsxs)(a.Fragment,{children:[(0,a.jsx)("style",{children:`
+        .pay-card{background:var(--paper-warm);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px 22px;text-align:center;margin-top:8px;box-shadow:var(--shadow-soft)}
+        .pay-summary{background:var(--paper-deep);border-radius:var(--r-md);padding:14px 16px;margin-bottom:22px;text-align:left;font-size:13px}
+        .pay-summary .label{font-family:var(--mono);font-size:10px;color:var(--ink-mute);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+        .pay-summary .item{display:flex;justify-content:space-between;padding:4px 0;color:var(--ink)}
+        .pay-summary .item.total{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-weight:700}
+        .pay-price{font-family:var(--serif);font-style:italic;font-weight:700;color:var(--rose);font-size:56px;line-height:1;display:flex;align-items:baseline;justify-content:center;gap:8px;margin:4px 0 6px}
+        .pay-price b{font-size:28px}
+        .pay-was{color:var(--ink-mute);text-decoration:line-through;font-size:14px;font-family:var(--mono)}
+        .pay-discount{display:inline-block;margin-top:6px;background:var(--rose);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;font-family:var(--mono);letter-spacing:.04em}
+        .pay-method{display:flex;align-items:center;gap:12px;border:1.5px solid var(--jade);background:var(--jade-soft);border-radius:var(--r-md);padding:14px 16px;margin:22px 0 22px;text-align:left}
+        .pay-method .wx{width:36px;height:36px;border-radius:8px;background:#07c160;color:#fff;display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:18px;flex-shrink:0}
+        .pay-method .text{flex:1}
+        .pay-method .label{font-weight:700;font-size:14px}
+        .pay-method .sub{font-size:12px;color:var(--ink-soft);margin-top:2px}
+        .pay-method .check{width:22px;height:22px;border-radius:50%;background:var(--jade);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+        .pay-trust{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:11px;color:var(--ink-mute);flex-wrap:wrap}
+        .pay-trust span{display:inline-flex;align-items:center;gap:4px}
+        .pay-foot{text-align:center;font-size:11px;color:var(--ink-mute);margin-top:18px;line-height:1.7}
+        .pay-foot a{color:var(--rose)}
+        .pay-back{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:13px;margin-bottom:12px;text-decoration:none}
+        .pay-back:hover{color:var(--ink)}
+        .qr{width:140px;height:140px;border:2px solid var(--line);border-radius:var(--r-md);margin:0 auto;background:var(--paper-deep);display:grid;place-items:center;font-size:40px}
+      `}),(0,a.jsxs)("div",{className:"page",children:[(0,a.jsxs)("div",{className:"brandbar",children:[(0,a.jsxs)("div",{className:"brand",children:[(0,a.jsx)("div",{className:"brand-logo",children:"M"}),(0,a.jsxs)("div",{className:"brand-name",children:["Mentor",(0,a.jsx)("em",{children:"X"})]})]}),(0,a.jsx)("div",{className:"brand-meta",children:"4 / 5 · 解锁支付"})]}),(0,a.jsx)("a",{href:"/result",className:"pay-back",children:"← 返回诊断报告"}),(0,a.jsx)("h1",{className:"section-title",style:{fontSize:"22px",marginTop:"8px"},children:"最后一步,解锁完整报告"}),(0,a.jsx)("p",{className:"section-desc",children:"支付完成后立即可查看 4 位导师全部建议 + Before/After 改写示范。"}),(0,a.jsxs)("div",{className:"pay-card fade-in",children:[(0,a.jsxs)("div",{className:"pay-summary",children:[(0,a.jsx)("div",{className:"label",children:"订单内容"}),(0,a.jsxs)("div",{className:"item",children:[(0,a.jsx)("span",{children:"4 位大厂导师完整建议"}),(0,a.jsx)("span",{className:"text-mute",children:"22+ 条"})]}),(0,a.jsxs)("div",{className:"item",children:[(0,a.jsx)("span",{children:"Before / After 改写示范"}),(0,a.jsx)("span",{className:"text-mute",children:"5 组"})]}),(0,a.jsxs)("div",{className:"item",children:[(0,a.jsx)("span",{children:"报告导出 .md / 复制"}),(0,a.jsx)("span",{className:"text-mute",children:"无限次"})]}),(0,a.jsxs)("div",{className:"item",children:[(0,a.jsx)("span",{children:"客服微信通道"}),(0,a.jsx)("span",{className:"text-mute",children:"含"})]}),(0,a.jsxs)("div",{className:"item total",children:[(0,a.jsx)("span",{children:"合计"}),(0,a.jsx)("span",{children:"¥ 49.00"})]})]}),(0,a.jsx)("div",{className:"text-mute",style:{fontSize:"11px",fontFamily:"var(--mono)",letterSpacing:".12em",textTransform:"uppercase"},children:"应付金额"}),(0,a.jsxs)("div",{className:"pay-price",children:[(0,a.jsx)("b",{children:"¥"}),"49"]}),(0,a.jsx)("div",{children:(0,a.jsx)("span",{className:"pay-was",children:"原价 ¥199"})}),(0,a.jsx)("div",{className:"pay-discount",children:"秋招特价 · 限时 75% off"}),(0,a.jsx)("div",{style:{margin:"26px 0 12px"},children:(0,a.jsx)("div",{className:"qr",children:"📱"})}),(0,a.jsx)("p",{className:"text-mute",style:{fontSize:"12px",margin:"0 0 6px"},children:"微信扫码完成支付"}),(0,a.jsx)("p",{className:"text-soft",style:{fontSize:"12px",margin:"0 0 0"},id:"qrTimer",children:"二维码 14:59 后过期"}),(0,a.jsxs)("div",{className:"pay-method",children:[(0,a.jsx)("div",{className:"wx",children:"微"}),(0,a.jsxs)("div",{className:"text",children:[(0,a.jsx)("div",{className:"label",children:"微信支付"}),(0,a.jsx)("div",{className:"sub",children:"扫上方二维码,在微信中确认"})]}),(0,a.jsx)("div",{className:"check",children:"✓"})]}),(0,a.jsx)("button",{className:"btn btn-jade btn-block",onClick:"mockPayment(this)",children:"我已扫码完成支付"}),(0,a.jsxs)("div",{className:"pay-trust",children:[(0,a.jsx)("span",{children:"🔒 加密交易"}),(0,a.jsx)("span",{children:"· 支持开发票"}),(0,a.jsx)("span",{children:"· 7 天无理由退款"})]})]}),(0,a.jsxs)("div",{className:"pay-foot",children:["支付遇到问题?联系客服 ",(0,a.jsx)("a",{children:"mentorx-zhushou"}),(0,a.jsx)("br",{}),"本订单由 蔓藤教育(MentorX) 提供"]})]}),(0,a.jsx)(s.default,{src:"/assets/app.js",strategy:"beforeInteractive"}),(0,a.jsx)(s.default,{id:"payment-logic",strategy:"afterInteractive",children:`
+        guardSubmitted();
+        let timer = 14 * 60 + 59;
+        const el = document.getElementById("qrTimer");
+        const countdown = setInterval(() => {
+          if (timer <= 0) { clearInterval(countdown); if (el) el.textContent = "二维码已过期,请刷新页面"; return; }
+          timer--;
+          const m = Math.floor(timer / 60), s = timer % 60;
+          if (el) el.textContent = "二维码 " + m + ":" + String(s).padStart(2, "0") + " 后过期";
+        }, 1000);
+      `})]})}])}]);
