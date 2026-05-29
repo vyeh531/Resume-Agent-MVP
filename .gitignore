@@ -20,3 +20,4 @@ npm-debug.log*
 mentor_kb-v5.db
 *.db
 *.db
+.vercel
