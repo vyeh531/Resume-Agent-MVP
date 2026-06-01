@@ -255,7 +255,7 @@
   <section class="section">
     <div class="section-num">技能匹配</div>
     <div class="row-between mb-12" style="margin-top: 4px;">
-      <h3 class="section-title" style="font-size: 18px; margin: 0;">JD Top 10 技能匹配</h3>
+      <h3 class="section-title" style="font-size: 18px; margin: 0;">技能匹配分析</h3>
       <div class="skill-score"><span id="skillHave">4</span><small>/<span id="skillTotal">10</span></small></div>
     </div>
 
@@ -268,7 +268,7 @@
     <div class="card card-tight">
       <ul class="skill-list" id="skillListTop3"></ul>
       <button class="skill-expand-toggle" id="skillExpandToggle" type="button">
-        查看全部 Top 10 技能 ↓
+        查看全部技能（付费解锁）↓
       </button>
 
       <div class="skill-paywall" id="skillPaywall" hidden>
@@ -277,7 +277,7 @@
           <div class="lock">🔒</div>
           <div class="text">
             解锁<b style="color:var(--jade);">全部 4 位导师</b> + <b style="color:var(--jade);">完整改写报告</b><br/>
-            <span style="color:var(--ink-soft);font-weight:500;">含完整 Top 10 技能清单</span>
+            <span style="color:var(--ink-soft);font-weight:500;">解锁后查看全部技能匹配与补强路径</span>
           </div>
           <a class="btn btn-jade" href="payment.html">¥ 49 解锁完整诊断</a>
         </div>
@@ -299,7 +299,7 @@
   <section class="section">
     <div class="section-num">导师 2-4 / 4</div>
     <h3 class="section-title" style="font-size: 20px;">更多导师建议 <span class="text-mute" style="font-size:14px;font-family:var(--sans);font-weight:400;">(付费解锁)</span></h3>
-    <p class="section-desc">每位导师从不同角度给出 P0 必改、P1 建议改、P2 加分项。</p>
+    <p class="section-desc">每位导师从不同角度给出建议。</p>
 
     <div class="stack-12" id="lockedMentorsArea"></div>
 
@@ -361,10 +361,11 @@
       v: `${item.score}/${item.max}`,
       note: `${item.pct}% · ${item.pct >= 70 ? "表现较好" : item.pct >= 50 ? "需要优化" : "优先修改"}`
     }));
-    if (ats.jdMatchRatio !== null && ats.jdMatchRatio !== undefined) {
+    if (ats.jdMatchRatio !== null && ats.jdMatchRatio !== undefined && ats.jdMatchRatio > 0) {
+      const jdPct = Math.round(Number(ats.jdMatchRatio));
       rows.unshift({
         k: "JD 关键词匹配",
-        v: `${ats.jdMatchRatio}%`,
+        v: `${jdPct}%`,
         note: (ats.topMissingKw || []).length
           ? `缺口关键词：${ats.topMissingKw.slice(0, 6).join("、")}`
           : "未发现明显关键词缺口"
@@ -569,7 +570,7 @@
     paywallEl.hidden = !paywallOpen;
     expandBtn.innerHTML = paywallOpen
       ? "收起 ↑"
-      : "查看全部 Top 10 技能 ↓";
+      : "查看全部技能（付费解锁）↓";
   });
 
   function stripHtml(html){ return String(html).replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, ""); }
@@ -635,18 +636,22 @@
       ${item.strategy ? `<div class="advice-section" style="margin-top:12px;"><h4>导师筛选策略</h4><p>${highlightFake(item.strategy)}</p></div>` : ""}
       ${item.current ? `<div class="advice-section advice-section--plain"><h4>你的现状</h4><p>${highlightFake(item.current)}</p></div>` : ""}
       <div class="advice-section advice-section--plain"><h4>建议</h4><div style="font-size:14px;line-height:1.7;">${formatAdvice(item.advice || "")}</div></div>
-      ${ba.after ? `
-      <div class="advice-example">
+      <!-- 改写示例：免费用户显示锁定诱导，付费后显示 AI 真实改写 -->
+      <div class="advice-example advice-example--locked">
         <div class="advice-example-head">
-          <div class="title"><span class="check">✓</span><span>改写示例</span></div>
-          <button class="copy-btn" onclick="${copyHandler}(this)" data-content='${escapeAttr(ba.after)}'>📋 复制</button>
+          <div class="title"><span>✏️</span><span>AI 改写你的简历</span></div>
         </div>
-        <div class="advice-example-body">
-          ${ba.before ? `<div style="margin-bottom:8px;"><span class="label" style="color:var(--rose,#e07070);">改写前：</span><br/><span style="font-size:13px;color:var(--ink-soft);font-family:var(--mono,monospace);">${ba.before}</span></div>` : ""}
-          <div><span class="label">改写后：</span><br/><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${highlightFake(ba.after)}</span></div>
-          ${hasFake ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-mute);font-family:var(--mono);"><mark style="background:rgba(232,160,107,.22);color:var(--apricot,#e8a06b);border-radius:3px;padding:0 2px;font-size:10px;">橙色数字</mark> 为 AI 估算，请替换为你的真实数据</div>` : ""}
+        <div class="advice-example-body" style="position:relative;min-height:64px;">
+          <div style="filter:blur(5px);pointer-events:none;user-select:none;font-size:13px;font-family:var(--mono,monospace);line-height:1.6;color:#6B7280;">
+            ✦ Leveraged Python &amp; SQL to analyze 50K+ records,<br/>reducing reporting time by 60% and improving data accuracy...
+          </div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+            <span style="font-size:16px;">🔒</span>
+            <span style="font-size:12px;font-weight:600;color:#374151;">解锁后 AI 针对你的简历真实改写</span>
+            <a href="payment.html" style="font-size:12px;color:#4338CA;text-decoration:underline;font-weight:500;">¥49 立即解锁 →</a>
+          </div>
         </div>
-      </div>` : ""}
+      </div>
     `;
   }
 
@@ -688,7 +693,7 @@
     const dims = atsResult.dimensions || atsResult.raw?.dimensions || {};
     const jdScore = atsResult.raw?.scores?.jdMatch?.score ?? atsResult.jdMatchRatio;
     const chips = [
-      jdScore !== null && jdScore !== undefined ? `JD Match ${jdScore}${String(jdScore).includes("%") ? "" : "%"}` : "",
+      jdScore !== null && jdScore !== undefined ? `JD Match ${Math.round(Number(jdScore))}%` : "",
       dims.D ? `D ${dims.D.score}/${dims.D.max}` : "",
       dims.F ? `F ${dims.F.score}/${dims.F.max}` : ""
     ].filter(Boolean);
@@ -709,7 +714,7 @@
           <div class="role">${escapeHtml(m.mentorName || "Y 导师")} · ${escapeHtml(m.mentorTitle || "简历策略师")}</div>
         </div>
       </header>
-      ${m.careerPathDisplay ? `<div style="margin-top:8px;font-size:12px;color:var(--ink-soft);"><span style="color:var(--ink);font-weight:600;font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</span>　${escapeHtml(m.careerPathDisplay)}</div>` : `<div class="cred-pills" style="margin-top:10px;">${badges.map(c => `<span class="cred-pill">${escapeHtml(c)}</span>`).join("")}</div>`}
+      ${m.careerPathDisplay ? `<div style="margin-top:8px;font-size:12px;color:var(--ink-soft);"><span style="color:var(--ink);font-weight:600;font-size:11px;font-family:var(--mono);letter-spacing:.04em;">职业路径</span>　${escapeHtml(m.careerPathDisplay)}</div>` : ""}
     `;
   }
 
@@ -729,53 +734,73 @@
   }
 
   function renderApiAdviceItem(item, i) {
-    const sectionPill = item.targetSection
-      ? `<span class="cred-pill">${escapeHtml(sectionLabel(item.targetSection))}</span>`
-      : "";
-
-    // New-schema fields (gracefully omit empty sections)
-    const mentorLens = item.mentorLens || "";
     const currentDiagnosis = item.currentDiagnosis || item.problemSummary || "";
     const action = item.action || item.actionSummary || "";
-    const reason = item.reason || "";
-    const evidenceChips = (item.evidence || []).length
-      ? `<div class="cred-pills" style="margin-top:8px;">${(item.evidence).map(e => `<span class="cred-pill">${escapeHtml(e)}</span>`).join("")}</div>`
+    const insight = item.mentorInsight || item.mentorLens || item.reason || "";
+    const example = item.example || item.E_example || "";
+    const hrPerspective = item.hrPerspective || item.HR_os || "";
+
+    const divider = i > 0
+      ? `<div style="height:1px;background:linear-gradient(to right,transparent,#DDD6CA,transparent);margin:20px 0;"></div>`
       : "";
 
-    const mentorLensHtml = mentorLens ? `
-      <div style="margin:10px 0 6px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">导师筛选视角</div>
-        <p style="margin:0;color:var(--ink-soft);font-size:13px;line-height:1.65;">${escapeHtml(mentorLens)}</p>
-      </div>` : "";
-
     const diagnosisHtml = currentDiagnosis ? `
-      <div style="margin:10px 0 6px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">你的现状</div>
-        <p style="margin:0;color:var(--ink);font-size:13px;line-height:1.65;">${escapeHtml(currentDiagnosis)}</p>
-        ${evidenceChips}
+      <div style="display:flex;gap:10px;background:#F8F7F4;border-left:3px solid #D1C9B8;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <span style="font-size:14px;flex-shrink:0;">💡</span>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:3px;">你的现状</div>
+          <p style="margin:0;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(currentDiagnosis)}</p>
+        </div>
       </div>` : "";
 
     const actionHtml = action ? `
-      <div style="margin:10px 0 6px;padding:10px 12px;background:rgba(168,213,186,.13);border-radius:8px;border-left:3px solid rgba(100,180,130,.5);">
-        <div style="font-size:11px;font-weight:700;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">建议你先做</div>
-        <p style="margin:0;color:var(--ink);font-size:13px;line-height:1.7;font-weight:600;">${escapeHtml(action)}</p>
+      <div style="display:flex;gap:10px;background:#F0FDF4;border-left:3px solid #4ADE80;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <span style="font-size:14px;flex-shrink:0;">⚡</span>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#15803D;margin-bottom:3px;">建议你先做</div>
+          <p style="margin:0;font-size:13px;line-height:1.65;font-weight:600;color:#166534;">${escapeHtml(action)}</p>
+        </div>
       </div>` : "";
 
-    const reasonHtml = reason ? `
-      <div style="margin:10px 0 0;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">为什么这样改有效？</div>
-        <p style="margin:0;color:var(--ink-soft);font-size:13px;line-height:1.65;">${escapeHtml(reason)}</p>
+    const insightHtml = insight ? `
+      <div style="background:#F5F3FF;border-left:3px solid #C4B5FD;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:3px;">导师视角</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#4C1D95;">${escapeHtml(insight)}</p>
       </div>` : "";
+
+    const hrHtml = hrPerspective ? `
+      <div style="background:#FFF7ED;border-left:3px solid #FCA5A5;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#9A3412;margin-bottom:3px;">HR 视角</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#7C2D12;">${escapeHtml(hrPerspective)}</p>
+      </div>` : "";
+
+    // 改写示例：免费用户显示锁定提示
+    const rewriteHtml = `
+      <div class="advice-example advice-example--locked" style="margin-top:6px;">
+        <div class="advice-example-head">
+          <div class="title"><span>✏️</span><span>AI 改写你的简历</span></div>
+        </div>
+        <div class="advice-example-body" style="position:relative;min-height:60px;overflow:hidden;">
+          <div style="filter:blur(4px);pointer-events:none;user-select:none;font-size:12px;font-family:var(--mono,monospace);line-height:1.6;color:#6B7280;padding:4px 0;">
+            ✦ Leveraged Python &amp; SQL to analyze 50K+ records,<br/>reducing report time by 60%...
+          </div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,0.6);">
+            <span style="font-size:15px;">🔒</span>
+            <span style="font-size:12px;font-weight:600;color:#374151;">解锁后 AI 针对你的简历真实改写</span>
+            <a href="payment.html" style="font-size:11px;color:#4338CA;text-decoration:underline;font-weight:600;">¥49 立即解锁 →</a>
+          </div>
+        </div>
+      </div>`;
 
     return `
-      <div class="advice-section advice-section--plain" style="margin-top:14px;">
+      <div style="margin-top:${i > 0 ? "0" : "10px"};">
+        ${divider}
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           ${renderPriorityBadge(item)}
-          <h4 style="margin:0;font-size:15px;font-weight:700;">导师建议 ${i + 1}</h4>
-          ${sectionPill ? `<div class="cred-pills" style="margin-left:auto;">${sectionPill}</div>` : ""}
+          <span style="font-size:11px;color:#9CA3AF;font-weight:500;">建议 ${i + 1}</span>
         </div>
-        <div style="font-weight:700;font-size:15px;margin-bottom:4px;line-height:1.4;">${escapeHtml(item.title)}</div>
-        ${mentorLensHtml}${diagnosisHtml}${actionHtml}${reasonHtml}
+        <h4 style="margin:0 0 10px;font-size:15px;font-weight:700;line-height:1.45;color:#111827;">${escapeHtml(item.title || "")}</h4>
+        ${diagnosisHtml}${actionHtml}${insightHtml}${hrHtml}${rewriteHtml}
       </div>
     `;
   }
@@ -836,10 +861,26 @@
     const jdScore = raw.scores?.jdMatch?.score;
     const dimD = raw.dimensions?.D;
     const dimF = raw.dimensions?.F;
-    if (jdScore !== undefined) chips.push(`JD Match ${jdScore}/100`);
+    if (jdScore !== undefined) chips.push(`JD Match ${Math.round(Number(jdScore))}%`);
     if (dimD) chips.push(`D 关键词 ${dimD.score}/${dimD.max}`);
     if (dimF) chips.push(`F 职位相关 ${dimF.score}/${dimF.max}`);
     return chips.map(c => `<span class="cred-pill">${escapeHtml(c)}</span>`).join("");
+  }
+
+  function collectProblemsFromAdvice(adviceItems) {
+    // Collect unique evidence/problem chips across all advice items
+    const seen = new Set();
+    const chips = [];
+    for (const item of (adviceItems || [])) {
+      for (const e of (item.evidence || [])) {
+        if (!seen.has(e)) { seen.add(e); chips.push(e); }
+      }
+      for (const t of (item.relatedProblemTags || [])) {
+        const label = problemLabel(t);
+        if (label && !seen.has(label)) { seen.add(label); chips.push(label); }
+      }
+    }
+    return chips.slice(0, 6);
   }
 
   function renderFreeMentorPlan(m) {
@@ -847,10 +888,20 @@
       ? `<img src="${escapeAttr(m.companyLogo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:contain;">`
       : `<div class="company-logo" style="font-size:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(168,213,186,.25);font-weight:700;">${escapeHtml((m.company || "M")[0])}</div>`;
     const badges = (m.badges || []).map(b => `<span class="cred-pill">${escapeHtml(b)}</span>`).join("");
-    const problemChips = (m.matchedProblems || []).slice(0, 5).map(p => `<span class="cred-pill">${escapeHtml(problemLabel(p))}</span>`).join("");
+
+    // Aggregate problem chips from all advice items — show once at top, not per card
+    const allProblems = collectProblemsFromAdvice(m.adviceItems || []);
+    const problemChipsHtml = allProblems.length
+      ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
+           <span style="font-size:11px;color:var(--ink-soft);font-weight:600;align-self:center;">检测到：</span>
+           ${allProblems.map(p => `<span class="cred-pill" style="background:#FEF2F2;color:#B91C1C;border-color:#FECACA;">${escapeHtml(p)}</span>`).join("")}
+         </div>`
+      : "";
+
     const adviceHtml = (m.adviceItems || []).slice(0, 3).map((item, index) =>
       renderApiAdviceItem(item, index)
     ).join("");
+
     document.getElementById("mentorFree").innerHTML = `
       <div style="font-size:12px;color:var(--ink-soft);font-family:var(--mono);margin-bottom:10px;">导师 1 / 4 · 免费试读</div>
       <header class="mentor-detail-head">
@@ -860,7 +911,9 @@
           <div class="role">${escapeHtml(m.mentorName || "Y导师")} · ${escapeHtml(m.mentorTitle || "简历策略师")}</div>
         </div>
       </header>
-      <div class="cred-pills" style="margin-top:10px;">${badges}</div>
+      <div class="cred-pills" style="margin-top:8px;">${badges}</div>
+      ${problemChipsHtml}
+      <div style="height:1px;background:#EDE9DC;margin:14px 0;"></div>
       ${adviceHtml}
     `;
   }
@@ -977,7 +1030,7 @@
     const jdMatch = atsResult.jdMatchRatio ?? atsResult.raw?.jdMatchRatio;
 
     document.getElementById("atsSystemSummary").innerHTML = [
-      jdMatch !== null && jdMatch !== undefined ? `<div><b>JD 关键词匹配：</b>${jdMatch}%</div>` : "",
+      jdMatch !== null && jdMatch !== undefined && jdMatch > 0 ? `<div><b>JD 关键词匹配：</b>${Math.round(Number(jdMatch))}%</div>` : "",
       missingKw.length ? `<div><b>缺口关键词：</b>${missingKw.slice(0, 10).join("、")}</div>` : "",
       atsResult.formatPenaltyTriggered ? `<div style="color:var(--rose);"><b>格式处罚：</b>${(atsResult.formatPenaltyReason || []).join("；")}</div>` : "",
     ].filter(Boolean).join("");

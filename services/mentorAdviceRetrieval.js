@@ -516,15 +516,40 @@ function generateAdviceExplanationMetadata(card, userProfile = {}) {
   };
 }
 
+// Patterns that signal the segment is about a SPECIFIC role not suitable for cross-role retrieval
+const ROLE_SPECIFIC_CONTENT_PATTERNS = [
+  /学生搜索.{0,20}(financial analyst|会计|accounting|audit|tax)/i,
+  /求职者.*目标.{0,15}(financial analyst|会计|审计|tax analyst)/i,
+  /投递.{0,10}(financial analyst|accounting|会计岗位)/i,
+];
+
 function isEligibleForAtsResumeReport(row) {
   const scope = inferAdviceScope(row);
   const text = rowText(row);
   if (scope === "interview_prep" || scope === "behavioral_interview") return false;
   if (/favorite course|stock answer|面试答案|interview answers?/i.test(text)) return false;
+  // Exclude cover letter advice — this is a resume-only system
+  if (/cover letter|求职信|coverletter/i.test(text)) return false;
+  // Exclude micro-formatting advice (font, bold, spacing) — too low-value
+  if (/bold.*normal|字体.*不一致|normal.*bold|字号不统一|字体混用|font.*incons/i.test(text)) return false;
   if (["resume_ats", "resume_rewrite", "resume_strategy", "job_search_strategy"].includes(scope)) return true;
   if (String(row.ats_dimensions || "").trim()) return true;
   if (splitCsv(row.problem_tags).some((tag) => ATS_PROBLEM_TAGS.has(tag))) return true;
   return false;
+}
+
+// Filter role-specific P_mentor content that would be misleading for a different user role
+function isRoleSafeForUser(row, userRoleFamily) {
+  if (!userRoleFamily || userRoleFamily === "universal" || userRoleFamily === "unknown") return true;
+  const pmText = (row.P_mentor || row.user_problem_summary || "").toLowerCase();
+  // If this segment's problem description mentions a specific DIFFERENT role, exclude it
+  for (const pattern of ROLE_SPECIFIC_CONTENT_PATTERNS) {
+    if (pattern.test(pmText)) {
+      const isAccountingUser = ["accounting", "finance", "financial_analyst"].includes(userRoleFamily);
+      if (!isAccountingUser) return false;
+    }
+  }
+  return true;
 }
 
 function isTechOnlyRow(row) {
@@ -614,8 +639,8 @@ function calculateRetrievalScore(row, retrievalQuery = {}) {
     0.25 * roleFamilyScore +
     0.15 * targetRoleScore +
     0.10 * seniorityScore +
-    0.10 * Math.max(keywordScore, accountingKeywordBoost) +
-    0.05 * qualityNormalized(row.mentor_quality_score) -
+    0.05 * Math.max(keywordScore, accountingKeywordBoost) +
+    0.10 * qualityNormalized(row.mentor_quality_score) -
     roleMismatchPenalty -
     roleConflictPenalty;
 
@@ -693,10 +718,27 @@ function roleSafeActionSummary(row, retrievalQuery = {}) {
   return row.action_summary || row.A_action;
 }
 
+function buildCardTitle(row) {
+  // Use full first sentence of P_mentor — stop at sentence-ending punctuation only
+  const p = (row.P_mentor || row.advice_card_title || row.topic || "").trim();
+  // Only break at definitive sentence ends (。！？), not commas/semicolons
+  for (const sep of ["。", "！", "？"]) {
+    const idx = p.indexOf(sep);
+    if (idx > 0 && idx <= 80) return p.slice(0, idx + 1);
+  }
+  // If no sentence end found within 80 chars, return up to 80 chars at word boundary
+  if (p.length > 80) {
+    // Try to find a natural break point (comma/space) near 80 chars
+    const cutPoint = p.slice(0, 80).lastIndexOf("，");
+    return cutPoint > 40 ? p.slice(0, cutPoint) : p.slice(0, 80);
+  }
+  return p;
+}
+
 function formatAdviceCardForPublic(row, retrievalQuery = {}) {
   return {
     adviceId: row.chunk_id || `seg_${row.id}`,
-    title: row.advice_card_title || row.topic,
+    title: buildCardTitle(row),
     problemSummary: cleanAndTruncate(row.user_problem_summary || row.P_mentor, 180),
     actionSummary: cleanAndTruncate(roleSafeActionSummary(row, retrievalQuery), 500),
     mentorInsight: row.I_insight || "",
@@ -756,8 +798,10 @@ function likeClauseForTerms(columns, terms, startIdx = 1) {
 
 async function queryRows(pool, where, params, retrievalQuery) {
   const { rows } = await pool.query(baseSelectSql(where), params);
+  const userRoleFamily = (retrievalQuery?.filters?.roleFamily || []).find(r => r !== "universal") || "";
   return rows
     .filter((row) => isEligibleForAtsResumeReport(row))
+    .filter((row) => isRoleSafeForUser(row, userRoleFamily))
     .map((row) => {
       const retrieval_score = calculateRetrievalScore(row, retrievalQuery);
       const matched_reasons = buildMatchedReasons(row, retrievalQuery);
@@ -1021,6 +1065,74 @@ function generateUserDiagnosis(relatedProblemTags = [], targetProblemTags = [], 
   return `简历与目标岗位的匹配信号还不够集中，建议重点对照 JD 优化关键词和成果表达。`;
 }
 
+// ── Personalize a generic DB diagnosis with user-specific resume context ──────
+// Injects job title, missing keywords, and ATS score into the summary
+// so it feels tailored rather than generic.
+function personalizeDiagnosis(diagnosis, internalAtsResult = {}) {
+  if (!diagnosis) return diagnosis;
+  const jobTitle = internalAtsResult.jobTitle || "";
+  const missingKw = (internalAtsResult.topMissingKeywords || internalAtsResult.topMissingKw || []).slice(0, 3);
+  const jdRatio = internalAtsResult.jdMatchRatio != null
+    ? Math.round(internalAtsResult.jdMatchRatio)
+    : internalAtsResult.keywordMatch?.summary?.overallKeywordCoverage != null
+      ? Math.round(internalAtsResult.keywordMatch.summary.overallKeywordCoverage * 100)
+      : null;
+
+  let result = diagnosis;
+
+  // Inject job title if missing from diagnosis
+  if (jobTitle && !result.includes(jobTitle)) {
+    result = result.replace(/目标岗位/g, `"${jobTitle}"`) || result;
+  }
+
+  // Append a personalized sentence with concrete user data
+  const additions = [];
+  if (jdRatio != null && jdRatio < 75 && !/\d+%/.test(result)) {
+    additions.push(`简历 JD 关键词匹配率约 ${jdRatio}%`);
+  }
+  if (missingKw.length > 0 && !missingKw.some(kw => result.includes(kw))) {
+    additions.push(`缺少如 ${missingKw.join("、")} 等高频词`);
+  }
+  if (additions.length > 0) {
+    result = result.replace(/[。！]$/, "") + `（${additions.join("，")}）。`;
+  }
+
+  return result;
+}
+
+// ── Multiple P_mentor variations ─────────────────────────────────────────────
+// Randomly vary the framing of common diagnosis types so repeat users
+// see fresh phrasing instead of the same sentence every time.
+const DIAGNOSIS_VARIANTS = {
+  generic_resume_positioning: [
+    "目前简历版本通用性过强，无法有效针对每个具体岗位的关键词要求。",
+    "一份简历投所有岗位的策略在当下竞争环境中效果有限，建议按方向维护多个版本。",
+    "简历缺少对目标岗位的针对性调整，HR 很难快速判断你是否匹配这个岗位。",
+  ],
+  low_measurable_results: [
+    "简历中经历描述以职责为主，缺少可量化的结果数据，HR 难以评估实际贡献。",
+    "每条 bullet 缺少数字支撑，读起来像任务清单而非成就展示。",
+    "简历描述偏向「做了什么」，缺少「做出了什么成果」，说服力不足。",
+  ],
+  weak_action_verbs: [
+    "经历描述中动词选择偏弱（如「负责」「参与」），缺少展示主动性的强动词。",
+    "bullet 开头动词过于被动，建议用更有力的动词替换（如 Led、Built、Reduced）。",
+    "简历用词较为普通，强动词能让 HR 在扫描时更快抓到你的价值点。",
+  ],
+};
+
+function variantDiagnosis(diagnosis, problemTags = []) {
+  for (const tag of problemTags) {
+    const variants = DIAGNOSIS_VARIANTS[tag];
+    if (variants && variants.length > 1) {
+      // Use a deterministic-ish index based on diagnosis length to avoid true randomness
+      const idx = diagnosis.length % variants.length;
+      return variants[idx];
+    }
+  }
+  return diagnosis;
+}
+
 function isBucketRoleSafe(bucket, targetRoleFamily) {
   if (!targetRoleFamily || targetRoleFamily === "unknown") return true;
   const families = bucket.roleFamilies || [];
@@ -1046,6 +1158,32 @@ function relatedTagsForCard(card = {}, targetProblemTags = []) {
     else if (/linkedin|portfolio|searchability/.test(text) && /linkedin|portfolio|searchability/.test(tag)) tags.push(tag);
   }
   return [...new Set(tags)].slice(0, 3);
+}
+
+function isCardAlignedWithTargetProblems(card = {}, targetProblemTags = []) {
+  const tags = targetProblemTags.map((item) => item.tag || item).filter(Boolean);
+  if (!tags.length) return true;
+  const text = [
+    card.title,
+    card.problemSummary,
+    card.actionSummary,
+    card.currentDiagnosis,
+    card.action,
+    card.topic,
+    card.adviceIntent,
+    card.targetSection,
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  if (tags.some((tag) => /jd|keyword|hard_skill|priority_keyword/.test(tag))) {
+    if (!/jd|ats|keyword|关键词|匹配|岗位|skills?|summary|target role|positioning/.test(text)) return false;
+  }
+  if (tags.some((tag) => /experience|evidence|skills_only/.test(tag))) {
+    if (!/experience|bullet|经历|项目|证据|skills?|keyword|关键词/.test(text)) return false;
+  }
+  if (tags.some((tag) => /exact_job_title|target_role|summary|role_alignment/.test(tag))) {
+    if (!/title|summary|岗位|职位|role|position|定位/.test(text)) return false;
+  }
+  return true;
 }
 
 // Returns true if the card's own problem summary is topically aligned with its advice
@@ -1074,11 +1212,17 @@ function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremi
   // Only fall back to generating from ATS data when the card has no relevant own summary.
   let currentDiagnosis;
   if (cardHasOwnDiagnosis(card)) {
-    currentDiagnosis = cleanAndTruncate(
+    let raw = cleanAndTruncate(
       card.currentDiagnosis || card.problemSummary || card.user_problem_summary || card.P_mentor,
       300, ""
     );
-    if (currentDiagnosis) usedDiagnosisTags.add("__card_own__");
+    if (raw) {
+      // Apply variant phrasing for common problem types
+      raw = variantDiagnosis(raw, relatedProblemTags);
+      // Inject user-specific context (job title, missing keywords, jdRatio)
+      currentDiagnosis = personalizeDiagnosis(raw, internalAtsResult);
+      usedDiagnosisTags.add("__card_own__");
+    }
   }
   if (!currentDiagnosis) {
     currentDiagnosis = generateUserDiagnosis(relatedProblemTags, targetProblemTags, internalAtsResult, usedDiagnosisTags);
@@ -1114,6 +1258,12 @@ function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremi
     priority: card.priority || priorityFromTags(relatedProblemTags, targetProblemTags),
     priorityLabel: priorityLabel(card.priority || priorityFromTags(relatedProblemTags, targetProblemTags)),
     source,
+    mentorSource: {
+      mentorName: card.mentorName || card.mentor_name || "",
+      company: inferCompanyFromMentor(card),
+      companyLogo: resolveCompanyLogo(inferCompanyFromMentor(card)),
+      mentorTitle: inferMentorTitle(card),
+    },
   };
   if (includePremiumFields) {
     item.mentorInsight = card.mentorInsight || card.I_insight || "";
@@ -1121,6 +1271,91 @@ function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremi
     item.hrPerspective = card.hrPerspective || card.HR_os || "";
   }
   return item;
+}
+
+function buildMentorLogoPoolFromItems(adviceItems = []) {
+  const byCompany = new Map();
+  for (const item of adviceItems) {
+    const source = item.mentorSource || {};
+    const company = source.company || "";
+    const companyLogo = source.companyLogo || resolveCompanyLogo(company);
+    if (!company || !companyLogo || byCompany.has(company)) continue;
+    byCompany.set(company, {
+      company,
+      companyLogo,
+      mentorName: source.mentorName || "",
+      mentorTitle: source.mentorTitle || "",
+    });
+  }
+  return [...byCompany.values()];
+}
+
+function buildMentorLogoPoolFromCandidates(candidates = [], max = 16) {
+  const byCompany = new Map();
+  const buckets = groupAdviceByMentor(candidates);
+  const sortedBuckets = [...buckets].sort((a, b) => (b.cards?.[0]?.retrieval_score || 0) - (a.cards?.[0]?.retrieval_score || 0));
+  for (const bucket of sortedBuckets) {
+    const company = bucket.company || "";
+    const companyLogo = bucket.companyLogo || resolveCompanyLogo(company);
+    if (!company || !companyLogo || byCompany.has(company)) continue;
+    byCompany.set(company, {
+      company,
+      companyLogo,
+      mentorName: bucket.mentorName || "",
+      mentorTitle: bucket.mentorTitle || "",
+    });
+    if (byCompany.size >= max) break;
+  }
+  return [...byCompany.values()];
+}
+
+function selectGlobalAdviceItems(candidates, targetProblemTags, count, coveredTags = new Set(), internalAtsResult = {}, userProfile = {}, usedAdviceIds = new Set()) {
+  const selectedCards = [];
+  const selectedItems = [];
+  const clusterCounts = new Map();
+  const companyCounts = new Map();
+  const usedDiagnosisTags = new Set();
+  const cards = [...(candidates || [])]
+    .filter((card) => !usedAdviceIds.has(card.adviceId))
+    .sort((a, b) => adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards));
+
+  while (selectedItems.length < count && cards.length) {
+    cards.sort((a, b) => {
+      const aCompany = inferCompanyFromMentor(a);
+      const bCompany = inferCompanyFromMentor(b);
+      const aCluster = a._topicCluster || inferTopicCluster(a);
+      const bCluster = b._topicCluster || inferTopicCluster(b);
+      const aPenalty = (companyCounts.get(aCompany) || 0) * 0.08 + (clusterCounts.get(aCluster) || 0) * 0.12;
+      const bPenalty = (companyCounts.get(bCompany) || 0) * 0.08 + (clusterCounts.get(bCluster) || 0) * 0.12;
+      return (adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - bPenalty) -
+        (adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards) - aPenalty);
+    });
+    const card = cards.shift();
+    if (!card || usedAdviceIds.has(card.adviceId)) continue;
+
+    const item = toAdviceItem(card, targetProblemTags, selectedItems.length, true, internalAtsResult, usedDiagnosisTags);
+    const meta = generateAdviceExplanationMetadata(card, userProfile);
+    item.matchReason = meta.matchReason;
+    item.mentorFitType = meta.mentorFitType;
+    item.topicCluster = meta.topicCluster;
+    item.confidenceScore = meta.confidenceScore;
+    item.adviceTransferScope = meta.adviceTransferScope;
+
+    selectedCards.push(card);
+    selectedItems.push(item);
+    usedAdviceIds.add(card.adviceId);
+    (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
+    const company = inferCompanyFromMentor(card);
+    const cluster = card._topicCluster || inferTopicCluster(card);
+    companyCounts.set(company, (companyCounts.get(company) || 0) + 1);
+    clusterCounts.set(cluster, (clusterCounts.get(cluster) || 0) + 1);
+  }
+
+  if (selectedItems.length < count) {
+    selectedItems.push(...fallbackAdviceItems(internalAtsResult, count - selectedItems.length, coveredTags));
+  }
+
+  return selectedItems.slice(0, count);
 }
 
 function fallbackAdviceItems(internalAtsResult = {}, count = 3, usedTags = new Set()) {
@@ -1492,13 +1727,14 @@ function selectFreeMentorPlan(candidates, internalAtsResult) {
   // Step 1: filter eligible free candidates
   const eligibleCandidates = candidates.filter((card) =>
     (card.unlockTier === "free" || card.safeToShowFree) &&
+    FREE_HIGH_RISK_INTENTS.has(card.adviceIntent) &&
     card.adviceIntent !== "application_timing" &&
     !["interview_prep", "behavioral_interview"].includes(card.adviceScope)
   ).filter((card) => {
     const safe = isAdviceRoleSafe(card, internalAtsResult.jobTitle || profile.targetRole, roleFamily);
     if (!safe) roleSafeRejected += 1;
     return safe;
-  });
+  }).filter((card) => isCardAlignedWithTargetProblems(card, targetProblemTags));
 
   // Annotate each candidate with transferability scope + topic cluster (cached to avoid recomputation)
   for (const card of eligibleCandidates) {
@@ -1579,6 +1815,11 @@ function selectFreeMentorPlan(candidates, internalAtsResult) {
     plan = mentorFromBucket(mergedBucket, adviceItems, targetProblemTags, 0);
   }
 
+  plan.mentorLogoPool = buildMentorLogoPoolFromItems(adviceItems);
+  if (!plan.mentorLogoPool.length) {
+    plan.mentorLogoPool = buildMentorLogoPoolFromCandidates(eligibleCandidates.length > 0 ? eligibleCandidates : candidates, 12);
+  }
+
   Object.defineProperty(plan, "debug", {
     enumerable: false,
     value: {
@@ -1608,77 +1849,50 @@ function selectPremiumMentorPlan(candidates, internalAtsResult, freeMentorPlan =
   }
 
   const eligibleCandidates = candidates.filter((card) =>
+    FREE_HIGH_RISK_INTENTS.has(card.adviceIntent) &&
     !["interview_prep", "behavioral_interview"].includes(card.adviceScope) &&
     isAdviceRoleSafe(card, internalAtsResult.jobTitle || profile.targetRole, roleFamily)
+  ).filter((card) => isCardAlignedWithTargetProblems(card, targetProblemTags));
+
+  const coveredTags = new Set();
+  const usedAdviceIds = new Set();
+  const freeItems = (freeMentorPlan?.adviceItems || []).slice(0, 3);
+  freeItems.forEach((item) => {
+    if (item.adviceId) usedAdviceIds.add(item.adviceId);
+    (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
+  });
+
+  const paidItems = selectGlobalAdviceItems(
+    eligibleCandidates,
+    targetProblemTags,
+    9,
+    coveredTags,
+    internalAtsResult,
+    userProfile,
+    usedAdviceIds
   );
 
-  const buckets = groupAdviceByMentor(eligibleCandidates);
-  const roleSafeBuckets = buckets.filter((b) => isBucketRoleSafe(b, roleFamily));
-  const candidateBuckets = roleSafeBuckets.length >= 4 ? roleSafeBuckets : roleSafeBuckets.length > 0 ? roleSafeBuckets : buckets;
-  const selectedBuckets = selectDiverseMentors(candidateBuckets, 4, targetProblemTags, roleFamily);
-  const coveredTags = new Set();
-  // Track topic cluster usage across all 12 cards for diversity enforcement
-  const clusterCounts = new Map();
-  const CLUSTER_MAX = 2; // max cards per cluster (except critical problems)
-  const criticalTags = new Set(targetProblemTags.filter((p) => p.severity === "critical" || p.severity === "high").map((p) => p.tag));
-  const mentors = [];
+  const logoPool = [
+    ...buildMentorLogoPoolFromItems([...freeItems, ...paidItems]),
+    ...buildMentorLogoPoolFromCandidates(eligibleCandidates, 16),
+  ].reduce((acc, item) => {
+    if (item.company && item.companyLogo && !acc.some((existing) => existing.company === item.company)) acc.push(item);
+    return acc;
+  }, []).slice(0, 16);
 
-  if (freeMentorPlan) {
-    mentors.push(freeMentorPlan);
-    freeMentorPlan.adviceItems.forEach((item) => {
-      (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
-      const cluster = item.topicCluster || inferTopicCluster(item);
-      clusterCounts.set(cluster, (clusterCounts.get(cluster) || 0) + 1);
-    });
-  }
-
-  for (const bucket of selectedBuckets) {
-    if (mentors.length >= 4) break;
-    if (mentors.some((mentor) => mentor.mentorId === bucket.mentorId)) continue;
-
-    // Select top advice for this mentor, enforcing cluster diversity
-    const usedDiagnosisTags = new Set();
-    const selectedItems = [];
-    const bucketCards = [...(bucket.cards || [])].sort((a, b) =>
-      adviceSelectionScore(b, targetProblemTags, coveredTags, selectedItems) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedItems)
-    );
-
-    for (const card of bucketCards) {
-      if (selectedItems.length >= 3) break;
-      const cluster = card._topicCluster || inferTopicCluster(card);
-      const clusterCount = clusterCounts.get(cluster) || 0;
-      const isCritical = (card.relatedProblemTags || []).some((t) => criticalTags.has(t));
-      if (clusterCount >= CLUSTER_MAX && !isCritical) continue;
-
-      const item = toAdviceItem(card, targetProblemTags, selectedItems.length, true, internalAtsResult, usedDiagnosisTags);
-      const meta = generateAdviceExplanationMetadata(card, userProfile);
-      item.matchReason = meta.matchReason;
-      item.mentorFitType = meta.mentorFitType;
-      item.topicCluster = meta.topicCluster;
-      item.confidenceScore = meta.confidenceScore;
-      item.adviceTransferScope = meta.adviceTransferScope;
-
-      selectedItems.push(item);
-      (item.relatedProblemTags || []).forEach((tag) => coveredTags.add(tag));
-      clusterCounts.set(cluster, clusterCount + 1);
-    }
-
-    // Fill any remaining slots without cluster constraint
-    if (selectedItems.length < 3) {
-      const extras = selectTopAdviceForMentor(
-        { ...bucket, cards: bucketCards.filter((c) => !selectedItems.some((i) => i.adviceId === c.adviceId)) },
-        targetProblemTags, 3 - selectedItems.length, coveredTags, internalAtsResult
-      );
-      selectedItems.push(...extras);
-    }
-
-    const adviceItems = selectedItems.slice(0, 3);
-    mentors.push(mentorFromBucket(bucket, adviceItems, targetProblemTags, mentors.length));
-  }
-
-  while (mentors.length < 4) {
-    mentors.push(fallbackMentor(mentors.length, internalAtsResult, coveredTags));
-  }
+  const mentors = [
+    mentorFromBucket({
+      mentorId: "free_advice_bundle",
+      mentorName: "导师建议",
+      company: "MentorX",
+      companyLogo: null,
+      mentorTitle: "简历策略组",
+      badges: ["免费建议", "问题优先"],
+    }, freeItems, targetProblemTags, 0),
+    mentorFromBucket({ mentorId: "paid_advice_bundle_1", mentorName: "付费建议 1", company: "MentorX", mentorTitle: "简历策略组" }, paidItems.slice(0, 3), targetProblemTags, 1),
+    mentorFromBucket({ mentorId: "paid_advice_bundle_2", mentorName: "付费建议 2", company: "MentorX", mentorTitle: "简历策略组" }, paidItems.slice(3, 6), targetProblemTags, 2),
+    mentorFromBucket({ mentorId: "paid_advice_bundle_3", mentorName: "付费建议 3", company: "MentorX", mentorTitle: "简历策略组" }, paidItems.slice(6, 9), targetProblemTags, 3),
+  ].map((mentor) => ({ ...mentor, mentorLogoPool: logoPool }));
 
   // ── 補漏：確保所有 problem tags 至少被一條建議覆蓋 ──────────────
   const allAdviceItems = mentors.flatMap((m) => m.adviceItems || []);
@@ -1774,7 +1988,8 @@ function buildLockedAdvicePreview(premiumMentorPlan = [], internalAtsResult = {}
     totalAdviceCount,
     topics,
     lockedMentors,
-    message: "解锁后查看 4 位导师的 12 条完整建议，覆盖你的主要 ATS 问题与分段修改路径。",
+    mentorLogoPool: premiumMentorPlan[0]?.mentorLogoPool || buildMentorLogoPoolFromItems(premiumMentorPlan.flatMap((mentor) => mentor.adviceItems || [])),
+    message: "解锁后查看 9 条付费深度建议，与免费 3 条共同覆盖你的主要 ATS 问题与分段修改路径。",
   };
 }
 
@@ -1819,6 +2034,7 @@ function formatPublicFreeMentorAdvice(freeMentorPlan, internalAtsResult = {}) {
     badges: freeMentorPlan.badges || [],
     matchReason: freeMentorPlan.matchReason,
     matchedProblems: freeMentorPlan.matchedProblems || [],
+    mentorLogoPool: freeMentorPlan.mentorLogoPool || buildMentorLogoPoolFromItems(freeMentorPlan.adviceItems || []),
     adviceItems: (freeMentorPlan.adviceItems || []).slice(0, 3).map((item) => {
       // Resolve canonical new-schema fields, supporting both native and adapted cards
       const currentDiagnosis = item.currentDiagnosis || item.problemSummary || "";
@@ -1849,6 +2065,7 @@ function formatPublicFreeMentorAdvice(freeMentorPlan, internalAtsResult = {}) {
         example: item.example || item.E_example || "",
         hrPerspective: item.hrPerspective || item.HR_os || "",
         source: item.source || "db",
+        mentorSource: item.mentorSource || null,
       };
     }),
   };
@@ -1886,12 +2103,17 @@ function formatPremiumMentorReport(premiumMentorPlan, internalAtsResult) {
         relatedProblemTags: item.relatedProblemTags || [],
         priority: item.priority || "medium",
         source: item.source,
+        mentorSource: item.mentorSource || null,
       };
     }),
   }));
   const allAdviceItems = mentors.flatMap((mentor) => mentor.adviceItems);
   return {
     mentors,
+    allAdviceItems,
+    freeAdviceItems: allAdviceItems.slice(0, 3),
+    paidAdviceItems: allAdviceItems.slice(3, 12),
+    mentorLogoPool: premiumMentorPlan[0]?.mentorLogoPool || buildMentorLogoPoolFromItems(allAdviceItems),
     coverageSummary: buildCoverageSummary(allAdviceItems, internalAtsResult),
   };
 }

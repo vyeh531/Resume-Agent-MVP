@@ -37,6 +37,18 @@ export default function ResultPage() {
         .unlock-cta-foot{font-size:11px;color:rgba(255,255,255,.5);margin-top:12px;font-family:var(--mono);letter-spacing:.04em}
         .unlock-cta .btn-jade{background:var(--apricot);color:var(--ink);box-shadow:0 12px 28px -10px rgba(232,160,107,.55);font-weight:700}
         .unlock-cta .btn-jade:hover{background:#db8e57}
+        .logo-marquee{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fffdf7;margin:0 0 16px;padding:10px 0}
+        .logo-marquee-track{display:flex;gap:14px;width:max-content;animation:logo-scroll 72s linear infinite}
+        .logo-marquee:hover .logo-marquee-track{animation-play-state:paused}
+        .mentor-logo-chip{width:72px;height:42px;border:1px solid #ede9dc;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;padding:7px;flex:0 0 auto}
+        .mentor-logo-chip img{max-width:100%;max-height:100%;object-fit:contain}
+        .mentor-logo-intro{margin:4px 0 14px}
+        .mentor-logo-copy{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:0 0 8px}
+        .paywall-more{position:relative;margin-top:8px;border-radius:10px;overflow:hidden;border:1px dashed var(--line);background:#fffdf8}
+        .paywall-more-list{filter:blur(4px);user-select:none;pointer-events:none;padding:10px 12px}
+        .paywall-more-list div{font-size:13px;line-height:1.5;margin:0 0 8px;padding-left:18px;position:relative;color:var(--ink-soft)}
+        .paywall-more-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(246,243,236,.62);backdrop-filter:blur(1px);font-size:12px;font-weight:700;color:var(--ink)}
+        @keyframes logo-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
       `}</style>
 
       <div className="page">
@@ -135,7 +147,7 @@ export default function ResultPage() {
         <section className="section">
           <div className="section-num">技能匹配</div>
           <div className="row-between mb-12" style={{marginTop:'4px'}}>
-            <h3 className="section-title" style={{fontSize:'18px',margin:0}}>JD Top 10 技能匹配</h3>
+            <h3 className="section-title" style={{fontSize:'18px',margin:0}}>JD 技能匹配</h3>
             <div className="skill-score"><span id="skillHave">4</span><small>/<span id="skillTotal">10</span></small></div>
           </div>
           <div className="skill-summary" id="skillSummary"></div>
@@ -145,12 +157,12 @@ export default function ResultPage() {
           </div>
           <div className="card card-tight">
             <ul className="skill-list" id="skillListTop3"></ul>
-            <button className="skill-expand-toggle" id="skillExpandToggle" type="button">查看全部 Top 10 技能 ↓</button>
+            <button className="skill-expand-toggle" id="skillExpandToggle" type="button">查看全部技能 ↓</button>
             <div className="skill-paywall" id="skillPaywall" hidden>
               <ul className="skill-list skill-paywall-list" id="skillPaywallList"></ul>
               <div className="skill-paywall-overlay">
                 <div className="lock">🔒</div>
-                <div className="text">解锁<b style={{color:'var(--jade)'}}>全部 4 位导师</b> + <b style={{color:'var(--jade)'}}>完整改写报告</b><br/><span style={{color:'var(--ink-soft)',fontWeight:500}}>含完整 Top 10 技能清单</span></div>
+                <div className="text">解锁<b style={{color:'var(--jade)'}}>全部 4 位导师</b> + <b style={{color:'var(--jade)'}}>完整改写报告</b><br/><span style={{color:'var(--ink-soft)',fontWeight:500}}>含完整技能清单</span></div>
                 <a className="btn btn-jade" href="/payment">¥ 49 解锁完整诊断</a>
               </div>
             </div>
@@ -175,7 +187,7 @@ export default function ResultPage() {
             <div className="unlock-cta-price"><span className="now"><b>¥</b>49</span><span className="was">原价 ¥199</span></div>
             <ul className="unlock-cta-perks">
               <li>4 位大厂导师完整建议(P0 / P1 / P2 全分级)</li>
-              <li>完整 Top 10 技能清单 + 补强路径</li>
+              <li>完整技能清单 + 补强路径</li>
               <li>报告导出 .md,直接喂给 ChatGPT / Claude 改简历</li>
             </ul>
             <a href="/payment" className="btn btn-jade btn-block">¥ 49 立即解锁 →</a>

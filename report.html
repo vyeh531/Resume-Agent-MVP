@@ -357,7 +357,7 @@
     </div>
 
     <div class="card card-tight mt-16">
-      <div class="section-num" style="margin-bottom: 6px;">JD Top 10 技能匹配</div>
+      <div class="section-num" style="margin-bottom: 6px;">技能匹配分析</div>
 
       <!-- AI 总结(直接给结论,3 行内) -->
       <div class="ai-insight">
@@ -573,7 +573,7 @@
       document.getElementById("atsProblemsSection").innerHTML = `
         <div style="font-size:13px;font-weight:600;color:var(--rose);margin-bottom:8px;">🔍 关键问题</div>
         <ul style="list-style:none;padding:0;margin:0;font-size:13px;">
-          ${problems.slice(0,6).map(p=>`<li style="margin-bottom:8px;padding-left:18px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:var(--rose);">●</span>${escapeHtml(p)}</li>`).join("")}
+          ${problems.map(p=>`<li style="margin-bottom:8px;padding-left:18px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:var(--rose);">●</span>${escapeHtml(p)}</li>`).join("")}
         </ul>`;
     }
   })();
@@ -628,6 +628,38 @@
     if(p==="medium"||p==="P1") return "medium";
     return "low";
   }
+  // ── AI rewrite block ──
+  function renderRewriteBlock(item, fallbackExample) {
+    const rw = item.aiRewrite;
+    if (rw && rw.after) {
+      // Paid: show AI before/after
+      const beforeHtml = rw.before
+        ? `<div style="margin-bottom:10px;">
+             <div style="font-size:11px;font-weight:700;color:#991B1B;margin-bottom:4px;">改写前</div>
+             <div style="font-size:13px;color:#6B7280;font-family:var(--mono,monospace);line-height:1.6;background:#FEF2F2;padding:10px 12px;border-radius:8px;border:1px solid #FECACA;">${escapeHtml(rw.before)}</div>
+           </div>`
+        : "";
+      return `<div class="advice-example">
+        <div class="advice-example-head">
+          <div class="title"><span class="check">✓</span><span>AI 改写你的简历</span></div>
+          <button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(rw.after)}'>📋 复制</button>
+        </div>
+        <div class="advice-example-body">
+          ${beforeHtml}
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:4px;">改写后</div>
+            <div style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);background:#F0FDF4;padding:10px 12px;border-radius:8px;border:1px solid #BBF7D0;">${escapeHtml(rw.after)}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    // Fallback to static example if available
+    if (fallbackExample) {
+      return `<div class="advice-example"><div class="advice-example-head"><div class="title"><span class="check">✓</span><span>改写示例</span></div><button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(fallbackExample)}'>📋 复制</button></div><div class="advice-example-body"><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${escapeHtml(fallbackExample)}</span></div></div>`;
+    }
+    return "";
+  }
+
   // ── Priority pill (redesigned) ──
   function priorityBadge(p){
     const lv = priorityLabel(p);
@@ -640,35 +672,52 @@
     return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:${c.bg};color:${c.color};border:1px solid ${c.border};"><span style="width:6px;height:6px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${c.label}</span>`;
   }
 
-  // ── One advice item (new DB format) ──
+  // ── One advice item — matches result.html style, adds paid AI rewrite ──
   function renderAdviceItem(item, idx) {
-    const insight = item.mentorInsight || "";
-    const example = item.example || "";
-    const hrPerspective = item.hrPerspective || "";
+    const currentDiagnosis = item.problemSummary || item.currentDiagnosis || "";
+    const action = item.actionSummary || item.action || "";
+    const insight = item.mentorInsight || item.mentorLens || item.reason || "";
+    const hrPerspective = item.hrPerspective || item.HR_os || "";
     const divider = idx > 0
-      ? `<div style="height:1px;background:linear-gradient(to right,transparent,#DDD6CA,transparent);margin:24px 0;"></div>`
+      ? `<div style="height:1px;background:linear-gradient(to right,transparent,#DDD6CA,transparent);margin:20px 0;"></div>`
       : "";
+
+    const diagnosisHtml = currentDiagnosis ? `
+      <div style="display:flex;gap:10px;background:#F8F7F4;border-left:3px solid #D1C9B8;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <span style="font-size:14px;flex-shrink:0;">💡</span>
+        <div><div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:3px;">你的现状</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(currentDiagnosis)}</p></div>
+      </div>` : "";
+
+    const actionHtml = action ? `
+      <div style="display:flex;gap:10px;background:#F0FDF4;border-left:3px solid #4ADE80;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <span style="font-size:14px;flex-shrink:0;">⚡</span>
+        <div><div style="font-size:11px;font-weight:700;color:#15803D;margin-bottom:3px;">建议你先做</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;font-weight:600;color:#166534;">${escapeHtml(action)}</p></div>
+      </div>` : "";
+
+    const insightHtml = insight ? `
+      <div style="background:#F5F3FF;border-left:3px solid #C4B5FD;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:3px;">导师视角</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#4C1D95;">${escapeHtml(insight)}</p>
+      </div>` : "";
+
+    const hrHtml = hrPerspective ? `
+      <div style="background:#FFF7ED;border-left:3px solid #FCA5A5;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#9A3412;margin-bottom:3px;">HR 视角</div>
+        <p style="margin:0;font-size:13px;line-height:1.65;color:#7C2D12;">${escapeHtml(hrPerspective)}</p>
+      </div>` : "";
+
     return `
-      <div style="margin-top:${idx>0?'0':'12px'};">
+      <div style="margin-top:${idx > 0 ? "0" : "12px"};">
         ${divider}
-        <!-- badge + label -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           ${priorityBadge(item.priority)}
-          <span style="font-size:11px;color:#9CA3AF;font-weight:500;">导师建议 ${idx+1}</span>
-          <span style="margin-left:auto;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;flex-shrink:0;">${escapeHtml(sectionLabel(item.targetSection))}</span>
+          <span style="font-size:11px;color:#9CA3AF;font-weight:500;">建议 ${idx + 1}</span>
         </div>
-        <!-- problem title -->
-        <h4 style="margin:0 0 14px;font-size:16px;font-weight:700;color:#111827;line-height:1.4;">${escapeHtml(item.title)}</h4>
-        <!-- 你的现状 box -->
-        ${item.problemSummary ? `<div style="display:flex;gap:10px;background:#F8F7F4;border-left:3px solid #D1C9B8;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><span style="font-size:15px;flex-shrink:0;margin-top:1px;">💡</span><div><div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:4px;">你的现状</div><p style="margin:0;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(item.problemSummary)}</p></div></div>` : ""}
-        <!-- 建议你先做 box -->
-        ${item.actionSummary ? `<div style="display:flex;gap:10px;background:#F0FDF4;border-left:3px solid #4ADE80;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><span style="font-size:15px;flex-shrink:0;margin-top:1px;">⚡</span><div><div style="font-size:11px;font-weight:700;color:#15803D;margin-bottom:4px;">建议你先做</div><p style="margin:0;font-size:13px;line-height:1.65;color:#166534;">${escapeHtml(item.actionSummary)}</p></div></div>` : ""}
-        <!-- 导师洞察 box -->
-        ${insight ? `<div style="background:#F5F3FF;border-left:3px solid #C4B5FD;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;"><div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:4px;">导师视角</div><p style="margin:0;font-size:13px;line-height:1.65;color:#4C1D95;">${escapeHtml(insight)}</p></div>` : ""}
-        <!-- 改写示例 -->
-        ${example ? `<div class="advice-example"><div class="advice-example-head"><div class="title"><span class="check">✓</span><span>改写示例</span></div><button class="copy-btn" onclick="copyMentorExample(this)" data-content='${escapeAttr(example)}'>📋 复制</button></div><div class="advice-example-body"><span style="font-size:13px;font-weight:500;line-height:1.6;font-family:var(--mono,monospace);">${escapeHtml(example)}</span></div></div>` : ""}
-        <!-- HR 视角 -->
-        ${hrPerspective ? `<div style="background:#F5F3FF;border-left:3px solid #C4B5FD;border-radius:0 10px 10px 0;padding:12px 14px;margin-top:8px;"><div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:4px;">HR 视角</div><p style="margin:0;font-size:13px;line-height:1.65;color:#4C1D95;">${escapeHtml(hrPerspective)}</p></div>` : ""}
+        <h4 style="margin:0 0 10px;font-size:15px;font-weight:700;color:#111827;line-height:1.45;">${escapeHtml(item.title || "")}</h4>
+        ${diagnosisHtml}${actionHtml}${insightHtml}${hrHtml}
+        ${renderRewriteBlock(item, item.example || "")}
       </div>
     `;
   }
@@ -766,12 +815,59 @@
   // Prefer new premium format; fall back to legacy AI format
   const premiumMentors = s.premiumMentors;
   const legacyMentors = s.mentorAdvice;
-  if (premiumMentors && premiumMentors.length > 0) {
-    document.getElementById("mentorsList").innerHTML = premiumMentors.map((m,i)=>renderPremiumMentorCard(m,i)).join("");
-  } else if (legacyMentors && legacyMentors.length > 0) {
-    document.getElementById("mentorsList").innerHTML = legacyMentors.map((m,i)=>renderLegacyMentorCard(m,i)).join("");
-  } else {
-    document.getElementById("mentorsList").innerHTML = `<p style="color:var(--ink-soft);font-size:14px;padding:16px 0;">导师建议加载失败，请返回首页重新提交简历。</p>`;
+
+  function renderMentors(rewrites) {
+    // Build a map of adviceId → rewrite
+    const rewriteMap = {};
+    if (rewrites && Array.isArray(rewrites)) {
+      rewrites.forEach(rw => { if (rw.adviceId) rewriteMap[rw.adviceId] = rw; });
+    }
+    // Inject aiRewrite into each advice item before rendering
+    const injectRewrites = (mentors) => mentors.map(m => ({
+      ...m,
+      adviceList: (m.adviceList || m.adviceItems || []).map(item => ({
+        ...item,
+        aiRewrite: rewriteMap[item.adviceId || item.id] || null,
+      })),
+      adviceItems: (m.adviceItems || m.adviceList || []).map(item => ({
+        ...item,
+        aiRewrite: rewriteMap[item.adviceId || item.id] || null,
+      })),
+    }));
+
+    if (premiumMentors && premiumMentors.length > 0) {
+      document.getElementById("mentorsList").innerHTML =
+        injectRewrites(premiumMentors).map((m,i)=>renderPremiumMentorCard(m,i)).join("");
+    } else if (legacyMentors && legacyMentors.length > 0) {
+      document.getElementById("mentorsList").innerHTML =
+        injectRewrites(legacyMentors).map((m,i)=>renderLegacyMentorCard(m,i)).join("");
+    } else {
+      document.getElementById("mentorsList").innerHTML =
+        `<p style="color:var(--ink-soft);font-size:14px;padding:16px 0;">导师建议加载失败，请返回首页重新提交简历。</p>`;
+    }
+  }
+
+  // Render first without rewrites, then fetch AI rewrites and re-render
+  renderMentors(null);
+
+  const reportId = s.reportId || s.sessionId;
+  const reportToken = s.reportAccessToken;
+  if (reportId) {
+    fetch(`/api/v1/reports/${reportId}/ai-rewrite`, {
+      method: "POST",
+      headers: Object.assign(
+        { "Content-Type": "application/json" },
+        reportToken ? { "x-report-token": reportToken } : {}
+      ),
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data && data.success && data.rewrites && data.rewrites.length > 0) {
+        renderMentors(data.rewrites);
+        console.log(`[AI-Rewrite] loaded ${data.rewrites.length} rewrites (cached=${data.cached})`);
+      }
+    })
+    .catch(e => console.warn("[AI-Rewrite] fetch failed:", e.message));
   }
 
   // ── 4. PDF Export ─────────────────────────────────────────────

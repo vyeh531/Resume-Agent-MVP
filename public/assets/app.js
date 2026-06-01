@@ -98,6 +98,8 @@ async function submitResume(form) {
       freeMentorAdvice: atsRaw.freeMentorAdvice || null,
       lockedAdvicePreview: atsRaw.lockedAdvicePreview || null,
       premiumMentors: atsRaw.premiumMentors || null,
+      premiumAdviceItems: atsRaw.premiumAdviceItems || null,
+      mentorLogoPool: atsRaw.mentorLogoPool || atsRaw.lockedAdvicePreview?.mentorLogoPool || atsRaw.freeMentorAdvice?.mentorLogoPool || null,
       submittedAt: Date.now(),
       isPaid: false,
       mentorAdvice: null

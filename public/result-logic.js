@@ -11,6 +11,13 @@ if (typeof guardSubmitted === 'function') {
 
 const s = _S.get();
 const atsResult = s.atsResult || {};
+const mentorSections = document.querySelectorAll(".section");
+if (mentorSections.length) {
+  const freeNum = document.querySelector("#mentorFree")?.closest(".section")?.querySelector(".section-num");
+  if (freeNum) freeNum.textContent = "免费试读 · 3 条建议";
+  const lockedNum = document.querySelector("#lockedMentorsArea")?.closest(".section")?.querySelector(".section-num");
+  if (lockedNum) lockedNum.textContent = "付费解锁 · 9 条深度建议";
+}
 
 // ── helpers ──────────────────────────────────────────────────────
 function atsRiskText(risk) {
@@ -25,6 +32,178 @@ function escapeHtml(str) {
   );
 }
 function escapeAttr(str) { return String(str).replace(/'/g,"&apos;").replace(/"/g,"&quot;"); }
+const STATIC_MENTOR_COMPANY_LOGOS = [
+  { company: "Amazon", companyLogo: "/logos/Amazon.png" },
+  { company: "Amazon Web Services", companyLogo: "/logos/Amazon Web Services, Inc.png" },
+  { company: "Google", companyLogo: "/logos/google.png" },
+  { company: "Meta", companyLogo: "/logos/Meta.png" },
+  { company: "Microsoft", companyLogo: "/logos/Microsoft.png" },
+  { company: "Apple", companyLogo: "/logos/Apple.png" },
+  { company: "NVIDIA", companyLogo: "/logos/NVIDIA.png" },
+  { company: "Intel", companyLogo: "/logos/Intel.png" },
+  { company: "Qualcomm", companyLogo: "/logos/Qualcomm.png" },
+  { company: "Cisco", companyLogo: "/logos/Cisco.png" },
+  { company: "IBM", companyLogo: "/logos/IBM.jpg" },
+  { company: "Oracle", companyLogo: "/logos/Oracle.png" },
+  { company: "Salesforce", companyLogo: "/logos/Salesforce.png" },
+  { company: "Adobe", companyLogo: "/logos/Adobe.png" },
+  { company: "Intuit", companyLogo: "/logos/Intuit.png" },
+  { company: "Snowflake", companyLogo: "/logos/Snowflake.png" },
+  { company: "Spotify", companyLogo: "/logos/Spotify.png" },
+  { company: "Uber", companyLogo: "/logos/Uber.jpg" },
+  { company: "Robinhood", companyLogo: "/logos/Robinhood.png" },
+  { company: "OpenAI", companyLogo: "/logos/OpenAI.png" },
+  { company: "ByteDance", companyLogo: "/logos/ByteDance.png" },
+  { company: "TikTok", companyLogo: "/logos/Tiktok.png" },
+  { company: "SAP", companyLogo: "/logos/SAP.png" },
+  { company: "Goldman Sachs", companyLogo: "/logos/Goldman Sachs.png" },
+  { company: "JPMorgan Chase", companyLogo: "/logos/JPMorganChase.png" },
+  { company: "Morgan Stanley", companyLogo: "/logos/Morgan Stanley.png" },
+  { company: "BlackRock", companyLogo: "/logos/BlackRock.png" },
+  { company: "Capital One", companyLogo: "/logos/Capital One.png" },
+  { company: "Bank of America", companyLogo: "/logos/Bank of America.png" },
+  { company: "Citigroup", companyLogo: "/logos/Citigroup.png" },
+  { company: "American Express", companyLogo: "/logos/American Express.png" },
+  { company: "State Street", companyLogo: "/logos/State Street.png" },
+  { company: "McKinsey", companyLogo: "/logos/McKinsey & Company.png" },
+  { company: "BCG", companyLogo: "/logos/Boston Consulting Group.png" },
+  { company: "Deloitte", companyLogo: "/logos/Deloitte.png" },
+  { company: "KPMG", companyLogo: "/logos/KPMG.png" },
+  { company: "EY", companyLogo: "/logos/EY.png" },
+  { company: "PwC", companyLogo: "/logos/PRICE WATERHOUSE COOPERS.png" },
+  { company: "Accenture", companyLogo: "/logos/Accenture.png" },
+  { company: "BDO", companyLogo: "/logos/BDO.png" },
+  { company: "Applied Materials", companyLogo: "/logos/Applied Materials.png" },
+  { company: "KLA", companyLogo: "/logos/KLA.png" },
+  { company: "Lam Research", companyLogo: "/logos/Lam Research.png" },
+  { company: "Marvell", companyLogo: "/logos/Marvell.png" },
+  { company: "TSMC", companyLogo: "/logos/TSMC.png" },
+  { company: "Texas Instruments", companyLogo: "/logos/Texas Instruments.png" },
+  { company: "Cirrus Logic", companyLogo: "/logos/Cirrus Logic.png" },
+  { company: "NXP", companyLogo: "/logos/NXP Semiconductors.png" },
+  { company: "Renesas", companyLogo: "/logos/Renesas Electronics.png" },
+  { company: "Skyworks", companyLogo: "/logos/Skyworks.png" },
+  { company: "Johnson & Johnson", companyLogo: "/logos/Johnson & Johnson.png" },
+  { company: "Merck", companyLogo: "/logos/Merck.png" },
+  { company: "Bristol Myers Squibb", companyLogo: "/logos/Bristol Myers Squibb.png" },
+  { company: "Amgen", companyLogo: "/logos/Amgen.png" },
+  { company: "Biogen", companyLogo: "/logos/Biogen.png" },
+  { company: "Moderna", companyLogo: "/logos/Moderna.png" },
+  { company: "AbbVie", companyLogo: "/logos/AbbVie.png" },
+  { company: "Humana", companyLogo: "/logos/Humana.png" },
+  { company: "CVS Health", companyLogo: "/logos/CVS Health.png" },
+  { company: "Kaiser Permanente", companyLogo: "/logos/Kaiser Permanente.png" },
+  { company: "Tesla", companyLogo: "/logos/Tesla.png" },
+  { company: "Ford", companyLogo: "/logos/Ford Motor Company.png" },
+  { company: "General Motors", companyLogo: "/logos/General Motors.png" },
+  { company: "Nissan", companyLogo: "/logos/Nissan.png" },
+  { company: "Volvo", companyLogo: "/logos/Volvo Group.png" },
+  { company: "John Deere", companyLogo: "/logos/John Deere.png" },
+  { company: "General Electric", companyLogo: "/logos/General Electric.png" },
+  { company: "Bosch", companyLogo: "/logos/Bosch Group.png" },
+  { company: "Walmart", companyLogo: "/logos/Walmart.png" },
+  { company: "Target", companyLogo: "/logos/Target.png" },
+  { company: "Costco", companyLogo: "/logos/Costco.png" },
+  { company: "Nordstrom", companyLogo: "/logos/Nordstrom.png" },
+  { company: "Kroger", companyLogo: "/logos/Kroger.png" },
+  { company: "Disney", companyLogo: "/logos/Disney.png" },
+  { company: "Sony", companyLogo: "/logos/Sony AI America Inc.png" },
+  { company: "FedEx", companyLogo: "/logos/FedEx.png" },
+  { company: "Amtrak", companyLogo: "/logos/Amtrak.png" },
+];
+function getJdMatchRatio(ats) {
+  const value = ats?.jdMatchRatio ?? ats?.raw?.jdMatchRatio ?? ats?.raw?.metrics?.jdMatchRatio ?? ats?.metrics?.jdMatchRatio;
+  return value !== null && value !== undefined && value !== "" ? Math.round(Number(value)) : null;
+}
+function getTargetJobTitle() {
+  const candidates = [s.jobTitle, atsResult.jobTitle, atsResult.raw && atsResult.raw.jobTitle];
+  return candidates.find(v => v && !/依\s*JD|自动识别|unknown|^目标岗位$/i.test(String(v))) || "";
+}
+function formatTargetJobForProblem(jobTitle) {
+  const cleaned = String(jobTitle || "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\b(internship|intern|co-op|coop)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (/\bmachine learning engineer\b/i.test(cleaned)) return "Machine Learning Engineer";
+  return cleaned || "目标岗位";
+}
+function repairTargetRoleProblem(text) {
+  const target = formatTargetJobForProblem(getTargetJobTitle());
+  return String(text || "")
+    .replace(/目标岗位像是「[^」]+」/g, `目标岗位是「${target}」`)
+    .replace(/目标岗位是「数据科学家」/g, `目标岗位是「${target}」`);
+}
+function renderMentorLogoMarquee(pool) {
+  const source = (pool && pool.length ? pool : STATIC_MENTOR_COMPANY_LOGOS);
+  const logos = source.filter(item => item && item.companyLogo).slice(0, 80);
+  if (!logos.length) return "";
+  const chips = [...logos, ...logos].map(item => `
+    <div class="mentor-logo-chip" title="${escapeAttr(item.company || "")}">
+      <img src="${escapeAttr(item.companyLogo)}" alt="${escapeAttr(item.company || "")}">
+    </div>
+  `).join("");
+  return `<div class="logo-marquee" aria-label="Mentor company logos"><div class="logo-marquee-track">${chips}</div></div>`;
+}
+function renderMentorLogoIntro() {
+  return `
+    <div class="mentor-logo-intro" id="mentorLogoIntro">
+      <p class="mentor-logo-copy">由 MentorX 导师知识库中的真实大厂经验交叉匹配，系统会优先挑出最贴合你简历问题的建议。</p>
+      ${renderMentorLogoMarquee(STATIC_MENTOR_COMPANY_LOGOS)}
+    </div>`;
+}
+function renderPaywallMoreBlock(kind) {
+  const rows = kind === "suggestions"
+    ? ["更多优先修改动作", "分段改写路径", "可直接套用的优化方向"]
+    : ["更多岗位匹配风险", "更多 ATS 细分问题", "完整问题优先级排序"];
+  return `
+    <li class="paywall-more" style="list-style:none;padding:0;margin:10px 0 0;">
+      <div class="paywall-more-list">
+        ${rows.map(row => `<div>${escapeHtml(row)}</div>`).join("")}
+      </div>
+      <div class="paywall-more-overlay">解锁付费报告查看更多</div>
+    </li>`;
+}
+function normalizeProblemList() {
+  const raw = [
+    ...(atsResult.keyProblems || []),
+    ...(atsResult.problems || []),
+    ...(atsResult.raw?.problems || []),
+    ...((atsResult.topProblems || []).map(item => item.message || item.title).filter(Boolean)),
+  ];
+  const items = [...new Set(raw.filter(Boolean).map(repairTargetRoleProblem))].slice(0, 3);
+  while (items.length < 3) items.push(["JD 关键词匹配仍有提升空间。", "简历定位需要更贴近目标岗位。", "经历证据需要更清楚支撑核心技能。"][items.length]);
+  return items;
+}
+function isIrrelevantSuggestion(text) {
+  return /(供应链|marketing analyst|SaaS|银行|制造|自动化|汽车行业|bank)/i.test(String(text || ""));
+}
+function buildRoleAwareSuggestions() {
+  const job = getTargetJobTitle();
+  if (!/\b(machine learning|mle|ml engineer|ai engineer)\b/i.test(job)) return [];
+  const missing = [
+    ...(atsResult.topMissingKw || []),
+    ...(atsResult.topMissingKeywords || []),
+    ...(atsResult.raw?.topMissingKw || []),
+    ...(atsResult.raw?.topMissingKeywords || []),
+  ].filter(Boolean).slice(0, 5);
+  const kwText = missing.length ? `，优先补齐 ${missing.join("、")} 等 JD 高频词` : "";
+  return [
+    `把 Summary 第一行改成 Machine Learning Engineer 定位${kwText}。`,
+    "在 Skills 中单独列出 ML 技术栈，例如 Python、PyTorch/TensorFlow、scikit-learn、model training、evaluation、data pipeline。",
+    "把最相关的项目或经历改写成 MLE 证据链：数据规模、模型/特征方法、评估指标、上线或业务影响。"
+  ];
+}
+function normalizeSuggestionList() {
+  const raw = [
+    ...buildRoleAwareSuggestions(),
+    ...(atsResult.suggestions || []),
+    ...(atsResult.raw?.suggestions || []),
+  ].filter(text => text && !isIrrelevantSuggestion(text));
+  const items = [...new Set(raw)].slice(0, 3);
+  while (items.length < 3) items.push(["优先补齐目标岗位的核心关键词。", "把关键词写进 Experience 的具体成果证据。", "调整 Summary，让岗位方向一眼可见。"][items.length]);
+  return items;
+}
 
 // ── 1. Student info ──────────────────────────────────────────────
 (function setStudentInfo() {
@@ -79,8 +258,7 @@ function escapeAttr(str) { return String(str).replace(/'/g,"&apos;").replace(/"/
 const targetJobEl = document.getElementById("targetJob");
 if (targetJobEl) {
   function isPlaceholderTitle(v) { return !v || /依\s*JD|自动识别|unknown|^目标岗位$/i.test(String(v)); }
-  const job = [s.jobTitle, atsResult.jobTitle, atsResult.raw && atsResult.raw.jobTitle]
-    .find(function(v) { return v && !isPlaceholderTitle(v); }) || "";
+  const job = getTargetJobTitle();
   targetJobEl.textContent = job ? "目标:" + job : "目标:根据 JD 分析";
 }
 
@@ -91,7 +269,7 @@ if (headlineScoreEl) headlineScoreEl.textContent = atsScore;
 
 const coreIssueEl = document.getElementById("coreIssue");
 if (coreIssueEl) {
-  const problems = atsResult.keyProblems || [];
+  const problems = normalizeProblemList();
   coreIssueEl.textContent = problems.length
     ? problems[0]
     : atsScore
@@ -135,7 +313,7 @@ const atsDetailEl = document.getElementById("atsDetail");
 if (atsDetailEl && atsScore) {
   atsDetailEl.innerHTML = renderRows([
     { k:"ATS 总分", v: atsScore + "/100", note: atsRiskText(atsResult.riskLevel) },
-    { k:"JD 匹配度", v: (atsResult.jdMatchRatio ?? "--") + "%", note:"关键词覆盖率" },
+    { k:"JD 匹配度", v: (getJdMatchRatio(atsResult) ?? "--") + "%", note:"关键词覆盖率" },
     { k:"简历质量", v: (atsResult.dimensions?.C?.score ?? "--") + "/" + (atsResult.dimensions?.C?.max ?? 12), note:"内容质量与成果表达" },
   ]);
 }
@@ -285,7 +463,7 @@ if (expandBtn && paywallEl) {
   expandBtn.addEventListener("click", () => {
     open = !open;
     paywallEl.hidden = !open;
-    expandBtn.innerHTML = open ? "收起 ↑" : "查看全部 Top 10 技能 ↓";
+    expandBtn.innerHTML = open ? "收起 ↑" : "查看全部技能 ↓";
   });
 }
 
@@ -359,7 +537,7 @@ function renderApiAdviceItem(item, i) {
         ${fitChip}
       </div>
       ${matchReason ? `<div style="display:flex;align-items:flex-start;gap:7px;background:#FAFAF8;border-radius:8px;padding:7px 10px;margin-bottom:12px;border:1px solid rgba(0,0,0,0.05);"><span style="font-size:11px;flex-shrink:0;opacity:.5;margin-top:1px;">💬</span><p style="margin:0;font-size:11.5px;line-height:1.55;color:#78716C;font-style:italic;">${escapeHtml(matchReason)}</p></div>` : ""}
-      <h4 style="margin:0 0 13px;font-size:15px;font-weight:700;color:#111827;line-height:1.4;">${escapeHtml(item.title)}</h4>
+      <h4 style="margin:0 0 13px;font-size:15px;font-weight:700;color:#111827;line-height:1.4;"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#111827;color:#fff;font-size:11px;margin-right:8px;vertical-align:1px;">${i + 1}</span>${escapeHtml(item.title)}</h4>
       ${diagnosis ? `<div style="margin-bottom:11px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
           <span style="width:3px;height:14px;background:#D4A574;border-radius:2px;flex-shrink:0;"></span>
@@ -428,11 +606,31 @@ function renderFreeMentor(m) {
       <div style="height:1px;background:rgba(0,0,0,0.05);margin:0 0 18px;"></div>
       ${adviceHtml}
     </div>`;
+  const rootCard = mentorFreeEl.firstElementChild;
+  if (rootCard) {
+    const oldHeader = rootCard.firstElementChild;
+    if (oldHeader) oldHeader.remove();
+  }
+  const section = mentorFreeEl.closest(".section");
+  const titleEl = section?.querySelector(".section-title");
+  if (titleEl && !document.getElementById("mentorLogoIntro")) {
+    titleEl.insertAdjacentHTML("afterend", renderMentorLogoIntro());
+  }
 }
 
 function renderLockedAdvicePreview(preview) {
   const areaEl = document.getElementById("lockedMentorsArea");
   if (!areaEl || !preview) return;
+  const topics = (preview.topics || []).slice(0, 4).map(t => `<span class="cred-pill">${escapeHtml(t)}</span>`).join("");
+  areaEl.innerHTML = `
+    <article class="locked-mentor-v2" style="position:relative;overflow:hidden;min-height:132px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-soft);font-family:var(--mono);margin:0 0 8px;">${preview.lockedAdviceCount || 9} æ¡ä»˜è´¹æ·±åº¦å»ºè®®</div>
+      <div class="cred-pills" style="margin-bottom:10px;">${topics}</div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(246,243,236,.6);backdrop-filter:blur(2px);">
+        <div style="text-align:center;"><div style="font-size:22px;margin-bottom:4px;">ðŸ”’</div><div style="font-size:12px;font-weight:600;">è§£é”æŸ¥çœ‹ 9 æ¡å®Œæ•´å»ºè®®</div></div>
+      </div>
+    </article>`;
+  return;
   const lockedMentors = preview.lockedMentors || [];
   if (lockedMentors.length > 0) {
     areaEl.innerHTML = lockedMentors.map(m => {
@@ -455,12 +653,26 @@ function renderLockedAdvicePreview(preview) {
 }
 
 // 读取并渲染导师建议
+function renderLockedAdvicePreviewClean(preview) {
+  const areaEl = document.getElementById("lockedMentorsArea");
+  if (!areaEl || !preview) return;
+  const topics = (preview.topics || []).slice(0, 4).map(t => `<span class="cred-pill">${escapeHtml(t)}</span>`).join("");
+  areaEl.innerHTML = `
+    <article class="locked-mentor-v2" style="position:relative;overflow:hidden;min-height:132px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-soft);font-family:var(--mono);margin:0 0 8px;">${preview.lockedAdviceCount || 9} 条付费深度建议</div>
+      <div class="cred-pills" style="margin-bottom:10px;">${topics}</div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(246,243,236,.6);backdrop-filter:blur(2px);">
+        <div style="text-align:center;"><div style="font-size:22px;margin-bottom:4px;">🔒</div><div style="font-size:12px;font-weight:600;">解锁查看 9 条完整建议</div></div>
+      </div>
+    </article>`;
+}
+
 (function renderMentorAdvice() {
   const freeMentor  = s.freeMentorAdvice || atsResult.raw?.freeMentorAdvice;
   const lockedPrev  = s.lockedAdvicePreview || atsResult.raw?.lockedAdvicePreview;
   if (freeMentor) {
     renderFreeMentor(freeMentor);
-    renderLockedAdvicePreview(lockedPrev);
+    renderLockedAdvicePreviewClean(lockedPrev);
     return;
   }
   const mentorFreeEl = document.getElementById("mentorFree");
@@ -484,7 +696,7 @@ if (atsResult && atsResult.atsScore) {
   // ATS system summary
   const sysSummaryEl = document.getElementById("atsSystemSummary");
   if (sysSummaryEl) {
-    const jdMatch = atsResult.jdMatchRatio ?? atsResult.raw?.jdMatchRatio;
+    const jdMatch = getJdMatchRatio(atsResult);
     const missingKw = atsResult.topMissingKw || atsResult.raw?.topMissingKw || [];
     sysSummaryEl.innerHTML = [
       jdMatch != null ? `<div><b>JD 关键词匹配：</b>${jdMatch}%</div>` : "",
@@ -546,18 +758,20 @@ if (atsResult && atsResult.atsScore) {
 
   // 关键问题
   const problemsEl = document.getElementById("atsProblems");
-  if (problemsEl && atsResult.keyProblems?.length) {
-    problemsEl.innerHTML = atsResult.keyProblems.slice(0, 6).map((p, i) =>
-      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;${i >= 3 ? "filter:blur(4px);user-select:none;" : ""}"><span style="position:absolute;left:0;color:var(--rose);font-weight:600;">●</span>${escapeHtml(p)}</li>`
-    ).join("") + (atsResult.keyProblems.length > 3 ? `<li style="list-style:none;text-align:center;font-size:12px;color:var(--ink-soft);">🔒 解锁查看完整问题列表</li>` : "");
+  if (problemsEl) {
+    const problems = normalizeProblemList();
+    problemsEl.innerHTML = problems.map((p) =>
+      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:var(--rose);font-weight:600;">●</span>${escapeHtml(p)}</li>`
+    ).join("") + renderPaywallMoreBlock("problems");
   }
 
   // 优先建议
   const suggestionsEl = document.getElementById("atsSuggestions");
-  if (suggestionsEl && atsResult.suggestions?.length) {
-    suggestionsEl.innerHTML = atsResult.suggestions.slice(0, 6).map((sg, i) =>
-      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;${i >= 3 ? "filter:blur(4px);user-select:none;" : ""}"><span style="position:absolute;left:0;color:var(--jade);font-weight:600;">✓</span>${escapeHtml(sg)}</li>`
-    ).join("") + (atsResult.suggestions.length > 3 ? `<li style="list-style:none;text-align:center;font-size:12px;color:var(--ink-soft);">🔒 解锁查看完整建议</li>` : "");
+  if (suggestionsEl) {
+    const suggestions = normalizeSuggestionList();
+    suggestionsEl.innerHTML = suggestions.map((sg, i) =>
+      `<li style="margin-bottom:10px;padding-left:28px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;background:var(--jade);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">${i + 1}</span>${escapeHtml(sg)}</li>`
+    ).join("") + renderPaywallMoreBlock("suggestions");
   }
 
   // Chevron toggles
@@ -574,6 +788,6 @@ if (atsResult && atsResult.atsScore) {
   // ATS tile detail（覆盖前面的预设）
   if (atsDetailEl) atsDetailEl.innerHTML = renderRows([
     { k:"ATS 总分", v:`${atsResult.atsScore}/100`, note: atsRiskText(atsResult.riskLevel) },
-    { k:"JD 关键词匹配", v:`${atsResult.jdMatchRatio ?? "--"}%`, note:"与目标岗位 JD 的匹配程度" },
+    { k:"JD 关键词匹配", v:`${getJdMatchRatio(atsResult) ?? "--"}%`, note:"与目标岗位 JD 的匹配程度" },
   ]);
 }

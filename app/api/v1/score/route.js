@@ -34,6 +34,8 @@ export async function POST(request) {
       reportAccessToken: report.reportAccessToken,
       publicReport: report.publicReport,
       premiumMentors: report.premiumReport?.mentors || null,
+      premiumAdviceItems: report.premiumReport?.allAdviceItems || null,
+      mentorLogoPool: report.premiumReport?.mentorLogoPool || null,
       timestamp: new Date().toISOString(),
     };
     logPublicAtsResponseForTesting('score', payload);

@@ -119,8 +119,9 @@ async function saveAtsReport(reportData) {
         report_id, created_at, expires_at, job_title, has_jd, total, risk,
         public_report_json, internal_ats_json, retrieval_query_json,
         mentor_candidates_json, free_advice_json, paid_advice_json,
-        premium_report_json, payment_status, user_id, report_token_hash
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        premium_report_json, payment_status, user_id, report_token_hash,
+        resume_text, analysis_id, resume_bullets_json
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
       ON CONFLICT (report_id) DO NOTHING`,
     [
       reportData.reportId, now,
@@ -139,10 +140,48 @@ async function saveAtsReport(reportData) {
       reportData.paymentStatus || "unpaid",
       reportData.userId || null,
       hashToken(reportData.reportAccessToken),
+      reportData.resumeText || null,
+      reportData.analysisId || null,
+      reportData.resumeBullets ? JSON.stringify(reportData.resumeBullets) : null,
     ]
   );
   console.log(`[DB] saved ats_report report_id=${reportData.reportId}`);
   return reportData.reportId;
+}
+
+async function saveAiRewrites(reportId, rewrites) {
+  const pool = getPool();
+  await pool.query(
+    "UPDATE ats_reports SET ai_rewrites_json = $1 WHERE report_id = $2",
+    [JSON.stringify(rewrites), reportId]
+  );
+  console.log(`[DB] saved ai_rewrites report_id=${reportId} count=${rewrites.length}`);
+}
+
+function extractBullets(resumeText) {
+  if (!resumeText) return [];
+  const lines = resumeText.split(/\r?\n/);
+  const bullets = [];
+  let currentSection = "General";
+  const sectionPattern = /^(EXPERIENCE|EDUCATION|SKILLS|PROJECTS|SUMMARY|OBJECTIVE|WORK|EMPLOYMENT|CERTIFICATIONS|AWARDS|PUBLICATIONS|VOLUNTEER|ACTIVITIES|LEADERSHIP|RESEARCH|INTERNSHIP|PROFESSIONAL)/i;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (sectionPattern.test(trimmed) && trimmed.length < 50) {
+      currentSection = trimmed.replace(/[:：]/g, "").trim();
+      continue;
+    }
+    // bullet point indicators
+    const isBullet = /^[•\-\*◦▪▸➤►»→]/.test(trimmed) || /^\d+[\.\)]/.test(trimmed);
+    if (isBullet || (trimmed.length > 20 && trimmed.length < 300)) {
+      bullets.push({
+        section: currentSection,
+        text: trimmed.replace(/^[•\-\*◦▪▸➤►»→\d\.\)]+\s*/, "").trim(),
+        original: trimmed,
+      });
+    }
+  }
+  return bullets;
 }
 
 async function getAtsReport(reportId) {
@@ -208,5 +247,7 @@ module.exports = {
   validateReportAccess,
   validateReportUnlock,
   markAtsReportPaid,
+  saveAiRewrites,
+  extractBullets,
   hashToken,
 };

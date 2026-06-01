@@ -120,6 +120,9 @@ export async function buildAtsReportPayload(rawScoreResult, input, userId = null
   const reportAccessToken = createReportAccessToken();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString();
 
+  const resumeText = input?.resumeText || null;
+  const resumeBullets = resumeText ? db.extractBullets(resumeText) : [];
+
   await db.saveAtsReport({
     reportId,
     reportAccessToken,
@@ -137,6 +140,8 @@ export async function buildAtsReportPayload(rawScoreResult, input, userId = null
     premiumReport,
     paymentStatus: 'unpaid',
     userId,
+    resumeText,
+    resumeBullets,
   });
 
   return {

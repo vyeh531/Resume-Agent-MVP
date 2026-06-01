@@ -647,6 +647,8 @@ function buildReportAssembly() {
 function buildInternalAtsResult(rawScoreResult, input = {}) {
   const dimensions = buildDimensions(rawScoreResult);
   const scores = buildScores(rawScoreResult, dimensions);
+  const jdMatchRatio = rawScoreResult.metrics?.jdMatchRatio ??
+    (Number.isFinite(Number(rawScoreResult.jdMatchRatio)) ? Number((Number(rawScoreResult.jdMatchRatio) * 100).toFixed(1)) : null);
   const result = {
     engine: rawScoreResult.engine || "rule-based",
     version: REPORT_VERSION,
@@ -654,6 +656,7 @@ function buildInternalAtsResult(rawScoreResult, input = {}) {
     jobTitle: buildInternalJobTitle(rawScoreResult, input),
     hasJD: Boolean(rawScoreResult.hasJD ?? input.jdText),
     total: scores.overall.score,
+    jdMatchRatio,
     maxScore: 100,
     risk: rawScoreResult.risk || scores.overall.risk,
     formatPenaltyTriggered: Boolean(rawScoreResult.formatPenaltyTriggered),
@@ -729,6 +732,7 @@ function formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview) {
     jobTitle: (internalAtsResult.jobTitle === "unknown" || !internalAtsResult.jobTitle) ? null : internalAtsResult.jobTitle,
     hasJD: internalAtsResult.hasJD,
     total: internalAtsResult.total,
+    jdMatchRatio: internalAtsResult.jdMatchRatio,
     risk: internalAtsResult.risk,
     scores: stripScoreLabels(internalAtsResult.scores),
     dimensions: stripDimensionProblems(internalAtsResult.dimensions),
@@ -738,8 +742,9 @@ function formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview) {
     freeMentorAdvice: freeAdvice ? stripFreeAdvice(freeAdvice) : null,
     lockedAdvicePreview: lockedPreview,
     keywordBreakdown: buildPublicKeywordBreakdown(internalAtsResult),
+    topMissingKw: asArray(internalAtsResult.topMissingKeywords).slice(0, 12),
+    topMissingKeywords: asArray(internalAtsResult.topMissingKeywords).slice(0, 12),
     problems: asArray(internalAtsResult.problems).slice(0, 3),
-    suggestions: asArray(internalAtsResult.suggestions).slice(0, 3),
   };
 }
 
@@ -819,6 +824,10 @@ function stripFreeAdvice(item) {
       badges: asArray(item.badges).slice(0, 4),
       matchReason: item.matchReason,
       matchedProblems: asArray(item.matchedProblems).slice(0, 6),
+      mentorLogoPool: asArray(item.mentorLogoPool).slice(0, 16).map((mentor) => ({
+        company: mentor.company,
+        companyLogo: mentor.companyLogo || null,
+      })),
       adviceItems: item.adviceItems.slice(0, 3).map((advice) => ({
         adviceId: advice.adviceId,
         title: advice.title,
@@ -835,6 +844,7 @@ function stripFreeAdvice(item) {
         priority: advice.priority || "medium",
         priorityLabel: advice.priorityLabel || (advice.priority === "high" ? "P0 必改" : advice.priority === "medium" ? "P1 建议改" : "P2 加分项"),
         source: advice.source || "db",
+        mentorSource: advice.mentorSource || null,
       })),
       careerPathDisplay: item.careerPathDisplay || null,
     };
@@ -870,6 +880,30 @@ function formatPremiumUnlockedReport(internalAtsResult, paidAdviceOrMentorReport
     : paidAdviceOrMentorReport;
 
   if (mentorReport && Array.isArray(mentorReport.mentors)) {
+    const allAdviceItems = asArray(mentorReport.allAdviceItems).length
+      ? asArray(mentorReport.allAdviceItems)
+      : mentorReport.mentors.flatMap((mentor) => asArray(mentor.adviceItems));
+    const stripAdviceItem = (item) => ({
+      adviceId: item.adviceId,
+      title: item.title,
+      problemSummary: item.problemSummary || item.currentDiagnosis,
+      actionSummary: item.actionSummary || item.action,
+      currentDiagnosis: item.currentDiagnosis || item.problemSummary,
+      action: item.action || item.actionSummary,
+      reason: item.reason || "",
+      evidence: asArray(item.evidence).slice(0, 3),
+      mentorInsight: item.mentorInsight,
+      example: item.example,
+      hrPerspective: item.hrPerspective,
+      targetSection: item.targetSection || "overall",
+      topicCluster: item.topicCluster || "",
+      matchReason: item.matchReason || "",
+      mentorFitType: item.mentorFitType || "",
+      relatedProblemTags: asArray(item.relatedProblemTags).slice(0, 5),
+      priority: item.priority || "medium",
+      source: item.source,
+      mentorSource: item.mentorSource || null,
+    });
     return {
       mentors: mentorReport.mentors.slice(0, 4).map((mentor) => ({
         mentorId: mentor.mentorId,
@@ -881,19 +915,14 @@ function formatPremiumUnlockedReport(internalAtsResult, paidAdviceOrMentorReport
         badges: asArray(mentor.badges).slice(0, 4),
         matchReason: mentor.matchReason,
         matchedProblems: asArray(mentor.matchedProblems).slice(0, 8),
-        adviceItems: asArray(mentor.adviceItems).slice(0, 3).map((item) => ({
-          adviceId: item.adviceId,
-          title: item.title,
-          problemSummary: item.problemSummary,
-          actionSummary: item.actionSummary,
-          mentorInsight: item.mentorInsight,
-          example: item.example,
-          hrPerspective: item.hrPerspective,
-          targetSection: item.targetSection || "overall",
-          relatedProblemTags: asArray(item.relatedProblemTags).slice(0, 5),
-          priority: item.priority || "medium",
-          source: item.source,
-        })),
+        adviceItems: asArray(mentor.adviceItems).slice(0, 3).map(stripAdviceItem),
+      })),
+      allAdviceItems: allAdviceItems.slice(0, 12).map(stripAdviceItem),
+      freeAdviceItems: allAdviceItems.slice(0, 3).map(stripAdviceItem),
+      paidAdviceItems: allAdviceItems.slice(3, 12).map(stripAdviceItem),
+      mentorLogoPool: asArray(mentorReport.mentorLogoPool).slice(0, 16).map((mentor) => ({
+        company: mentor.company,
+        companyLogo: mentor.companyLogo || null,
       })),
       coverageSummary: mentorReport.coverageSummary || {
         totalProblemsDetected: 0,

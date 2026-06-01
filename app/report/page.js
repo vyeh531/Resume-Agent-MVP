@@ -42,6 +42,12 @@ export default function ReportPage() {
         .service-handle{font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:600;margin-top:6px;}
         .service-cta-text{font-size:13px;color:var(--ink);font-weight:600;margin-bottom:4px;}
         .service-foot{font-size:11px;color:var(--ink-mute);text-align:center;line-height:1.6;position:relative;}
+        .logo-marquee{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fffdf7;margin:0 0 16px;padding:10px 0}
+        .logo-marquee-track{display:flex;gap:14px;width:max-content;animation:logo-scroll 28s linear infinite}
+        .logo-marquee:hover .logo-marquee-track{animation-play-state:paused}
+        .mentor-logo-chip{width:72px;height:42px;border:1px solid #ede9dc;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;padding:7px;flex:0 0 auto}
+        .mentor-logo-chip img{max-width:100%;max-height:100%;object-fit:contain}
+        @keyframes logo-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         body.exporting .banner, body.exporting .export-card, body.exporting .footnote{display:none!important;}
         body.exporting .page{box-shadow:none!important;border:none!important;margin:0 auto!important;}
       `}</style>

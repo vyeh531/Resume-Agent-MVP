@@ -11,6 +11,13 @@ if (typeof guardSubmitted === 'function') {
 
 const s = Store.get();
 const atsResult = s.atsResult || {};
+const mentorsSection = document.getElementById("mentors");
+if (mentorsSection) {
+  const num = mentorsSection.querySelector(".section-num");
+  const title = mentorsSection.querySelector(".section-title");
+  if (num) num.textContent = "03 · 12 条导师建议";
+  if (title) title.textContent = "按你的简历问题优先匹配";
+}
 
 function priorityClass(p){
   if (p && p.startsWith("P0")) return "";
@@ -21,6 +28,20 @@ function priorityClass(p){
 function escapeAttr(str){ return String(str).replace(/'/g,"&apos;").replace(/"/g,"&quot;"); }
 function escapeHtml(s){
   return String(s||"").replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function getJdMatchRatio(ats) {
+  const value = ats?.jdMatchRatio ?? ats?.raw?.jdMatchRatio ?? ats?.raw?.metrics?.jdMatchRatio ?? ats?.metrics?.jdMatchRatio;
+  return value !== null && value !== undefined && value !== "" ? Math.round(Number(value)) : null;
+}
+function renderMentorLogoMarquee(pool) {
+  const logos = (pool || []).filter(item => item && item.companyLogo).slice(0, 16);
+  if (!logos.length) return "";
+  const chips = [...logos, ...logos].map(item => `
+    <div class="mentor-logo-chip" title="${escapeAttr(item.company || "")}">
+      <img src="${escapeAttr(item.companyLogo)}" alt="${escapeAttr(item.company || "")}">
+    </div>
+  `).join("");
+  return `<div class="logo-marquee" aria-label="Mentor company logos"><div class="logo-marquee-track">${chips}</div></div>`;
 }
 function formatMentorName(name){
   if (!name) return "X导师";
@@ -87,7 +108,7 @@ if (headlineEl && atsResult.atsScore) headlineEl.textContent = atsResult.atsScor
   const dimGrid = document.getElementById("atsDimGrid");
   if (dimGrid) dimGrid.innerHTML = dimHTML;
 
-  const jdMatch = atsResult.jdMatchRatio ?? atsResult.raw?.scores?.jdMatch?.score;
+  const jdMatch = getJdMatchRatio(atsResult);
   const breakdown = atsResult.keywordBreakdown || [];
   let kwHTML = `<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--line);">关键词对比${jdMatch != null ? ` <span style="color:${jdMatch>=60?"var(--good)":jdMatch>=40?"#e9a84c":"var(--rose)"};font-family:var(--mono);font-size:13px;"> · JD 匹配度 ${jdMatch}%</span>` : ""}</div>`;
 
@@ -240,12 +261,24 @@ function renderPremiumMentorCard(m, idx) {
   `;
 }
 
+function renderAdviceBundle(items, logoPool) {
+  const advice = (items || []).slice(0, 12).map((item, i) => renderAdviceItem(item, i)).join("");
+  return `
+    ${renderMentorLogoMarquee(logoPool)}
+    <article style="background:#FFFDF6;border:1px solid #EDE9DC;border-radius:22px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);margin-bottom:16px;">
+      <div>${advice}</div>
+    </article>
+  `;
+}
+
 const premiumMentors = s.premiumMentors;
+const premiumAdviceItems = s.premiumAdviceItems || (premiumMentors || []).flatMap(m => m.adviceItems || []);
+const mentorLogoPool = s.mentorLogoPool || s.lockedAdvicePreview?.mentorLogoPool || s.freeMentorAdvice?.mentorLogoPool || [];
 const legacyMentors = s.mentorAdvice;
 const mentorsListEl = document.getElementById("mentorsList");
 if (mentorsListEl) {
-  if (premiumMentors && premiumMentors.length > 0) {
-    mentorsListEl.innerHTML = premiumMentors.map((m,i)=>renderPremiumMentorCard(m,i)).join("");
+  if (premiumAdviceItems && premiumAdviceItems.length > 0) {
+    mentorsListEl.innerHTML = renderAdviceBundle(premiumAdviceItems, mentorLogoPool);
   } else if (legacyMentors && legacyMentors.length > 0) {
     mentorsListEl.innerHTML = legacyMentors.map((m,i)=>renderPremiumMentorCard(m,i)).join("");
   } else {

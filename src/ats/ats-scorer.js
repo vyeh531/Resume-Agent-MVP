@@ -154,6 +154,17 @@ function formatRole(roleId) {
   return ROLE_DISPLAY_NAMES[roleId] || roleId.replace(/_/g, " ");
 }
 
+function formatTargetJobDisplay(jobTitle, fallbackRole) {
+  const cleaned = String(jobTitle || "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\b(internship|intern|co-op|coop)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (/\bmachine learning engineer\b/i.test(cleaned)) return "Machine Learning Engineer";
+  if (cleaned && !/^(unknown|general|根据\s*jd\s*分析|依\s*jd\s*自动识别)$/i.test(cleaned)) return cleaned;
+  return fallbackRole;
+}
+
 const WEAK_PHRASES = [
   "helped", "assisted", "worked on", "worked with", "responsible for",
   "participated in", "involved in", "did", "made", "used"
@@ -2621,7 +2632,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     hasEmail, hasJD, jdMatchRatio, quantifiedCount, strongVerbCount, impactCount,
     bulletCount: bulletLines.length, missingKeywords, keywordMatch, targetRole, resumeRole,
     allChina, hasAnyChinaExp, formatPenaltyTriggered, isChronological, shortTenures,
-    exactJobTitle, scoreCaps
+    exactJobTitle, scoreCaps, jobTitle
   });
   const suggestions = buildSuggestions({
     hasJD, missingKeywords, keywordMatch, quantifiedCount, strongVerbCount, impactCount,
@@ -2806,7 +2817,8 @@ function buildProblems(ctx) {
     problems.push("未检测到标准 email，联系方式完整性存在风险。");
   }
   if (ctx.targetRole.role !== "general" && ctx.resumeRole.role !== ctx.targetRole.role) {
-    problems.push(`目标岗位像是「${formatRole(ctx.targetRole.role)}」，但简历定位更接近「${formatRole(ctx.resumeRole.role)}」，岗位信号不够一致。`);
+    const targetDisplay = formatTargetJobDisplay(ctx.jobTitle, ctx.targetRole.display || formatRole(ctx.targetRole.role));
+    problems.push(`目标岗位是「${targetDisplay}」，但简历定位更接近「${formatRole(ctx.resumeRole.role)}」，岗位信号不够一致。`);
   }
   if (problems.length === 0) {
     problems.push("基础结构良好，下一步应继续提升 JD 关键词覆盖率和成果量化密度。");

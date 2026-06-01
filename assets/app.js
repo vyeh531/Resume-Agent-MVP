@@ -1,8 +1,8 @@
-const STORE_KEY = "resumeFixMVP";
+var STORE_KEY = "resumeFixMVP";
 // NOTE: API_BASE is declared in api-client.js (loaded before this file)
-let isSubmitting = false;
+var isSubmitting = false;
 
-const Store = {
+var Store = {
   get() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
     catch(e) { return {}; }
@@ -117,10 +117,21 @@ function mockLogin(btn) {
   Store.set({ userId: "mock_" + Date.now() });
   setTimeout(() => { window.location.href = "analyzing.html"; }, 800);
 }
-function mockPayment(btn) {
+async function mockPayment(btn) {
   btn.disabled = true;
   showLoader("正在确认支付…", "解锁全部 4 位导师建议");
-  setTimeout(() => { Store.set({ isPaid: true, paidAt: Date.now() }); window.location.href = "report.html"; }, 1800);
+  try {
+    const s = Store.get();
+    const reportId = s.reportId || s.sessionId;
+    if (reportId) {
+      // Mark paid in DB and trigger AI rewrite (fire and forget)
+      await fetch(`/api/v1/reports/${reportId}/mark-paid`, { method: "POST" });
+    }
+  } catch (e) {
+    console.warn("[Payment] mark-paid failed, continuing:", e.message);
+  }
+  Store.set({ isPaid: true, paidAt: Date.now() });
+  setTimeout(() => { window.location.href = "report.html"; }, 400);
 }
 
 function guardSubmitted() {

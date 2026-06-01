@@ -600,6 +600,8 @@ app.post("/api/v1/score", upload.single("file"), async (req, res) => {
       reportAccessToken: report.reportAccessToken,
       publicReport: report.publicReport,
       premiumMentors: report.premiumReport?.mentors || null,
+      premiumAdviceItems: report.premiumReport?.allAdviceItems || null,
+      mentorLogoPool: report.premiumReport?.mentorLogoPool || null,
       timestamp: new Date().toISOString(),
     };
     logPublicAtsResponseForTesting("score", payload);
@@ -677,6 +679,140 @@ app.get("/api/v1/reports/:reportId/debug", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ── POST /api/v1/reports/:reportId/mark-paid ──────────────────────────────────
+// Called after payment confirmation. Marks report as paid and triggers AI rewrite.
+app.post("/api/v1/reports/:reportId/mark-paid", async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const report = await db.getAtsReport(reportId);
+    if (!report) return res.status(404).json({ success: false, error: "REPORT_NOT_FOUND" });
+
+    await db.markAtsReportPaid(reportId, true);
+    console.log(`[Payment] marked paid report_id=${reportId}`);
+
+    // Trigger AI rewrite asynchronously (don't block response)
+    triggerAiRewrite(reportId, report).catch(err =>
+      console.error(`[AI-Rewrite] background error report_id=${reportId}:`, err.message)
+    );
+
+    res.json({ success: true, reportId });
+  } catch (err) {
+    console.error("[Payment] mark-paid error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST /api/v1/reports/:reportId/ai-rewrite ─────────────────────────────────
+// Returns AI rewrites for a paid report. Reads from cache if already generated.
+app.post("/api/v1/reports/:reportId/ai-rewrite", async (req, res) => {
+  try {
+    const unlock = await db.validateReportUnlock(req.params.reportId, {
+      token: reportTokenFromRequest(req),
+      userId: reportUserFromRequest(req),
+    });
+    if (!unlock.ok) {
+      return res.status(unlock.status || 403).json({ success: false, error: unlock.error });
+    }
+
+    const report = unlock.report;
+
+    // Return cached rewrites if already done
+    if (report.ai_rewrites_json) {
+      const cached = typeof report.ai_rewrites_json === "string"
+        ? JSON.parse(report.ai_rewrites_json) : report.ai_rewrites_json;
+      return res.json({ success: true, rewrites: cached, cached: true });
+    }
+
+    // Generate fresh rewrites
+    const rewrites = await generateAiRewrites(report);
+    await db.saveAiRewrites(req.params.reportId, rewrites);
+
+    res.json({ success: true, rewrites, cached: false });
+  } catch (err) {
+    console.error("[AI-Rewrite] error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── AI rewrite helpers ─────────────────────────────────────────────────────────
+async function triggerAiRewrite(reportId, report) {
+  const rewrites = await generateAiRewrites(report);
+  await db.saveAiRewrites(reportId, rewrites);
+  console.log(`[AI-Rewrite] complete report_id=${reportId} rewrites=${rewrites.length}`);
+}
+
+async function generateAiRewrites(report) {
+  const Anthropic = require("@anthropic-ai/sdk");
+  const client = new Anthropic();
+
+  const resumeText = report.resume_text || report.resumeText || "";
+  if (!resumeText) return [];
+
+  // Collect all advice items from premium report
+  const premiumReport = report.premiumReport || report.premium_report_json || {};
+  const mentors = premiumReport.mentors || [];
+  const adviceItems = [];
+  for (const mentor of mentors) {
+    for (const item of (mentor.adviceList || mentor.adviceItems || [])) {
+      adviceItems.push({
+        adviceId: item.adviceId || item.id || `${mentor.mentorId}_${adviceItems.length}`,
+        title: item.title || item.issue || "",
+        problem: item.currentDiagnosis || item.problemSummary || item.current || "",
+        action: item.action || item.actionSummary || item.strategy || "",
+        example: item.example || item.E_example || "",
+        mentorName: mentor.mentorName || mentor.name || "",
+      });
+    }
+  }
+
+  if (!adviceItems.length) return [];
+
+  const prompt = `你是一個簡歷改寫專家。根據以下導師建議，找出用戶簡歷中對應有問題的部分，提供改寫前（before）和改寫後（after）。
+
+用戶簡歷：
+${resumeText.slice(0, 4000)}
+
+建議列表（JSON）：
+${JSON.stringify(adviceItems.map(a => ({
+  adviceId: a.adviceId,
+  problem: a.problem,
+  action: a.action,
+  example: a.example,
+})), null, 2)}
+
+請回傳 JSON 陣列，每個建議對應一個物件：
+[
+  {
+    "adviceId": "...",
+    "before": "從簡歷中找到的原始文字（如果找到的話，否則填空字串）",
+    "after": "根據建議改寫後的版本",
+    "section": "來自哪個簡歷板塊（如 Experience / Education / Skills）"
+  }
+]
+
+只回傳 JSON 陣列，不要其他文字。`;
+
+  const response = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 3000,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  let text = response.content[0].text.trim();
+  if (text.includes("```")) {
+    text = text.split("```")[1];
+    if (text.startsWith("json")) text = text.slice(4);
+  }
+
+  try {
+    const parsed = JSON.parse(text.trim());
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    console.error("[AI-Rewrite] JSON parse failed");
+    return [];
+  }
+}
 
 // ── GET /api/v1/ats/health  （確認 server + API key 狀態） ───
 app.get("/api/v1/ats/health", (req, res) => {
