@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { normalizeHostedAtsScoreResult } from '../app/lib/hostedAtsSystem.js';
+import { normalizeHostedAtsScoreResult } from '../app/lib/hostedAtsSystem.mjs';
 
 const hostedPayload = {
   success: true,

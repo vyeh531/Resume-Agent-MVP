@@ -435,10 +435,27 @@ function buildPriorityMissingKeywords(rawScoreResult) {
 }
 
 function buildProblemTags(internalAtsResult) {
-  const tags = asArray(internalAtsResult.problemTags).map(normalizeProblemTag).filter(Boolean);
+  const tags = [];
   const add = (tag) => {
-    if (!tags.some((item) => item.tag === tag.tag)) tags.push(tag);
+    if (!tag?.tag) return;
+    const existingIndex = tags.findIndex((item) => item.tag === tag.tag);
+    if (existingIndex === -1) {
+      tags.push(tag);
+      return;
+    }
+    const existing = tags[existingIndex];
+    const strongerSeverity = severityRank(tag.severity) < severityRank(existing.severity);
+    const strongerWeight = Number(tag.retrievalWeight || 0) > Number(existing.retrievalWeight || 0);
+    if (strongerSeverity || strongerWeight) {
+      tags[existingIndex] = {
+        ...existing,
+        ...tag,
+        severity: strongerSeverity ? tag.severity : existing.severity,
+        retrievalWeight: Math.max(Number(existing.retrievalWeight || 0), Number(tag.retrievalWeight || 0)),
+      };
+    }
   };
+  asArray(internalAtsResult.problemTags).map(normalizeProblemTag).filter(Boolean).forEach(add);
 
   const dScore = internalAtsResult.dimensions?.D?.percentage || 0;
   const hardCoverage = internalAtsResult.keywordMatch?.summary?.hardSkillCoverage || 0;
@@ -454,7 +471,11 @@ function buildProblemTags(internalAtsResult) {
     add(tag("career_growth_optimization", "F", "career_growth", "low", 0.35));
   }
 
-  return tags.sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
+  return tags.sort((a, b) => {
+    const severityDiff = severityRank(a.severity) - severityRank(b.severity);
+    if (severityDiff !== 0) return severityDiff;
+    return Number(b.retrievalWeight || 0) - Number(a.retrievalWeight || 0);
+  });
 }
 
 function normalizeProblemTag(item) {
@@ -579,6 +600,8 @@ function problemTitle(item) {
   if (item.tag === "low_hard_skill_match") return "\u6838\u5fc3\u786c\u6280\u80fd\u5339\u914d\u504f\u4f4e";
   if (item.tag === "missing_exact_job_title") return "\u7f3a\u5c11\u76ee\u6807\u5c97\u4f4d\u539f\u8bcd";
   if (item.tag === "low_measurable_results") return "\u53ef\u91cf\u5316\u6210\u679c\u4e0d\u8db3";
+  if (item.tag === "missing_portfolio") return "\u7f3a\u5c11\u4f5c\u54c1\u96c6\u94fe\u63a5";
+  if (item.tag === "missing_github_link") return "\u7f3a\u5c11\u4ee3\u7801\u6216\u9879\u76ee\u94fe\u63a5";
   return "JD \u5173\u952e\u8bcd\u5339\u914d\u5ea6\u504f\u4f4e";
 }
 
@@ -586,6 +609,8 @@ function problemMessage(item) {
   if (item.tag === "missing_exact_job_title") return "\u7b80\u5386\u4e2d\u672a\u7a33\u5b9a\u51fa\u73b0\u76ee\u6807\u5c97\u4f4d\u539f\u8bcd\uff0c\u53ef\u80fd\u5f71\u54cd ATS \u5bf9\u804c\u4f4d\u5b9a\u4f4d\u7684\u5224\u65ad\u3002";
   if (item.tag === "low_measurable_results") return "\u7ecf\u5386\u4e2d\u7684\u7ed3\u679c\u8bc1\u636e\u504f\u5c11\uff0c\u5efa\u8bae\u63d0\u5347\u767e\u5206\u6bd4\u3001\u89c4\u6a21\u3001\u6548\u7387\u7b49\u91cf\u5316\u8868\u8fbe\u3002";
   if (item.tag === "low_hard_skill_match") return "\u6838\u5fc3\u786c\u6280\u80fd\u8986\u76d6\u4e0d\u8db3\uff0c\u9700\u8981\u628a\u6709\u771f\u5b9e\u7ecf\u9a8c\u652f\u6491\u7684\u5de5\u5177\u3001\u6280\u80fd\u548c\u573a\u666f\u5199\u8fdb\u7ecf\u5386\u8bc1\u636e\u91cc\u3002";
+  if (item.tag === "missing_portfolio") return "\u76ee\u6807\u5c97\u4f4d\u9700\u8981\u901a\u8fc7\u4f5c\u54c1\u96c6\u5224\u65ad\u8bbe\u8ba1\u80fd\u529b\uff0c\u4f46\u7b80\u5386\u5934\u90e8\u672a\u68c0\u6d4b\u5230\u53ef\u70b9\u51fb\u7684\u4f5c\u54c1\u96c6\u94fe\u63a5\u3002";
+  if (item.tag === "missing_github_link") return "\u76ee\u6807\u5c97\u4f4d\u9700\u8981\u9879\u76ee\u6216\u4ee3\u7801\u8bc1\u636e\uff0c\u4f46\u7b80\u5386\u4e2d\u672a\u68c0\u6d4b\u5230 GitHub \u6216\u76f8\u5173\u4ee3\u7801\u94fe\u63a5\u3002";
   return "\u4f60\u7684\u7b80\u5386\u7f3a\u5c11\u591a\u4e2a\u76ee\u6807\u5c97\u4f4d\u6838\u5fc3\u5173\u952e\u8bcd\uff0c\u53ef\u80fd\u5f71\u54cd ATS \u521d\u7b5b\u3002";
 }
 
@@ -615,7 +640,7 @@ function buildStructuredSuggestions(internalAtsResult) {
 
 function buildRetrievalQuery(internalAtsResult) {
   const topics = [...new Set(internalAtsResult.problemTags.map((tagItem) => tagItem.topic))].slice(0, 6);
-  const problemTags = internalAtsResult.problemTags.map((tagItem) => tagItem.tag).slice(0, 8);
+  const problemTags = [...new Set(internalAtsResult.problemTags.map((tagItem) => tagItem.tag).filter(Boolean))].slice(0, 8);
   const priorityKeywords = internalAtsResult.priorityMissingKeywords
     .filter((item) => item.priority === "high" || item.priority === "medium")
     .map((item) => item.term)

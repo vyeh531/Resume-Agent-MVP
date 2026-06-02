@@ -171,7 +171,10 @@ const ML_UNSAFE_BUSINESS_KEYWORDS = [
   "financial analyst", "investment analyst", "risk analyst", "accounting",
   "accountant", "financial reporting", "valuation", "fp&a", "fpa",
   "quickbooks", "gaap", "accounts payable", "accounts receivable",
-  "会计", "投资分析", "金融公司"
+  "procurement", "logistic", "logistics", "supply chain",
+  "ux designer", "ui/ux designer", "graphic designer", "visual designer",
+  "data analyst", "actuarial",
+  "会计", "投资分析", "金融公司", "数据分析岗位", "精算"
 ];
 const ACCOUNTING_FINANCE_TERMS = [
   "accounting", "finance", "audit", "bookkeeping", "financial reporting",
@@ -185,7 +188,7 @@ function containsUnsafeKeyword(text, keyword) {
 }
 const RESUME_SCOPE_PATTERN = /简历|resume|ats|jd|keyword|关键词|投递|summary|skills|experience|bullet|岗位匹配|岗位定位|targeted resume|resume version/i;
 const INTERVIEW_SCOPE_PATTERN = /面试|interview|behavioral|favorite course|课程|mock interview|star|tell me about yourself|自我介绍|stock answer|答案/i;
-const NON_RESUME_ADVICE_PATTERN = /申研|升学|录取侧重|录取标准|admission|申请文书|推荐信|硬件.*onsite|硬件.*on-site|lab相关|实验室岗位|投递窗口|窗口期|10月份|十月份|春季\/暑期|实习作为entry point|追加约?\d+|先追加|投递量不足|丧失信心|full-time job offer|internship顺利完成/i;
+const NON_RESUME_ADVICE_PATTERN = /申研|升学|录取侧重|录取标准|admission|申请文书|推荐信|硬件.*onsite|硬件.*on-site|lab相关|实验室岗位|投递窗口|窗口期|10月份|十月份|春季\/暑期|实习作为entry point|追加约?\d+|先追加|投递量不足|丧失信心|full-time job offer|internship顺利完成|面试穿帮|判断简历效果|后续行动计划/i;
 const NON_RESUME_TOPIC_PATTERN = /面试|interview|behavioral|technical interview|mock interview|投递渠道|求职渠道|内推|networking|职业方向选择|职业规划|求职时间规划|时间规划|市场竞争分析|竞争分析|背景差距分析|gap分析|申请学校|申研|升学|录取|申请文书|推荐信/i;
 const RESUME_EDIT_ACTION_PATTERN = /summary|skills?|experience|projects?|education|coursework|relevant coursework|word|ruler|tab|bullet|jd|ats|keyword|keywords|关键词|简历|履历|改写|重写|精修|量化|成果|格式|版块|板块|岗位原词|目标岗位|portfolio|github|linkedin|课程|排版|段落|行距|页边距|对齐|日期右对齐|展示|体现|列出|补充|加入|写入|写进|删除|删掉|删去|移除|替换|添加|强调|说明|明确说明|细化|展开|重新框架|重构|保留/i;
 const ATS_PROBLEM_TAGS = new Set([
@@ -306,7 +309,9 @@ function rowText(row) {
   return [
     row.topic, row.L1, row.L2, row.P_mentor, row.A_action, row.I_insight, row.H_hook,
     row.E_example, row.HR_os, row.keywords, row.retrieval_text, row.advice_card_title,
-    row.user_problem_summary, row.action_summary, row.role_family, row.target_roles
+    row.user_problem_summary, row.action_summary, row.role_family, row.target_roles,
+    row.title, row.problemSummary, row.actionSummary, row.currentDiagnosis, row.action,
+    row.mentorInsight, row.example, row.hrPerspective, row.roleFamily, row.targetRoles
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
@@ -426,6 +431,8 @@ const ROLE_SENSITIVITY_BY_PROBLEM_TAG = {
   formatting_penalty_triggered: 0.10,
   missing_contact_info: 0.05,
   missing_linkedin: 0.08,
+  missing_portfolio: 0.35,
+  missing_github_link: 0.35,
   objective_outdated: 0.05,
   outdated_resume: 0.05,
 };
@@ -582,7 +589,10 @@ function roleGroupOf(str) {
 
 function isEligibleForAtsResumeReport(row) {
   const dbScope = normalizeTerm(row.retrieval_scope || row.retrievalScope || "");
-  if (dbScope) return dbScope === "resume_edit";
+  if (dbScope) {
+    if (NON_RESUME_ADVICE_PATTERN.test(rowText(row))) return false;
+    return dbScope === "resume_edit";
+  }
 
   const scope = inferAdviceScope(row);
   const text = rowText(row);
@@ -945,10 +955,20 @@ function isGenericUniversalResumeAdvice(card) {
   return scopeAllowed && reasons.includes("universal_fallback") && !reasons.includes("conflicting_role_examples");
 }
 
-function rankCandidates(candidates, limit) {
+function targetProblemsFromRetrievalQuery(retrievalQuery = {}) {
+  return splitCsv(retrievalQuery.problemTags).map((tag) => ({
+    tag,
+    severity: "medium",
+    dimension: dimensionsFromProblemTags([tag])[0] || "overall",
+    topic: "resume_ats",
+  }));
+}
+
+function rankCandidates(candidates, limit, retrievalQuery = {}) {
+  const targetProblemTags = targetProblemsFromRetrievalQuery(retrievalQuery);
   return candidates
     .filter((card) => card.retrieval_score > 0)
-    .sort((a, b) => compareCardsStable(a, b, [], new Set(), []))
+    .sort((a, b) => compareCardsStable(a, b, targetProblemTags, new Set(), []))
     .slice(0, limit);
 }
 
@@ -970,7 +990,7 @@ async function retrieveStrictCandidates(retrievalQuery = {}, options = {}) {
     .filter(hasStrictSignal)
     .filter((card) => !card.matched_reasons.includes("conflicting_role_examples"))
     .filter((card) => card.roleMismatchPenalty < 0.35);
-  return rankCandidates(rows, options.limit || 80);
+  return rankCandidates(rows, options.limit || 80, retrievalQuery);
 }
 
 async function retrieveFallbackCandidates(retrievalQuery = {}, options = {}) {
@@ -988,7 +1008,7 @@ async function retrieveFallbackCandidates(retrievalQuery = {}, options = {}) {
   const rows = (await queryRows(pool, clause, params, retrievalQuery))
     .filter(isGenericUniversalResumeAdvice)
     .filter((card) => !card.matched_reasons.includes("conflicting_role_examples"));
-  return rankCandidates(rows, options.limit || 80);
+  return rankCandidates(rows, options.limit || 80, retrievalQuery);
 }
 
 async function retrieveMentorAdvice(retrievalQuery = {}, options = {}) {
@@ -1017,7 +1037,7 @@ async function retrieveMentorAdvice(retrievalQuery = {}, options = {}) {
       byId.set(candidate.adviceId, candidate);
     }
   }
-  const candidates = rankCandidates([...byId.values()], limit);
+  const candidates = rankCandidates([...byId.values()], limit, retrievalQuery);
   Object.defineProperty(candidates, "debug", {
     enumerable: false,
     value: {
@@ -1296,7 +1316,7 @@ function relatedTagsForCard(card = {}, targetProblemTags = []) {
     else if (/summary|定位|position/.test(text) && /summary|role|title|position/.test(tag)) tags.push(tag);
     else if (/experience|bullet|经历|证据/.test(text) && /experience|evidence|skills_only/.test(tag)) tags.push(tag);
     else if (/量化|result|impact|成果/.test(text) && /measurable|result|action/.test(tag)) tags.push(tag);
-    else if (/linkedin|portfolio|searchability/.test(text) && /linkedin|portfolio|searchability/.test(tag)) tags.push(tag);
+    else if (/linkedin|portfolio|github|code profile|searchability/.test(text) && /linkedin|portfolio|github|code|searchability/.test(tag)) tags.push(tag);
   }
   if (!targetTagSet.has("uploaded_non_pdf_format")) {
     return [...new Set(tags)].filter((tag) => tag !== "uploaded_non_pdf_format").slice(0, 3);
@@ -1324,6 +1344,13 @@ function isCardAlignedWithTargetProblems(card = {}, targetProblemTags = []) {
   ].filter(Boolean).join(" ").toLowerCase();
 
   if (hasFileSubmissionFormatWarning(card) && !tags.includes("uploaded_non_pdf_format") && !tags.includes("file_naming_issue")) {
+    return false;
+  }
+  if (/\bgpa\s*[:：]?\s*[3-4](?:\.\d+)?\b|gpa\s*[3-4](?:\.\d+)?|gpa\s*3\.8/i.test(text) &&
+      !tags.some((tag) => /gpa|education_details_missing|education/.test(tag))) {
+    return false;
+  }
+  if (tags.includes("education_details_missing") && /\bgpa\s*[:：]?\s*[3-4](?:\.\d+)?\b|gpa\s*[3-4](?:\.\d+)?|gpa\s*3\.8/i.test(text)) {
     return false;
   }
   if (tags.some((tag) => /jd|keyword|hard_skill|priority_keyword/.test(tag))) {
