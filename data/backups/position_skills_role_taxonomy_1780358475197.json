@@ -1,0 +1,5622 @@
+[
+  {
+    "id": 1,
+    "position_title": "2D Animator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 2,
+    "position_title": "3D artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 3,
+    "position_title": "Academic Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,education"
+  },
+  {
+    "id": 4,
+    "position_title": "Account Executive",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 5,
+    "position_title": "Account Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 6,
+    "position_title": "Accountant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "accounting"
+  },
+  {
+    "id": 7,
+    "position_title": "Accounting Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "accounting"
+  },
+  {
+    "id": 8,
+    "position_title": "Actuarial Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "actuarial",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "actuarial"
+  },
+  {
+    "id": 9,
+    "position_title": "Actuary",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "actuarial",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "actuarial"
+  },
+  {
+    "id": 10,
+    "position_title": "Admin Assistant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 11,
+    "position_title": "Advertising Account Executive",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,sales_customer_success"
+  },
+  {
+    "id": 12,
+    "position_title": "AI",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 13,
+    "position_title": "Ai Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer,software_engineer"
+  },
+  {
+    "id": 14,
+    "position_title": "AI Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 15,
+    "position_title": "AI for Drug Discovery",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 16,
+    "position_title": "AI Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer,research_academic"
+  },
+  {
+    "id": 17,
+    "position_title": "AI Scientist in Pharma / ML Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer,life_sciences,research_academic"
+  },
+  {
+    "id": 18,
+    "position_title": "Ai/Machine Learning Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning,research_academic"
+  },
+  {
+    "id": 19,
+    "position_title": "AI/ML in Robotics",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer,machine_learning"
+  },
+  {
+    "id": 20,
+    "position_title": "Algorithm Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 21,
+    "position_title": "All Students",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "other",
+    "role_group": "other",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 22,
+    "position_title": "Alternative Fund",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 23,
+    "position_title": "Analog IC Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 24,
+    "position_title": "Analog RF Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 25,
+    "position_title": "Analytics Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,consulting"
+  },
+  {
+    "id": 26,
+    "position_title": "Analytics engineering",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 27,
+    "position_title": "Analytics Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 28,
+    "position_title": "Android Developer Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 29,
+    "position_title": "Animator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 30,
+    "position_title": "Application Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 31,
+    "position_title": "Application Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 32,
+    "position_title": "Applications Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 33,
+    "position_title": "Applied Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 34,
+    "position_title": "Architectural Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 35,
+    "position_title": "Architecture Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 36,
+    "position_title": "Art Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 37,
+    "position_title": "Art Marketing",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 38,
+    "position_title": "Artificial Intelligence Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 39,
+    "position_title": "ASIC Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 40,
+    "position_title": "Asset Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 41,
+    "position_title": "Assistant Lawyer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 42,
+    "position_title": "Associate Product Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager"
+  },
+  {
+    "id": 43,
+    "position_title": "Associate Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 44,
+    "position_title": "Attorney",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 45,
+    "position_title": "Audit",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "accounting"
+  },
+  {
+    "id": 46,
+    "position_title": "Automation Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 47,
+    "position_title": "Autonomous Driving Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 48,
+    "position_title": "Autonomy Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 49,
+    "position_title": "Backend Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 50,
+    "position_title": "Behavioral Therapist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 51,
+    "position_title": "Bi Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 52,
+    "position_title": "Big Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,data_analyst"
+  },
+  {
+    "id": 53,
+    "position_title": "Big Data Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 54,
+    "position_title": "Big Data Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 55,
+    "position_title": "Bioinformatics (Omics Data)",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 56,
+    "position_title": "Biological Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 57,
+    "position_title": "Biomedical Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 58,
+    "position_title": "biomedical researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 59,
+    "position_title": "Biopharmaceutical Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 60,
+    "position_title": "Biopharmaceutical Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 61,
+    "position_title": "Biostatistician",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist"
+  },
+  {
+    "id": 62,
+    "position_title": "Brand Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 63,
+    "position_title": "Branding",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 64,
+    "position_title": "Budget Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 65,
+    "position_title": "Business Analysis Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,consulting"
+  },
+  {
+    "id": 66,
+    "position_title": "Business Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 67,
+    "position_title": "Business Analyst Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,consulting"
+  },
+  {
+    "id": 68,
+    "position_title": "Business Analyst Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 69,
+    "position_title": "Business Analytics Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,business_analysis,consulting"
+  },
+  {
+    "id": 70,
+    "position_title": "Business Analytics Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 71,
+    "position_title": "Business Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 72,
+    "position_title": "Business Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 73,
+    "position_title": "Business Development",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 74,
+    "position_title": "Business Development Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 75,
+    "position_title": "Business Development Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 76,
+    "position_title": "Business Insights Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 77,
+    "position_title": "Business Intelligence Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 78,
+    "position_title": "Business Intelligence Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 79,
+    "position_title": "Business Intelligence Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,consulting"
+  },
+  {
+    "id": 80,
+    "position_title": "Business Intelligence Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,software_engineer"
+  },
+  {
+    "id": 81,
+    "position_title": "Business Intelligence Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 82,
+    "position_title": "Business Intelligence Lead",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 83,
+    "position_title": "Business Intelligence Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 84,
+    "position_title": "Business Intelligence Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 85,
+    "position_title": "Business Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 86,
+    "position_title": "Business Process Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 87,
+    "position_title": "Business Process Modeler",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 88,
+    "position_title": "Business Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 89,
+    "position_title": "Business Systems Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 90,
+    "position_title": "Cad/Cam Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 91,
+    "position_title": "Character Artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 92,
+    "position_title": "Chemical Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 93,
+    "position_title": "Cinematography",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 94,
+    "position_title": "Circuit Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 95,
+    "position_title": "Circuit Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 96,
+    "position_title": "Civil Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 97,
+    "position_title": "Climate  Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 98,
+    "position_title": "Climate  Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 99,
+    "position_title": "Climate Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 100,
+    "position_title": "Climate Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 101,
+    "position_title": "Clinical Analytics",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 102,
+    "position_title": "Clinical Coordinater",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 103,
+    "position_title": "Clinical Research Associate",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare,research_academic"
+  },
+  {
+    "id": 104,
+    "position_title": "Cloud Computing Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 105,
+    "position_title": "Cloud Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 106,
+    "position_title": "Cloud Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity,cloud_infrastructure"
+  },
+  {
+    "id": 107,
+    "position_title": "Cloud Solutions Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 108,
+    "position_title": "CMOS Image Sensor Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 109,
+    "position_title": "Communication",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 110,
+    "position_title": "Communication Associate",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 111,
+    "position_title": "Community Health",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 112,
+    "position_title": "Compliance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 113,
+    "position_title": "Compliance Officer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 114,
+    "position_title": "Component Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 115,
+    "position_title": "Computational Imaging Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 116,
+    "position_title": "Computer Hardware Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 117,
+    "position_title": "Computer Programmer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 118,
+    "position_title": "Computer Security Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 119,
+    "position_title": "Computer Systems Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 120,
+    "position_title": "Computer Systems Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 121,
+    "position_title": "Computer Vision Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 122,
+    "position_title": "Concept Artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 123,
+    "position_title": "Construction Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "civil_construction",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "civil_construction"
+  },
+  {
+    "id": 124,
+    "position_title": "Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 125,
+    "position_title": "Consulting",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 126,
+    "position_title": "Content Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 127,
+    "position_title": "Content Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 128,
+    "position_title": "Continuous Improvement Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 129,
+    "position_title": "Control System Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 130,
+    "position_title": "Controls Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 131,
+    "position_title": "Corporate Communications Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "communications_pr"
+  },
+  {
+    "id": 132,
+    "position_title": "Corporate Performance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 133,
+    "position_title": "Corporate Social Responsibility Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 134,
+    "position_title": "Cost Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 135,
+    "position_title": "Cost Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 136,
+    "position_title": "Credit Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 137,
+    "position_title": "Credit Risk Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 138,
+    "position_title": "Customer Insights Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 139,
+    "position_title": "Customer Success Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 140,
+    "position_title": "Cyber Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 141,
+    "position_title": "Cybersecurity Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 142,
+    "position_title": "Cybersecurity Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 143,
+    "position_title": "Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 144,
+    "position_title": "Data Analyst Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 145,
+    "position_title": "Data Analytics",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 146,
+    "position_title": "Data Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 147,
+    "position_title": "Data Compliance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 148,
+    "position_title": "Data Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 149,
+    "position_title": "Data Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 150,
+    "position_title": "Data Governance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 151,
+    "position_title": "Data Insights Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 152,
+    "position_title": "Data Integration Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 153,
+    "position_title": "Data Integration Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 154,
+    "position_title": "Data Journalist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "journalism_media",
+    "role_group": "media",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 155,
+    "position_title": "Data Mining Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 156,
+    "position_title": "Data Mining Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 157,
+    "position_title": "Data Modeler",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 158,
+    "position_title": "Data Quality Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,industrial_quality"
+  },
+  {
+    "id": 159,
+    "position_title": "Data Quality Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,industrial_quality"
+  },
+  {
+    "id": 160,
+    "position_title": "Data Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist,research_academic"
+  },
+  {
+    "id": 161,
+    "position_title": "Data Scientist Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist,consulting,research_academic"
+  },
+  {
+    "id": 162,
+    "position_title": "Data Scientist Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist,research_academic"
+  },
+  {
+    "id": 163,
+    "position_title": "Data Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 164,
+    "position_title": "Data Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 165,
+    "position_title": "Data Visualization Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 166,
+    "position_title": "Data Visualization Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 167,
+    "position_title": "Data Warehouse Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,supply_chain_logistics"
+  },
+  {
+    "id": 168,
+    "position_title": "Data Warehouse Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,supply_chain_logistics"
+  },
+  {
+    "id": 169,
+    "position_title": "Data Warehouse Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,software_engineer,supply_chain_logistics"
+  },
+  {
+    "id": 170,
+    "position_title": "Data Warehouse Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,supply_chain_logistics"
+  },
+  {
+    "id": 171,
+    "position_title": "Data Warehousing Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 172,
+    "position_title": "Database Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 173,
+    "position_title": "Database Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 174,
+    "position_title": "Database Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 175,
+    "position_title": "Database Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer,software_engineer"
+  },
+  {
+    "id": 176,
+    "position_title": "Database Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 177,
+    "position_title": "Database Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_engineer"
+  },
+  {
+    "id": 178,
+    "position_title": "Decision Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 179,
+    "position_title": "Decision Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 180,
+    "position_title": "Deep Learning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 181,
+    "position_title": "Deep Reinforcement Learning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 182,
+    "position_title": "Demand Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 183,
+    "position_title": "Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 184,
+    "position_title": "Design Verification (DV) Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 185,
+    "position_title": "Desk Quant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant"
+  },
+  {
+    "id": 186,
+    "position_title": "Devops Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 187,
+    "position_title": "DevOps Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 188,
+    "position_title": "Digital Advertising Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 189,
+    "position_title": "digital circuit design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 190,
+    "position_title": "Digital Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 191,
+    "position_title": "Digital IC Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 192,
+    "position_title": "Digital Marketer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 193,
+    "position_title": "Digital Marketing Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 194,
+    "position_title": "Digital marketing Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 195,
+    "position_title": "Digital Marketing Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 196,
+    "position_title": "Digital Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 197,
+    "position_title": "Distribution Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 198,
+    "position_title": "Distribution Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 199,
+    "position_title": "Economist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 200,
+    "position_title": "Education Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting,education"
+  },
+  {
+    "id": 201,
+    "position_title": "Electric Vehicle",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 202,
+    "position_title": "Electrical Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 203,
+    "position_title": "Electronic Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 204,
+    "position_title": "Electronics Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 205,
+    "position_title": "Embedded Application Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 206,
+    "position_title": "Embedded Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 207,
+    "position_title": "Embedded Hardware Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 208,
+    "position_title": "Embedded Machine Learning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 209,
+    "position_title": "Embedded Software Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 210,
+    "position_title": "Embedded System Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,hardware_electrical"
+  },
+  {
+    "id": 211,
+    "position_title": "Embedded System Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 212,
+    "position_title": "Embedded Systems Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 213,
+    "position_title": "Energy Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 214,
+    "position_title": "Engineering Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 215,
+    "position_title": "Engineering Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 216,
+    "position_title": "Environment Artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 217,
+    "position_title": "Environmental  Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 218,
+    "position_title": "Environmental Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "policy_public_sector"
+  },
+  {
+    "id": 219,
+    "position_title": "Environmental Artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 220,
+    "position_title": "Environmental Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering,policy_public_sector"
+  },
+  {
+    "id": 221,
+    "position_title": "Environmental Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 222,
+    "position_title": "Environmental Sustainability Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "policy_public_sector"
+  },
+  {
+    "id": 223,
+    "position_title": "Equity Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 224,
+    "position_title": "ERP Analyst/Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 225,
+    "position_title": "ESG Research Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sustainability_environment",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 226,
+    "position_title": "Event Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hospitality_events",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 227,
+    "position_title": "Fabrication Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 228,
+    "position_title": "Failure Analysis Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 229,
+    "position_title": "Fashion Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 230,
+    "position_title": "Film Animator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 231,
+    "position_title": "Finance & Data Analyst Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,finance"
+  },
+  {
+    "id": 232,
+    "position_title": "Finance Co-Op",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 233,
+    "position_title": "Finance Trainee/Apprentice/VIE",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 234,
+    "position_title": "Financial Advisor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 235,
+    "position_title": "Financial Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 236,
+    "position_title": "Financial Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance,consulting"
+  },
+  {
+    "id": 237,
+    "position_title": "Financial Controller",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "accounting,finance"
+  },
+  {
+    "id": 238,
+    "position_title": "Financial Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,finance"
+  },
+  {
+    "id": 239,
+    "position_title": "Financial Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 240,
+    "position_title": "Financial Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 241,
+    "position_title": "Financial Modeler",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 242,
+    "position_title": "Financial Operations Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance,operations"
+  },
+  {
+    "id": 243,
+    "position_title": "Financial Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance,supply_chain_logistics"
+  },
+  {
+    "id": 244,
+    "position_title": "Financial Risk Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 245,
+    "position_title": "Financial Risk Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 246,
+    "position_title": "Financial Systems Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,finance"
+  },
+  {
+    "id": 247,
+    "position_title": "Firmware Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 248,
+    "position_title": "Food Marketing Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 249,
+    "position_title": "Forecasting Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 250,
+    "position_title": "FP&A Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 251,
+    "position_title": "FPGA Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 252,
+    "position_title": "Front End Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 253,
+    "position_title": "Front-End Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 254,
+    "position_title": "Front-end RTL  Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 255,
+    "position_title": "Front-end RTL Verification",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 256,
+    "position_title": "Frontend Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 257,
+    "position_title": "Full Stack Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 258,
+    "position_title": "Full Stack Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 259,
+    "position_title": "Full-Cycle Recruiter",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hr_recruiting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hr_recruiting"
+  },
+  {
+    "id": 260,
+    "position_title": "Fundraising Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 261,
+    "position_title": "Futures Trader",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant"
+  },
+  {
+    "id": 262,
+    "position_title": "Game Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 263,
+    "position_title": "Game Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,design_creative"
+  },
+  {
+    "id": 264,
+    "position_title": "GenAI / LLM / Agent Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 265,
+    "position_title": "General GenAI / LLM / Agent Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 266,
+    "position_title": "Generative AI / LLM / Agent Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 267,
+    "position_title": "GIS/Geospatial Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 268,
+    "position_title": "Global Logistics Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 269,
+    "position_title": "Graphic Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 270,
+    "position_title": "Hard surface modeler",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 271,
+    "position_title": "Hardware Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 272,
+    "position_title": "health care provider",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 273,
+    "position_title": "Health care provider",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 274,
+    "position_title": "Health Counselor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 275,
+    "position_title": "Health Economics Research",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 276,
+    "position_title": "Health Educator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 277,
+    "position_title": "Health Policy",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 278,
+    "position_title": "Healthcare / MedTech",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 279,
+    "position_title": "Healthcare Analytics",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 280,
+    "position_title": "Healthcare Data Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst,healthcare"
+  },
+  {
+    "id": 281,
+    "position_title": "Hedge Fund Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 282,
+    "position_title": "Host",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hospitality_events",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 283,
+    "position_title": "Hotel Management/Hospitality",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hospitality_events",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 284,
+    "position_title": "Human Resources",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hr_recruiting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hr_recruiting"
+  },
+  {
+    "id": 285,
+    "position_title": "Human Resources Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hr_recruiting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hr_recruiting"
+  },
+  {
+    "id": 286,
+    "position_title": "Illustrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 287,
+    "position_title": "Industrial Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 288,
+    "position_title": "Industrial Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 289,
+    "position_title": "Information Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 290,
+    "position_title": "Information Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 291,
+    "position_title": "Information Systems Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 292,
+    "position_title": "Instructional Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "education",
+    "role_group": "education_research",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 293,
+    "position_title": "Integrated Circuit",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 294,
+    "position_title": "Interaction Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 295,
+    "position_title": "Interactive Installation",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 296,
+    "position_title": "International Logistics Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 297,
+    "position_title": "Inventory Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 298,
+    "position_title": "Inventory Control Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 299,
+    "position_title": "Inventory Coordinator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 300,
+    "position_title": "Inventory Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 301,
+    "position_title": "Investment Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 302,
+    "position_title": "Investment Banker",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 303,
+    "position_title": "Investment Banking Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 304,
+    "position_title": "Investment Operations Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance,operations"
+  },
+  {
+    "id": 305,
+    "position_title": "It Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 306,
+    "position_title": "It Business Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 307,
+    "position_title": "It Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 308,
+    "position_title": "IT Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 309,
+    "position_title": "It Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 310,
+    "position_title": "It Project Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 311,
+    "position_title": "It Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 312,
+    "position_title": "IT Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 313,
+    "position_title": "IT Support",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 314,
+    "position_title": "Java Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 315,
+    "position_title": "Java Full Stack Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 316,
+    "position_title": "Javascript Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 317,
+    "position_title": "Journalist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "journalism_media",
+    "role_group": "media",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 318,
+    "position_title": "Lawyer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 319,
+    "position_title": "Lean Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 320,
+    "position_title": "Legal Assistant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 321,
+    "position_title": "Level Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 322,
+    "position_title": "Life Sciences Consulting",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting,life_sciences"
+  },
+  {
+    "id": 323,
+    "position_title": "Linux/Platform",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 324,
+    "position_title": "LLM",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 325,
+    "position_title": "LLM Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 326,
+    "position_title": "LLM Post-training Engineer Intern (Research & Product) - 2026 Summer (BS/MS)",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 327,
+    "position_title": "Logistics Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 328,
+    "position_title": "Logistics Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 329,
+    "position_title": "Logistics Coordinator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 330,
+    "position_title": "Logistics Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 331,
+    "position_title": "Logistics Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 332,
+    "position_title": "Logistics Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 333,
+    "position_title": "Logistics Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 334,
+    "position_title": "M&A Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 335,
+    "position_title": "Machine Learning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 336,
+    "position_title": "Maintenance Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 337,
+    "position_title": "Management Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 338,
+    "position_title": "Management Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 339,
+    "position_title": "Management Trainee",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 340,
+    "position_title": "Manufacturing Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,design_creative"
+  },
+  {
+    "id": 341,
+    "position_title": "Manufacturing Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 342,
+    "position_title": "Manufacturing Engineering",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 343,
+    "position_title": "Manufacturing Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,supply_chain_logistics"
+  },
+  {
+    "id": 344,
+    "position_title": "Market Research Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,research_academic"
+  },
+  {
+    "id": 345,
+    "position_title": "Market Risk Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 346,
+    "position_title": "Marketing Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 347,
+    "position_title": "Marketing Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 348,
+    "position_title": "Marketing Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 349,
+    "position_title": "Marketing Research",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 350,
+    "position_title": "Marketing Research Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,research_academic"
+  },
+  {
+    "id": 351,
+    "position_title": "Marketing Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing"
+  },
+  {
+    "id": 352,
+    "position_title": "Material",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 353,
+    "position_title": "Material Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 354,
+    "position_title": "Materials Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 355,
+    "position_title": "Materials Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 356,
+    "position_title": "Materials Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,supply_chain_logistics"
+  },
+  {
+    "id": 357,
+    "position_title": "Mechanical Energy",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 358,
+    "position_title": "Mechanical Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 359,
+    "position_title": "Media Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 360,
+    "position_title": "Mental Health Therapist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 361,
+    "position_title": "Mergers And Acquisitions Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 362,
+    "position_title": "Mixed-Signal IC Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 363,
+    "position_title": "ML Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 364,
+    "position_title": "Mobile Application Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 365,
+    "position_title": "Mobile Engineer Intern (iOS)",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 366,
+    "position_title": "Mobile/Full Stack Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 367,
+    "position_title": "Motion Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 368,
+    "position_title": "Music Performance Instructor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "education",
+    "role_group": "education_research",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 369,
+    "position_title": "Music Production Assistant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "journalism_media",
+    "role_group": "media",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 370,
+    "position_title": "Network Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 371,
+    "position_title": "Network Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 372,
+    "position_title": "Network Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 373,
+    "position_title": "Network Security Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 374,
+    "position_title": "Network Security Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 375,
+    "position_title": "Network Security Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 376,
+    "position_title": "NLP Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ai_engineer",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ai_engineer"
+  },
+  {
+    "id": 377,
+    "position_title": "Nonprofit Program Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 378,
+    "position_title": "Operation Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 379,
+    "position_title": "Operation Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 380,
+    "position_title": "Operations Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 381,
+    "position_title": "Operations Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations"
+  },
+  {
+    "id": 382,
+    "position_title": "Operations Research Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "operations,research_academic"
+  },
+  {
+    "id": 383,
+    "position_title": "Optical Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,mechanical_engineering"
+  },
+  {
+    "id": 384,
+    "position_title": "Optical System Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 385,
+    "position_title": "Optical Systems Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure,hardware_electrical"
+  },
+  {
+    "id": 386,
+    "position_title": "Other",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "other",
+    "role_group": "other",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 387,
+    "position_title": "Paralegal",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "legal_compliance",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "legal_compliance"
+  },
+  {
+    "id": 388,
+    "position_title": "Path Planning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning,supply_chain_logistics"
+  },
+  {
+    "id": 389,
+    "position_title": "Patient Planning Coordinator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "healthcare"
+  },
+  {
+    "id": 390,
+    "position_title": "PE/VC Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 391,
+    "position_title": "Penetration Tester",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cybersecurity",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cybersecurity"
+  },
+  {
+    "id": 392,
+    "position_title": "PEVC",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 393,
+    "position_title": "PEVC Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 394,
+    "position_title": "Pharma Marketing",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,life_sciences"
+  },
+  {
+    "id": 395,
+    "position_title": "Pharmaceutical Science",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 396,
+    "position_title": "Physical Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 397,
+    "position_title": "Planning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 398,
+    "position_title": "Plant Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 399,
+    "position_title": "Plant Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 400,
+    "position_title": "Policy  Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "policy_public_sector"
+  },
+  {
+    "id": 401,
+    "position_title": "Policy Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "policy_public_sector"
+  },
+  {
+    "id": 402,
+    "position_title": "Political Science",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 403,
+    "position_title": "Portfolio Management Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,finance"
+  },
+  {
+    "id": 404,
+    "position_title": "Portfolio Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 405,
+    "position_title": "Predictive Modeler",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 406,
+    "position_title": "Pricing Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 407,
+    "position_title": "Pricing Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 408,
+    "position_title": "Private Equity Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 409,
+    "position_title": "Process Control Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 410,
+    "position_title": "Process Design Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,design_creative"
+  },
+  {
+    "id": 411,
+    "position_title": "Process Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 412,
+    "position_title": "Process Improvement Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 413,
+    "position_title": "Process Improvement Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 414,
+    "position_title": "Procurement Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 415,
+    "position_title": "Procurement Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 416,
+    "position_title": "Procurement Officer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 417,
+    "position_title": "Procurement Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 418,
+    "position_title": "Producer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 419,
+    "position_title": "Product Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager"
+  },
+  {
+    "id": 420,
+    "position_title": "Product Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager,design_creative"
+  },
+  {
+    "id": 421,
+    "position_title": "Product Development Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 422,
+    "position_title": "Product Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager"
+  },
+  {
+    "id": 423,
+    "position_title": "Product Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager"
+  },
+  {
+    "id": 424,
+    "position_title": "Product Marketing Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager,marketing"
+  },
+  {
+    "id": 425,
+    "position_title": "Production Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 426,
+    "position_title": "Production Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process"
+  },
+  {
+    "id": 427,
+    "position_title": "Production Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,supply_chain_logistics"
+  },
+  {
+    "id": 428,
+    "position_title": "Production Planning Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "manufacturing_process,supply_chain_logistics"
+  },
+  {
+    "id": 429,
+    "position_title": "Production Supervisor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "manufacturing_process",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 430,
+    "position_title": "Program Coordinator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 431,
+    "position_title": "Program Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 432,
+    "position_title": "Programmer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 433,
+    "position_title": "Programmer Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,software_engineer"
+  },
+  {
+    "id": 434,
+    "position_title": "Project Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 435,
+    "position_title": "Project Coordinator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 436,
+    "position_title": "Project Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 437,
+    "position_title": "Project Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 438,
+    "position_title": "Project Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 439,
+    "position_title": "Project Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management,supply_chain_logistics"
+  },
+  {
+    "id": 440,
+    "position_title": "Protein",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 441,
+    "position_title": "Psychologist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "social_services",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 442,
+    "position_title": "Public Health Advisor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 443,
+    "position_title": "public health provider",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "healthcare",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 444,
+    "position_title": "Public Relations",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 445,
+    "position_title": "Public Relations Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "communications_pr"
+  },
+  {
+    "id": 446,
+    "position_title": "purchasing agent",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "procurement",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 447,
+    "position_title": "Purchasing Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 448,
+    "position_title": "Python Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 449,
+    "position_title": "Quality Assurance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 450,
+    "position_title": "Quality Assurance Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 451,
+    "position_title": "Quality Assurance Tester",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,industrial_quality"
+  },
+  {
+    "id": 452,
+    "position_title": "Quality Control Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 453,
+    "position_title": "Quality Control Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 454,
+    "position_title": "Quality Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 455,
+    "position_title": "Quality Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 456,
+    "position_title": "Quantitative Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant"
+  },
+  {
+    "id": 457,
+    "position_title": "Quantitative Equity Research",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant,finance"
+  },
+  {
+    "id": 458,
+    "position_title": "Quantitative Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant,research_academic"
+  },
+  {
+    "id": 459,
+    "position_title": "Quantitative Risk Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant,finance"
+  },
+  {
+    "id": 460,
+    "position_title": "Real Estate Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 461,
+    "position_title": "Reliability Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 462,
+    "position_title": "Reporting Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 463,
+    "position_title": "Research Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "research_academic"
+  },
+  {
+    "id": 464,
+    "position_title": "Research And Development Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 465,
+    "position_title": "Research Assistant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "research_academic"
+  },
+  {
+    "id": 466,
+    "position_title": "Research Associate",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "research_academic"
+  },
+  {
+    "id": 467,
+    "position_title": "Research Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "research_academic",
+    "role_group": "education_research",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "research_academic"
+  },
+  {
+    "id": 468,
+    "position_title": "Research Scientist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist,research_academic"
+  },
+  {
+    "id": 469,
+    "position_title": "Research Software Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 470,
+    "position_title": "Risk Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 471,
+    "position_title": "Risk Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 472,
+    "position_title": "Risk Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 473,
+    "position_title": "Risk Modeling",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 474,
+    "position_title": "Risk Quant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant"
+  },
+  {
+    "id": 475,
+    "position_title": "Robotic Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 476,
+    "position_title": "Robotics Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 477,
+    "position_title": "Safety Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 478,
+    "position_title": "Sales",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 479,
+    "position_title": "Sales Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "sales_customer_success",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "sales_customer_success"
+  },
+  {
+    "id": 480,
+    "position_title": "Salesforce Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 481,
+    "position_title": "Scheduling Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 482,
+    "position_title": "Semiconductor Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 483,
+    "position_title": "Semiconductor Process",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,manufacturing_process"
+  },
+  {
+    "id": 484,
+    "position_title": "Senior Software Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 485,
+    "position_title": "Signal Processing Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "machine_learning",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "machine_learning"
+  },
+  {
+    "id": 486,
+    "position_title": "Silicon Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 487,
+    "position_title": "Social Media",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 488,
+    "position_title": "Social Media Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,journalism_media"
+  },
+  {
+    "id": 489,
+    "position_title": "Social Media Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,journalism_media"
+  },
+  {
+    "id": 490,
+    "position_title": "Social Media Strategist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "marketing",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "marketing,journalism_media"
+  },
+  {
+    "id": 491,
+    "position_title": "Social Worker",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "social_services",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 492,
+    "position_title": "Software Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 493,
+    "position_title": "Software Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 494,
+    "position_title": "Software Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 495,
+    "position_title": "Software Engineer (Backend)",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 496,
+    "position_title": "Software Engineer Intern",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 497,
+    "position_title": "Software Product Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,product_manager"
+  },
+  {
+    "id": 498,
+    "position_title": "Software QA Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 499,
+    "position_title": "Software Quality Assurance Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,industrial_quality"
+  },
+  {
+    "id": 500,
+    "position_title": "Software Support Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 501,
+    "position_title": "Software Tester",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 502,
+    "position_title": "Solutions Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 503,
+    "position_title": "Sport Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_operations",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 504,
+    "position_title": "Statistical Programmer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 505,
+    "position_title": "Statistician",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_scientist",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_scientist"
+  },
+  {
+    "id": 506,
+    "position_title": "Storyboard Artist Apprentice",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative"
+  },
+  {
+    "id": 507,
+    "position_title": "Supply Chain",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 508,
+    "position_title": "Supply Chain Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 509,
+    "position_title": "Supply Chain Business Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis,supply_chain_logistics"
+  },
+  {
+    "id": 510,
+    "position_title": "Supply Chain Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,consulting"
+  },
+  {
+    "id": 511,
+    "position_title": "Supply Chain Director",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 512,
+    "position_title": "Supply Chain Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 513,
+    "position_title": "Supply Chain Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 514,
+    "position_title": "Supply Chain Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 515,
+    "position_title": "Sustainability Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "policy_public_sector"
+  },
+  {
+    "id": 516,
+    "position_title": "Sustainability Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting,policy_public_sector"
+  },
+  {
+    "id": 517,
+    "position_title": "System Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 518,
+    "position_title": "System Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 519,
+    "position_title": "Systems Administrator",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 520,
+    "position_title": "Systems Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 521,
+    "position_title": "Systems Software Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 522,
+    "position_title": "Tax",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 523,
+    "position_title": "Tax Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "accounting",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "accounting,consulting"
+  },
+  {
+    "id": 524,
+    "position_title": "Technical Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "business_analysis",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "business_analysis"
+  },
+  {
+    "id": 525,
+    "position_title": "Technical Architect",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 526,
+    "position_title": "Technical Data Analysts",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 527,
+    "position_title": "Technical Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 528,
+    "position_title": "Technical Product Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "product_manager",
+    "role_group": "product",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "product_manager"
+  },
+  {
+    "id": 529,
+    "position_title": "Technical Program Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 530,
+    "position_title": "Technical Project Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "project_program_management",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "project_program_management"
+  },
+  {
+    "id": 531,
+    "position_title": "Technical Support Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 532,
+    "position_title": "Technical Support Specialist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "it_support",
+    "role_group": "tech",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 533,
+    "position_title": "Technical Writer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "communications_pr",
+    "role_group": "marketing_sales",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "communications_pr,journalism_media"
+  },
+  {
+    "id": 534,
+    "position_title": "Technology Consultant",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "consulting",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "consulting"
+  },
+  {
+    "id": 535,
+    "position_title": "Test Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 536,
+    "position_title": "Test/Quality Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "industrial_quality",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "industrial_quality"
+  },
+  {
+    "id": 537,
+    "position_title": "Thermal Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical"
+  },
+  {
+    "id": 538,
+    "position_title": "Trader",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "trading_quant",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "trading_quant"
+  },
+  {
+    "id": 539,
+    "position_title": "UI Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 540,
+    "position_title": "UI/UX Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 541,
+    "position_title": "Urban Planner",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "policy_public_sector",
+    "role_group": "legal_policy",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 542,
+    "position_title": "User Experience Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 543,
+    "position_title": "User Experience Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,research_academic"
+  },
+  {
+    "id": 544,
+    "position_title": "User Interface Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 545,
+    "position_title": "User Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,research_academic"
+  },
+  {
+    "id": 546,
+    "position_title": "UX Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 547,
+    "position_title": "Ux Researcher",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,research_academic"
+  },
+  {
+    "id": 548,
+    "position_title": "Ux/Ui Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 549,
+    "position_title": "Vaccine",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "life_sciences",
+    "role_group": "healthcare_life_sciences",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 550,
+    "position_title": "Value Stream Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "mechanical_engineering",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "mechanical_engineering"
+  },
+  {
+    "id": 551,
+    "position_title": "Vendor Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics,procurement"
+  },
+  {
+    "id": 552,
+    "position_title": "venture capital analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  },
+  {
+    "id": 553,
+    "position_title": "Video Editor",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "design_creative,journalism_media"
+  },
+  {
+    "id": 554,
+    "position_title": "Video Game Programmer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer,design_creative"
+  },
+  {
+    "id": 555,
+    "position_title": "VLSI Design",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "hardware_electrical",
+    "role_group": "engineering_hardware",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "hardware_electrical,design_creative"
+  },
+  {
+    "id": 556,
+    "position_title": "Warehouse Manager",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "supply_chain_logistics",
+    "role_group": "business_ops",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "supply_chain_logistics"
+  },
+  {
+    "id": 557,
+    "position_title": "Wealth Management",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "finance",
+    "role_group": "finance_accounting",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "finance"
+  },
+  {
+    "id": 558,
+    "position_title": "Web Analyst",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "data_analyst",
+    "role_group": "data",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "data_analyst"
+  },
+  {
+    "id": 559,
+    "position_title": "Web Designer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "ux_research_design",
+    "role_group": "design_creative",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "ux_research_design,design_creative"
+  },
+  {
+    "id": 560,
+    "position_title": "Web Developer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "software_engineer",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "software_engineer"
+  },
+  {
+    "id": 561,
+    "position_title": "WIFI Engineer",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "cloud_infrastructure",
+    "role_group": "tech",
+    "taxonomy_source": "rule",
+    "taxonomy_matches": "cloud_infrastructure"
+  },
+  {
+    "id": 562,
+    "position_title": "World Artist",
+    "old_canonical_role_family": null,
+    "old_role_group": null,
+    "canonical_role_family": "design_creative",
+    "role_group": "design_creative",
+    "taxonomy_source": "exact",
+    "taxonomy_matches": ""
+  }
+]

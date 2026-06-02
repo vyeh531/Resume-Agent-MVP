@@ -599,9 +599,6 @@ app.post("/api/v1/score", upload.single("file"), async (req, res) => {
       reportId: report.reportId,
       reportAccessToken: report.reportAccessToken,
       publicReport: report.publicReport,
-      premiumMentors: report.premiumReport?.mentors || null,
-      premiumAdviceItems: report.premiumReport?.allAdviceItems || null,
-      mentorLogoPool: report.premiumReport?.mentorLogoPool || null,
       timestamp: new Date().toISOString(),
     };
     logPublicAtsResponseForTesting("score", payload);
@@ -684,9 +681,19 @@ app.get("/api/v1/reports/:reportId/debug", async (req, res) => {
 // Called after payment confirmation. Marks report as paid and triggers AI rewrite.
 app.post("/api/v1/reports/:reportId/mark-paid", async (req, res) => {
   try {
+    if (process.env.NODE_ENV === "production" && process.env.PAYMENT_MOCK_ENABLED !== "true") {
+      return res.status(404).json({ success: false, error: "NOT_FOUND" });
+    }
+
     const { reportId } = req.params;
-    const report = await db.getAtsReport(reportId);
-    if (!report) return res.status(404).json({ success: false, error: "REPORT_NOT_FOUND" });
+    const access = await db.validateReportAccess(reportId, {
+      token: reportTokenFromRequest(req),
+      userId: reportUserFromRequest(req),
+    });
+    if (!access.ok) {
+      return res.status(access.status || 403).json({ success: false, error: access.error });
+    }
+    const report = access.report;
 
     await db.markAtsReportPaid(reportId, true);
     console.log(`[Payment] marked paid report_id=${reportId}`);

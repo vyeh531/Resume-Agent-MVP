@@ -13,6 +13,7 @@ desktop.ini
 # Node (in case future build tools added)
 node_modules/
 npm-debug.log*
+.next/
 
 # Local
 .env

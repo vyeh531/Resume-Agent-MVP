@@ -113,7 +113,6 @@ function assertNoLeak(publicReport) {
     "problemTags",
     "retrievalQuery",
     "dimensionProblems",
-    "suggestions",
     "structuredSuggestions",
     "paidAdvice",
     "mentorCandidates",
@@ -129,6 +128,34 @@ function assertNoLeak(publicReport) {
   ];
   for (const key of forbidden) {
     assert.equal(Object.prototype.hasOwnProperty.call(publicReport, key), false, `publicReport leaked ${key}`);
+  }
+}
+
+function assertScorePayloadNoPremiumLeak(scorePayload) {
+  for (const key of ["premiumMentors", "premiumAdviceItems", "mentorLogoPool", "premiumReport"]) {
+    assert.equal(Object.prototype.hasOwnProperty.call(scorePayload, key), false, `score payload leaked ${key}`);
+  }
+}
+
+function assertFreePreviewCaps(publicReport) {
+  assert.ok((publicReport.problems || []).length <= 3, "publicReport leaked more than 3 problems");
+  assert.ok((publicReport.suggestions || []).length <= 3, "publicReport leaked more than 3 suggestions");
+  assert.ok((publicReport.topProblems || []).length <= 3, "publicReport leaked more than 3 topProblems");
+  assert.ok((publicReport.topMissingKw || []).length <= 3, "publicReport leaked more than 3 missing keywords");
+  assert.ok((publicReport.topMissingKeywords || []).length <= 3, "publicReport leaked more than 3 missing keywords");
+  assert.equal(Object.prototype.hasOwnProperty.call(publicReport.diagnostics || {}, "searchability"), false, "publicReport leaked searchability diagnostics");
+  assert.equal(Object.prototype.hasOwnProperty.call(publicReport.diagnostics || {}, "measurableResults"), false, "publicReport leaked measurable diagnostics");
+
+  const keywordPreviewCount = (publicReport.keywordBreakdown || []).reduce((sum, cat) => (
+    sum + (cat.matched || []).length + (cat.missing || []).length
+  ), 0);
+  assert.ok(keywordPreviewCount <= 3, "publicReport leaked more than 3 keyword preview terms");
+
+  const freeAdvice = publicReport.freeMentorAdvice || {};
+  assert.equal(Object.prototype.hasOwnProperty.call(freeAdvice, "matchedProblems"), false, "free advice leaked matchedProblems");
+  for (const item of freeAdvice.adviceItems || []) {
+    assert.equal(Object.prototype.hasOwnProperty.call(item, "relatedProblemTags"), false, "free advice leaked relatedProblemTags");
+    assert.equal(Object.prototype.hasOwnProperty.call(item, "evidence"), false, "free advice leaked evidence chips");
   }
 }
 
@@ -157,8 +184,10 @@ async function main() {
     assert.ok(scorePayload.reportId);
     assert.ok(scorePayload.reportAccessToken);
     assert.ok(scorePayload.publicReport);
+    assertScorePayloadNoPremiumLeak(scorePayload);
 
     const publicReport = scorePayload.publicReport;
+    assertFreePreviewCaps(publicReport);
     for (const key of [
       "engine",
       "version",
@@ -360,7 +389,9 @@ async function main() {
     });
     assert.equal(accountingScoreResponse.status, 200);
     const accountingScorePayload = await accountingScoreResponse.json();
+    assertScorePayloadNoPremiumLeak(accountingScorePayload);
     assertNoLeak(accountingScorePayload.publicReport);
+    assertFreePreviewCaps(accountingScorePayload.publicReport);
     const accountingResponseAdvice = accountingScorePayload.publicReport.freeMentorAdvice || {};
     const accountingResponseAdviceText = [
       accountingResponseAdvice.mentorName,

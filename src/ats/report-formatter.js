@@ -286,13 +286,33 @@ function buildProfile(rawScoreResult, input = {}) {
     : (input.jobTitle || rawScoreResult.jobTitle || "");
   const targetRole = canonicalRole.role || rawProfile.targetRole || snakeCase(title);
   const roleText = `${title} ${input.jdText || ""}`.toLowerCase();
-  const roleFamily = /\b(accountant|accounting|bookkeep|audit|tax|controller|cpa|accounts payable|accounts receivable)\b/.test(roleText)
-    ? "accounting"
-    : /\b(finance|financial|investment|fp&a|valuation|treasury)\b/.test(roleText)
-      ? "finance"
-      : /software|swe|sde|full.?stack|backend|frontend/.test(roleText)
-    ? "software_engineer"
-    : rawProfile.roleFamily || targetRole || "unknown";
+  const roleFamilyByTarget = {
+    machine_learning_engineer: "machine_learning",
+    ai_engineer: "ai_engineer",
+    data_scientist: "data_scientist",
+    data_analyst: "data_analyst",
+    software_engineer: "software_engineer",
+    software_development_engineer: "software_engineer",
+    backend_engineer: "software_engineer",
+    frontend_engineer: "software_engineer",
+    full_stack_engineer: "software_engineer",
+  };
+  const roleFamily = roleFamilyByTarget[targetRole]
+    || (/\b(machine learning engineer|ml engineer|mle|deep learning engineer)\b/.test(roleText)
+      ? "machine_learning"
+      : /\b(ai engineer|artificial intelligence engineer|llm engineer|generative ai engineer)\b/.test(roleText)
+        ? "ai_engineer"
+        : /\b(data scientist)\b/.test(roleText)
+          ? "data_scientist"
+          : /\b(data analyst|business intelligence|bi analyst)\b/.test(roleText)
+            ? "data_analyst"
+            : /\b(accountant|accounting|bookkeep|audit|tax|controller|cpa|accounts payable|accounts receivable)\b/.test(roleText)
+              ? "accounting"
+              : /\b(finance|financial|investment|fp&a|valuation|treasury)\b/.test(roleText)
+                ? "finance"
+                : /software|swe|sde|full.?stack|backend|frontend/.test(roleText)
+                  ? "software_engineer"
+                  : rawProfile.roleFamily || targetRole || "unknown");
 
   return {
     roleFamily,
@@ -723,6 +743,8 @@ function formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview) {
   const topInsights = riskBucket === "high"
     ? []
     : internalAtsResult.topInsights.slice(0, riskBucket === "medium" ? 2 : 3);
+  const freeSuggestions = asArray(internalAtsResult.suggestions).slice(0, 3);
+  const freeMissingKeywords = asArray(internalAtsResult.topMissingKeywords).slice(0, 3);
 
   return {
     engine: internalAtsResult.engine,
@@ -741,29 +763,38 @@ function formatPublicFreeReport(internalAtsResult, freeAdvice, lockedPreview) {
     topProblems: topProblems.map(stripInsight),
     freeMentorAdvice: freeAdvice ? stripFreeAdvice(freeAdvice) : null,
     lockedAdvicePreview: lockedPreview,
-    keywordBreakdown: buildPublicKeywordBreakdown(internalAtsResult),
-    topMissingKw: asArray(internalAtsResult.topMissingKeywords).slice(0, 12),
-    topMissingKeywords: asArray(internalAtsResult.topMissingKeywords).slice(0, 12),
+    keywordBreakdown: buildPublicKeywordBreakdown(internalAtsResult, 3),
+    topMissingKw: freeMissingKeywords,
+    topMissingKeywords: freeMissingKeywords,
     problems: asArray(internalAtsResult.problems).slice(0, 3),
+    suggestions: freeSuggestions,
   };
 }
 
-function buildPublicKeywordBreakdown(internalAtsResult) {
+function buildPublicKeywordBreakdown(internalAtsResult, visibleLimit = 3) {
   const cats = internalAtsResult.keywordMatch?.categories || {};
   const order = ["core_skills", "tools", "domain_keywords"];
   const labels = { core_skills: "核心技能", tools: "工具 / 技术", domain_keywords: "领域词" };
+  let remaining = visibleLimit;
   return order
     .filter((k) => cats[k] && (cats[k].total > 0 || (cats[k].matchedTerms || []).length > 0 || (cats[k].missing || []).length > 0))
     .map((k) => {
       const cat = cats[k];
+      const matched = (cat.matchedTerms || []).map((t) => (typeof t === "string" ? t : t.term)).filter(Boolean);
+      const missing = (cat.missing || []).filter(Boolean);
+      const visibleMissing = missing.slice(0, Math.max(remaining, 0));
+      remaining -= visibleMissing.length;
+      const visibleMatched = visibleMissing.length ? [] : matched.slice(0, Math.max(remaining, 0));
+      remaining -= visibleMatched.length;
       return {
         key: k,
         label: labels[k] || k,
-        matched: (cat.matchedTerms || []).map((t) => (typeof t === "string" ? t : t.term)).filter(Boolean),
-        missing: (cat.missing || []).filter(Boolean),
+        matched: visibleMatched,
+        missing: visibleMissing,
         total: cat.total || 0,
       };
-    });
+    })
+    .filter((cat) => cat.matched.length || cat.missing.length);
 }
 
 function riskToBucket(risk, total) {
@@ -792,7 +823,6 @@ function stripDimensionProblems(dimensions) {
 
 function stripDiagnostics(diagnostics) {
   return {
-    searchability: diagnostics.searchability,
     jobTitleMatch: {
       exactMatch: diagnostics.jobTitleMatch.exactMatch,
       targetTitle: (diagnostics.jobTitleMatch.targetTitle === "unknown" || !diagnostics.jobTitleMatch.targetTitle)
@@ -800,7 +830,6 @@ function stripDiagnostics(diagnostics) {
         : diagnostics.jobTitleMatch.targetTitle,
       severity: diagnostics.jobTitleMatch.severity,
     },
-    measurableResults: diagnostics.measurableResults,
   };
 }
 
@@ -823,7 +852,6 @@ function stripFreeAdvice(item) {
       mentorSubtitle: item.mentorSubtitle,
       badges: asArray(item.badges).slice(0, 4),
       matchReason: item.matchReason,
-      matchedProblems: asArray(item.matchedProblems).slice(0, 6),
       mentorLogoPool: asArray(item.mentorLogoPool).slice(0, 16).map((mentor) => ({
         company: mentor.company,
         companyLogo: mentor.companyLogo || null,
@@ -838,11 +866,9 @@ function stripFreeAdvice(item) {
         mentorInsight: advice.mentorInsight || "",
         example: advice.example || "",
         hrPerspective: advice.hrPerspective || "",
-        evidence: asArray(advice.evidence).slice(0, 3),
         targetSection: advice.targetSection || "overall",
-        relatedProblemTags: asArray(advice.relatedProblemTags).slice(0, 4),
         priority: advice.priority || "medium",
-        priorityLabel: advice.priorityLabel || (advice.priority === "high" ? "P0 必改" : advice.priority === "medium" ? "P1 建议改" : "P2 加分项"),
+        priorityLabel: advice.priorityLabel || (advice.priority === "high" ? "必改" : advice.priority === "medium" ? "建议改" : "补充"),
         source: advice.source || "db",
         mentorSource: advice.mentorSource || null,
       })),

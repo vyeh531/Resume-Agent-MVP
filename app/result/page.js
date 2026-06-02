@@ -48,6 +48,8 @@ export default function ResultPage() {
         .paywall-more-list{filter:blur(4px);user-select:none;pointer-events:none;padding:10px 12px}
         .paywall-more-list div{font-size:13px;line-height:1.5;margin:0 0 8px;padding-left:18px;position:relative;color:var(--ink-soft)}
         .paywall-more-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(246,243,236,.62);backdrop-filter:blur(1px);font-size:12px;font-weight:700;color:var(--ink)}
+        .ats-preview-details .paywall-more{display:none}
+        .ats-preview-details.is-expanded .paywall-more{display:block}
         @keyframes logo-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
       `}</style>
 
@@ -66,12 +68,12 @@ export default function ResultPage() {
 
         <section className="section" style={{marginTop:0}}>
           <div className="student-row">
-            <span className="who" id="studentInfo">2025届 · Columbia University · Marketing Science</span>
-            <span className="pill pill-mute" id="targetJob">目标:Product Manager</span>
+            <span className="who" id="studentInfo">正在读取简历信息…</span>
+            <span className="pill pill-mute" id="targetJob">目标:读取中</span>
           </div>
           <h2 className="summary-headline" id="headline">
-            你的当前简历综合评分 <span className="num" id="atsHeadlineScore">75</span> 分,<br/>
-            离顶级 Offer 线 <span className="gap" id="headlineSalaryTop">$160K</span> 仍有差距。
+            你的当前简历综合评分 <span className="num" id="atsHeadlineScore">--</span> 分,<br/>
+            离顶级 Offer 线 <span className="gap" id="headlineSalaryTop">--</span> 仍有差距。
           </h2>
           <p className="summary-issue" id="coreIssue"></p>
         </section>
@@ -84,15 +86,15 @@ export default function ResultPage() {
             <details className="tile">
               <summary className="tile-summary">
                 <div className="tile-label"><span>RANKING · 同岗位排名</span><span className="chev">▾</span></div>
-                <div className="tile-value">TOP <span id="rankPct">32%</span></div>
-                <div className="tile-caption">在 3,247 人中</div>
+                <div className="tile-value">TOP <span id="rankPct">--</span></div>
+                <div className="tile-caption">基于当前简历</div>
               </summary>
               <div className="tile-detail" id="rankDetail"></div>
             </details>
             <details className="tile">
               <summary className="tile-summary">
                 <div className="tile-label"><span>ATS 通过率</span><span className="chev">▾</span></div>
-                <div className="tile-value"><span id="atsScore">78</span><span style={{fontSize:'18px'}}>%</span></div>
+                <div className="tile-value"><span id="atsScore">--</span><span style={{fontSize:'18px'}}>%</span></div>
                 <div className="tile-caption">主流系统识别</div>
               </summary>
               <div className="tile-detail" id="atsDetail"></div>
@@ -100,16 +102,16 @@ export default function ResultPage() {
             <details className="tile">
               <summary className="tile-summary">
                 <div className="tile-label"><span>SALARY · 薪资水平</span><span className="chev">▾</span></div>
-                <div className="tile-value" style={{fontSize:'22px'}} id="salaryRange">$120K</div>
-                <div className="tile-caption">顶级线 <span id="salaryTop">$200K</span></div>
+                <div className="tile-value" style={{fontSize:'22px'}} id="salaryRange">--</div>
+                <div className="tile-caption">顶级线 <span id="salaryTop">--</span></div>
               </summary>
               <div className="tile-detail" id="salaryDetail"></div>
             </details>
             <details className="tile">
               <summary className="tile-summary">
                 <div className="tile-label"><span>岗位竞争</span><span className="chev">▾</span></div>
-                <div className="tile-value" style={{fontSize:'22px'}}><span id="compCount">3,247</span></div>
-                <div className="tile-caption">录取率 <span id="admitRate">2.1</span>%</div>
+                <div className="tile-value" style={{fontSize:'22px'}}><span id="compCount">--</span></div>
+                <div className="tile-caption">录取率 <span id="admitRate">--</span>%</div>
               </summary>
               <div className="tile-detail" id="compDetail"></div>
             </details>
@@ -127,13 +129,13 @@ export default function ResultPage() {
             </div>
             <div id="atsSystemSummary" style={{fontSize:'13px',color:'var(--ink-soft)',lineHeight:1.6,marginBottom:'14px'}}></div>
             <div id="atsDimensionProblems" style={{marginTop:'12px'}}></div>
-            <details id="atsProblemsDetails" style={{marginTop:'16px'}} open>
+            <details id="atsProblemsDetails" className="ats-preview-details" style={{marginTop:'16px'}} open>
               <summary style={{cursor:'pointer',fontSize:'13px',fontWeight:700,color:'var(--rose)',listStyle:'none',display:'flex',alignItems:'center',gap:'6px',padding:'4px 0'}}>
                 <span>🔍 关键问题</span><span id="atsProblemsChev" style={{fontSize:'11px',transition:'transform .2s'}}>▾</span>
               </summary>
               <ul id="atsProblems" style={{listStyle:'none',padding:0,margin:'8px 0 0',fontSize:'13px'}}></ul>
             </details>
-            <details id="atsSuggestionsDetails" style={{marginTop:'12px'}} open>
+            <details id="atsSuggestionsDetails" className="ats-preview-details" style={{marginTop:'12px'}} open>
               <summary style={{cursor:'pointer',fontSize:'13px',fontWeight:700,color:'var(--jade)',listStyle:'none',display:'flex',alignItems:'center',gap:'6px',padding:'4px 0'}}>
                 <span>✨ 优先建议</span><span id="atsSuggestionsChev" style={{fontSize:'11px',transition:'transform .2s'}}>▾</span>
               </summary>
@@ -180,13 +182,13 @@ export default function ResultPage() {
         <section className="section">
           <div className="section-num">导师 2-4 / 4</div>
           <h3 className="section-title" style={{fontSize:'20px'}}>更多导师建议 <span className="text-mute" style={{fontSize:'14px',fontFamily:'var(--sans)',fontWeight:400}}>(付费解锁)</span></h3>
-          <p className="section-desc">每位导师从不同角度给出 P0 必改、P1 建议改、P2 加分项。</p>
+          <p className="section-desc">每位导师从不同角度给出必改、建议改、补充建议。</p>
           <div className="stack-12" id="lockedMentorsArea"></div>
           <div className="unlock-cta">
             <p className="unlock-cta-title">解锁全部 4 位导师 + 完整改写报告</p>
             <div className="unlock-cta-price"><span className="now"><b>¥</b>49</span><span className="was">原价 ¥199</span></div>
             <ul className="unlock-cta-perks">
-              <li>4 位大厂导师完整建议(P0 / P1 / P2 全分级)</li>
+              <li>4 位大厂导师完整建议(必改 / 建议改 / 补充)</li>
               <li>完整技能清单 + 补强路径</li>
               <li>报告导出 .md,直接喂给 ChatGPT / Claude 改简历</li>
             </ul>

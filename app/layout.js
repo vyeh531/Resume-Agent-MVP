@@ -22,7 +22,6 @@ export default function RootLayout({ children }) {
         {children}
         <Script src="/assets/api-client.js" strategy="afterInteractive" />
         <Script src="/assets/app.js" strategy="afterInteractive" />
-        <Script src="/assets/mock-data.js" strategy="afterInteractive" />
       </body>
     </html>
   );

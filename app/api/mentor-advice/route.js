@@ -10,7 +10,7 @@ export async function POST(request) {
     // ── 1. Segments (4-tier priority) ──────────────────────────
     let segments = [];
     const { rows: tier1 } = await pool.query(
-      "SELECT * FROM segments WHERE generality='universal' AND (confidence='high' OR confidence IS NULL)" +
+      "SELECT * FROM segments WHERE retrieval_scope='resume_edit' AND generality='universal' AND (confidence='high' OR confidence IS NULL)" +
       ' AND (LOWER(topic) LIKE $1 OR LOWER("L1") LIKE $2 OR LOWER("L2") LIKE $3)' +
       ' ORDER BY background_fit DESC LIMIT 6',
       [kw, kw, kw]
@@ -19,7 +19,7 @@ export async function POST(request) {
 
     if (segments.length < 5) {
       const { rows: tier2 } = await pool.query(
-        "SELECT * FROM segments WHERE generality='universal' AND (confidence='high' OR confidence IS NULL)" +
+        "SELECT * FROM segments WHERE retrieval_scope='resume_edit' AND generality='universal' AND (confidence='high' OR confidence IS NULL)" +
         ' ORDER BY background_fit DESC LIMIT 8'
       );
       const ids = new Set(segments.map((s) => s.id));
@@ -27,7 +27,7 @@ export async function POST(request) {
     }
 
     const { rows: tier3 } = await pool.query(
-      "SELECT * FROM segments WHERE (generality='industry-specific' OR generality='role-specific')" +
+      "SELECT * FROM segments WHERE retrieval_scope='resume_edit' AND (generality='industry-specific' OR generality='role-specific')" +
       ' AND (LOWER(topic) LIKE $1 OR LOWER("L1") LIKE $2 OR LOWER("L2") LIKE $3)' +
       ' ORDER BY industry_fit ASC LIMIT 5',
       [kw, kw, kw]
@@ -35,7 +35,7 @@ export async function POST(request) {
     { const ids = new Set(segments.map((s) => s.id)); for (const s of tier3) { if (!ids.has(s.id)) segments.push(s); } }
 
     if (segments.length < 8) {
-      const { rows: tier4 } = await pool.query('SELECT * FROM segments ORDER BY background_fit DESC LIMIT 12');
+      const { rows: tier4 } = await pool.query("SELECT * FROM segments WHERE retrieval_scope='resume_edit' ORDER BY background_fit DESC LIMIT 12");
       const ids = new Set(segments.map((s) => s.id));
       for (const s of tier4) { if (!ids.has(s.id)) segments.push(s); }
     }
@@ -111,9 +111,9 @@ export async function POST(request) {
       `- credentials: 3 pills e.g. ["10年产品经验","前Google PM","专注北美求职"]\n` +
       `- career_path: realistic career progression e.g. "咨询公司 → 快消品牌 → 科技公司（Amazon）"\n` +
       `\nRules for adviceList (3 items per mentor, ALL different angles):\n` +
-      `  item 0: priority="P0 必改" — the single most critical fix\n` +
-      `  item 1: priority="P1 重要" — important improvement\n` +
-      `  item 2: priority="P2 建议" — bonus differentiator\n` +
+      `  item 0: priority="必改" — the single most critical fix\n` +
+      `  item 1: priority="建议改" — important improvement\n` +
+      `  item 2: priority="补充" — bonus differentiator\n` +
       `  Each item:\n` +
       `  - issue: 20-40 chars, core problem headline\n` +
       `  - strategy: 70-120 chars, start with "[Company]在筛选[role]时," + screening philosophy from KB\n` +

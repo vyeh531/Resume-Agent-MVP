@@ -93,7 +93,7 @@ export default function ReportPage() {
             <p className="report-issue" id="coreIssue"></p>
           </div>
           <div className="card card-tight mt-16">
-            <div className="section-num" style={{marginBottom:6}}>JD Top 10 技能匹配</div>
+            <div className="section-num" style={{marginBottom:6}}>JD 技能匹配</div>
             <div className="ai-insight">
               <p className="ai-insight-diagnosis">
                 <span className="ico">💡</span>正在加载技能匹配数据…

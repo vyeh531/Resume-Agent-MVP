@@ -167,13 +167,27 @@ const ACCOUNTING_UNSAFE_KEYWORDS = [
   ...CONFLICTING_TECH_KEYWORDS,
   "tip out", "measured cycle", "whole cycle"
 ];
+const ML_UNSAFE_BUSINESS_KEYWORDS = [
+  "financial analyst", "investment analyst", "risk analyst", "accounting",
+  "accountant", "financial reporting", "valuation", "fp&a", "fpa",
+  "quickbooks", "gaap", "accounts payable", "accounts receivable",
+  "会计", "投资分析", "金融公司"
+];
 const ACCOUNTING_FINANCE_TERMS = [
   "accounting", "finance", "audit", "bookkeeping", "financial reporting",
   "reconciliation", "excel", "quickbooks", "gaap", "accounts payable",
   "accounts receivable", "tax", "accountant", "financial analyst"
 ];
+function containsUnsafeKeyword(text, keyword) {
+  if (/[\u4e00-\u9fff]/.test(keyword)) return text.includes(keyword);
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i").test(text);
+}
 const RESUME_SCOPE_PATTERN = /简历|resume|ats|jd|keyword|关键词|投递|summary|skills|experience|bullet|岗位匹配|岗位定位|targeted resume|resume version/i;
 const INTERVIEW_SCOPE_PATTERN = /面试|interview|behavioral|favorite course|课程|mock interview|star|tell me about yourself|自我介绍|stock answer|答案/i;
+const NON_RESUME_ADVICE_PATTERN = /申研|升学|录取侧重|录取标准|admission|申请文书|推荐信|硬件.*onsite|硬件.*on-site|lab相关|实验室岗位|投递窗口|窗口期|10月份|十月份|春季\/暑期|实习作为entry point|追加约?\d+|先追加|投递量不足|丧失信心|full-time job offer|internship顺利完成/i;
+const NON_RESUME_TOPIC_PATTERN = /面试|interview|behavioral|technical interview|mock interview|投递渠道|求职渠道|内推|networking|职业方向选择|职业规划|求职时间规划|时间规划|市场竞争分析|竞争分析|背景差距分析|gap分析|申请学校|申研|升学|录取|申请文书|推荐信/i;
+const RESUME_EDIT_ACTION_PATTERN = /summary|skills?|experience|projects?|education|coursework|relevant coursework|word|ruler|tab|bullet|jd|ats|keyword|keywords|关键词|简历|履历|改写|重写|精修|量化|成果|格式|版块|板块|岗位原词|目标岗位|portfolio|github|linkedin|课程|排版|段落|行距|页边距|对齐|日期右对齐|展示|体现|列出|补充|加入|写入|写进|删除|删掉|删去|移除|替换|添加|强调|说明|明确说明|细化|展开|重新框架|重构|保留/i;
 const ATS_PROBLEM_TAGS = new Set([
   "low_jd_keyword_match",
   "missing_priority_keywords",
@@ -225,6 +239,14 @@ function overlapScore(queryTerms, rowTerms) {
 
 function inferRoleFamilyFromJobTitle(jobTitle) {
   const text = String(jobTitle || "").toLowerCase();
+  if (/\b(machine learning engineer|ml engineer|mle|deep learning engineer)\b/.test(text)) {
+    return "machine_learning";
+  }
+  if (/\b(ai engineer|artificial intelligence engineer|llm engineer|generative ai engineer)\b/.test(text)) {
+    return "ai_engineer";
+  }
+  if (/\b(data scientist)\b/.test(text)) return "data_scientist";
+  if (/\b(data analyst|analytics analyst|business intelligence|bi analyst)\b/.test(text)) return "data_analyst";
   if (/\b(accountant|accounting|bookkeep|audit|tax|controller|cpa|accounts payable|accounts receivable)\b/.test(text)) {
     return "accounting";
   }
@@ -233,7 +255,6 @@ function inferRoleFamilyFromJobTitle(jobTitle) {
   if (/\b(software|swe|sde|backend|frontend|full stack|developer|engineer)\b/.test(text)) {
     return "software_engineer";
   }
-  if (/\b(data analyst|analytics analyst|business intelligence|bi analyst)\b/.test(text)) return "data_analyst";
   return "unknown";
 }
 
@@ -261,6 +282,7 @@ function dimensionsFromProblemTags(problemTags) {
     weak_result_orientation: "C",
     missing_linkedin: "B",
     missing_portfolio: "B",
+    uploaded_non_pdf_format: "A",
     outdated_resume: "A",
     formatting_penalty_triggered: "A",
     short_tenure_unclear: "C",
@@ -290,15 +312,18 @@ function rowText(row) {
 
 function inferAdviceScope(row) {
   const text = rowText(row);
-  if (INTERVIEW_SCOPE_PATTERN.test(text)) {
-    if (/behavioral|star|tell me about yourself|自我介绍/i.test(text)) return "behavioral_interview";
+  const topicText = [row.topic, row.L1, row.L2].filter(Boolean).join(" ").toLowerCase();
+  const actionText = [row.A_action, row.action_summary].filter(Boolean).join(" ").toLowerCase();
+  if (INTERVIEW_SCOPE_PATTERN.test(topicText)) {
+    if (/behavioral|star|tell me about yourself|自我介绍/i.test(topicText)) return "behavioral_interview";
     return "interview_prep";
   }
-  if (RESUME_SCOPE_PATTERN.test(text)) {
-    if (/rewrite|改写|精修|bullet|experience/i.test(text)) return "resume_rewrite";
-    if (/投递|strategy|version|版本|定位/i.test(text)) return "resume_strategy";
+  if (RESUME_SCOPE_PATTERN.test(`${topicText} ${actionText}`)) {
+    if (/rewrite|改写|精修|bullet|experience/i.test(`${topicText} ${actionText}`)) return "resume_rewrite";
+    if (/投递|strategy|version|版本|定位/i.test(`${topicText} ${actionText}`)) return "resume_strategy";
     return "resume_ats";
   }
+  if (INTERVIEW_SCOPE_PATTERN.test(text)) return "interview_prep";
   if (/job search|求职|networking|linkedin|岗位/i.test(text)) return "job_search_strategy";
   if (/career|职业|成长|规划/i.test(text)) return "career_coaching";
   return "unknown";
@@ -306,18 +331,22 @@ function inferAdviceScope(row) {
 
 function inferAdviceIntent(row) {
   const text = rowText(row);
-  if (INTERVIEW_SCOPE_PATTERN.test(text)) return "interview_prep";
-  if (/3\s*小时|三\s*小时|尽快投递|投递时间|application timing|timing|apply within|early application|抢投|海投/i.test(text)) {
+  const topicText = [row.topic, row.L1, row.L2].filter(Boolean).join(" ").toLowerCase();
+  const actionText = [row.A_action, row.action_summary].filter(Boolean).join(" ").toLowerCase();
+  const decisionText = `${topicText} ${actionText}`;
+  if (INTERVIEW_SCOPE_PATTERN.test(topicText)) return "interview_prep";
+  if (/3\s*小时|三\s*小时|尽快投递|投递时间|application timing|timing|apply within|early application|抢投|海投/i.test(actionText)) {
     return "application_timing";
   }
-  if (/jd|ats|keyword|关键词|机筛|匹配|岗位匹配|targeted resume|resume version|版本/i.test(text)) {
+  if (/jd|ats|keyword|关键词|机筛|匹配|岗位匹配|targeted resume|resume version|版本/i.test(decisionText)) {
     return "resume_jd_keyword_fix";
   }
-  if (/summary|skills|experience|bullet|section|板块|经历|项目|改写|rewrite|精修/i.test(text)) {
+  if (/summary|skills|experience|bullet|section|板块|经历|项目|改写|rewrite|精修/i.test(decisionText)) {
     return "resume_section_rewrite";
   }
-  if (/定位|positioning|目标岗位|像.*岗位|role fit|岗位方向/i.test(text)) return "resume_positioning";
-  if (/量化|成果|content quality|action verb|impact|表达|内容质量/i.test(text)) return "resume_content_quality";
+  if (/定位|positioning|目标岗位|像.*岗位|role fit|岗位方向/i.test(decisionText)) return "resume_positioning";
+  if (/量化|成果|content quality|action verb|impact|表达|内容质量/i.test(decisionText)) return "resume_content_quality";
+  if (INTERVIEW_SCOPE_PATTERN.test(text)) return "interview_prep";
   if (/job search|求职策略|linkedin|networking|内推|投递策略/i.test(text)) return "job_search_strategy";
   if (/career|职业|成长|规划/i.test(text)) return "career_coaching";
   return "resume_positioning";
@@ -516,40 +545,88 @@ function generateAdviceExplanationMetadata(card, userProfile = {}) {
   };
 }
 
-// Patterns that signal the segment is about a SPECIFIC role not suitable for cross-role retrieval
-const ROLE_SPECIFIC_CONTENT_PATTERNS = [
-  /学生搜索.{0,20}(financial analyst|会计|accounting|audit|tax)/i,
-  /求职者.*目标.{0,15}(financial analyst|会计|审计|tax analyst)/i,
-  /投递.{0,10}(financial analyst|accounting|会计岗位)/i,
+// Dynamic role-group classification — maps any role / role-family string to a coarse
+// career group. Used to detect when role-specific advice belongs to a career area that
+// is incompatible with whatever role the CURRENT user is actually applying for.
+// NOTE: keyword list, not hardcoded single roles — adapts to the user's real target role.
+const ROLE_GROUP_KEYWORDS = [
+  ["accounting",  ["accounting", "accountant", "account", "audit", "tax", "bookkeep", "cpa", "controller", "accounts payable", "accounts receivable", "gaap"]],
+  ["finance",     ["finance", "financial analyst", "investment", "equity", "bank", "wealth", "actuar", "fp&a", "fpa", "treasury", "credit risk", "valuation"]],
+  ["machine_learning", ["machine learning engineer", "ml engineer", "mle", "deep learning engineer", "computer vision engineer", "model deployment", "ml pipeline"]],
+  ["ai_engineer", ["ai engineer", "artificial intelligence engineer", "llm engineer", "generative ai engineer", "prompt engineer", "rag engineer"]],
+  ["data_scientist", ["data scientist", "statistician", "biostatistician", "statistical modeling", "experiment design"]],
+  ["data_analyst", ["data analyst", "data analytics", "data and analytics", "business analyst", "business intelligence", "analytics analyst", "bi analyst"]],
+  ["hardware",    ["hardware", "electrical", "circuit", "chip", "semiconductor", "vlsi", "analog", "pcb", "embedded", "firmware"]],
+  ["software_engineer", ["software", "backend", "back end", "frontend", "front end", "full stack", "fullstack", "web develop", "mobile develop", "data engineer", "devops", "sde", "swe", "developer", "programmer"]],
+  ["project_management", ["project manager", "program manager", "scrum master", "delivery manager", "implementation manager"]],
+  ["product",     ["product manager", "product owner", "product analyst", "product operations"]],
+  ["marketing",   ["marketing", "growth", "seo", "sem", "content strateg", "brand", "social media", "advertis", "copywrit"]],
+  ["consulting",  ["consult", "strategy", "advisory"]],
+  ["design",      ["ux", "ui ", "product design", "graphic design", "game design", "designer", "animat", "illustrat"]],
+  ["sales",       ["sales", "account executive", "business development", "customer success", "solution consultant"]],
+  ["hr",          ["human resource", "people ops", "recruit", "talent acquisition", "hrbp"]],
+  ["ops",         ["operations", "supply chain", "logistics", "procurement"]],
+  ["legal",       ["legal", "attorney", "paralegal", "compliance", "counsel"]],
+  ["healthcare",  ["nurse", "clinical", "pharma", "medical", "healthcare"]],
 ];
 
+function roleGroupOf(str) {
+  // normalize underscores → spaces so "machine_learning" matches "machine learning"
+  const s = String(str || "").toLowerCase().replace(/_/g, " ");
+  if (!s.trim() || s.trim() === "universal") return null;
+  for (const [group, kws] of ROLE_GROUP_KEYWORDS) {
+    if (kws.some((k) => s.includes(k))) return group;
+  }
+  return null; // unknown / unclassifiable → treat as non-restrictive
+}
+
 function isEligibleForAtsResumeReport(row) {
+  const dbScope = normalizeTerm(row.retrieval_scope || row.retrievalScope || "");
+  if (dbScope) return dbScope === "resume_edit";
+
   const scope = inferAdviceScope(row);
   const text = rowText(row);
-  if (scope === "interview_prep" || scope === "behavioral_interview") return false;
+  const actionText = [row.A_action, row.action_summary].filter(Boolean).join(" ").toLowerCase();
+  const topicText = [row.topic, row.L1, row.L2].filter(Boolean).join(" ").toLowerCase();
+  const hasResumeEditSignal = RESUME_EDIT_ACTION_PATTERN.test(text);
+  const hasResumeEditAction = RESUME_EDIT_ACTION_PATTERN.test(actionText);
+  if (NON_RESUME_TOPIC_PATTERN.test(topicText)) return false;
+  if ((scope === "interview_prep" || scope === "behavioral_interview") && !RESUME_EDIT_ACTION_PATTERN.test(text)) return false;
   if (/favorite course|stock answer|面试答案|interview answers?/i.test(text)) return false;
   // Exclude cover letter advice — this is a resume-only system
   if (/cover letter|求职信|coverletter/i.test(text)) return false;
   // Exclude micro-formatting advice (font, bold, spacing) — too low-value
   if (/bold.*normal|字体.*不一致|normal.*bold|字号不统一|字体混用|font.*incons/i.test(text)) return false;
-  if (["resume_ats", "resume_rewrite", "resume_strategy", "job_search_strategy"].includes(scope)) return true;
-  if (String(row.ats_dimensions || "").trim()) return true;
-  if (splitCsv(row.problem_tags).some((tag) => ATS_PROBLEM_TAGS.has(tag))) return true;
+  if (!hasResumeEditSignal) return false;
+  if (!hasResumeEditAction) return false;
+  if (NON_RESUME_ADVICE_PATTERN.test(actionText) && !RESUME_EDIT_ACTION_PATTERN.test(actionText)) return false;
+  if (["resume_ats", "resume_rewrite", "resume_strategy"].includes(scope)) return true;
+  if (String(row.ats_dimensions || "").trim() && RESUME_EDIT_ACTION_PATTERN.test(text)) return true;
+  if (splitCsv(row.problem_tags).some((tag) => ATS_PROBLEM_TAGS.has(tag)) && RESUME_EDIT_ACTION_PATTERN.test(text)) return true;
   return false;
 }
 
-// Filter role-specific P_mentor content that would be misleading for a different user role
-function isRoleSafeForUser(row, userRoleFamily) {
-  if (!userRoleFamily || userRoleFamily === "universal" || userRoleFamily === "unknown") return true;
-  const pmText = (row.P_mentor || row.user_problem_summary || "").toLowerCase();
-  // If this segment's problem description mentions a specific DIFFERENT role, exclude it
-  for (const pattern of ROLE_SPECIFIC_CONTENT_PATTERNS) {
-    if (pattern.test(pmText)) {
-      const isAccountingUser = ["accounting", "finance", "financial_analyst"].includes(userRoleFamily);
-      if (!isAccountingUser) return false;
-    }
-  }
-  return true;
+// Dynamically filter advice whose career area is incompatible with the user's ACTUAL
+// target role. Fully role-agnostic: derives the user's group from their real target role,
+// and the segment's group from its coaching-session role tags. Universal advice always passes.
+function isRoleSafeForUser(row, userRoleFamily, userTargetRole) {
+  const userGroup = roleGroupOf(userRoleFamily) || roleGroupOf(userTargetRole);
+  if (!userGroup) return true; // can't classify the user → don't filter
+
+  // Universal advice transfers across all roles
+  if (String(row.generality || "").toLowerCase() === "universal") return true;
+
+  // The segment's own career area — prefer the coaching session's actual target role,
+  // which is the most reliable signal of what career area the advice was really about.
+  const segGroup =
+    roleGroupOf(row.target_role_family) ||
+    roleGroupOf(row.target_role) ||
+    roleGroupOf((row.role_family || "").split(",")[0]);
+  if (!segGroup) return true; // segment not tied to a concrete area → safe
+
+  // Role-specific / industry-specific advice is only safe within the same granular family.
+  // Broader cross-role reuse is handled by universal / issue-specific transferability.
+  return segGroup === userGroup;
 }
 
 function isTechOnlyRow(row) {
@@ -587,8 +664,13 @@ function isAdviceRoleSafe(row, targetRole, roleFamily) {
   if (!isEligibleForAtsResumeReport(row)) return false;
   if (hasConflictingRoleExamples(row, retrievalQuery)) return false;
 
-  const nonTechnical = !["software_engineer", "ai_engineer", "machine_learning", "data_scientist"].includes(normalizedFamily);
+  const technicalFamilies = ["software_engineer", "ai_engineer", "machine_learning", "data_scientist"];
+  const nonTechnical = !technicalFamilies.includes(normalizedFamily);
   if (nonTechnical && CONFLICTING_TECH_KEYWORDS.some((keyword) => text.includes(keyword))) return false;
+  const normalizedRoleWords = normalizedRole.replace(/_/g, " ");
+  if (technicalFamilies.includes(normalizedFamily) || /\b(machine learning|mle|ml engineer|ai engineer)\b/.test(normalizedRoleWords)) {
+    if (ML_UNSAFE_BUSINESS_KEYWORDS.some((keyword) => containsUnsafeKeyword(text, keyword))) return false;
+  }
   if (normalizedFamily === "accounting" || normalizedFamily === "finance" || /account/.test(normalizedRole)) {
     if (ACCOUNTING_UNSAFE_KEYWORDS.some((keyword) => text.includes(keyword))) return false;
   }
@@ -633,14 +715,21 @@ function calculateRetrievalScore(row, retrievalQuery = {}) {
   const accountingKeywordBoost = isBusinessQuery(retrievalQuery) ? overlapScore(ACCOUNTING_FINANCE_TERMS, row.keywords) : 0;
   const roleMismatchPenalty = calculateRoleMismatchPenalty(row, retrievalQuery);
   const roleConflictPenalty = conflictingExamplePenalty(row, retrievalQuery);
+  const confidenceScore = { high: 1, medium: 0.65, low: 0.25 }[normalizeTerm(row.confidence)] || 0.5;
+  const freeSafetyScore = Number(row.safe_to_show_free || 0) === 1 ? 1 : 0;
+  const rewriteValueScore = Number(row.requires_ai_rewrite || 0) === 1 ? 0.35 : 0.15;
 
   const score =
     0.35 * Math.max(problemTagScore, dimensionScore * 0.8) +
     0.25 * roleFamilyScore +
     0.15 * targetRoleScore +
-    0.10 * seniorityScore +
+    0.08 * seniorityScore +
     0.05 * Math.max(keywordScore, accountingKeywordBoost) +
-    0.10 * qualityNormalized(row.mentor_quality_score) -
+    0.06 * qualityNormalized(row.mentor_quality_score) +
+    0.04 * qualityNormalized(row.feedback_score) +
+    0.04 * confidenceScore +
+    0.02 * freeSafetyScore +
+    0.02 * rewriteValueScore -
     roleMismatchPenalty -
     roleConflictPenalty;
 
@@ -715,7 +804,7 @@ function roleSafeActionSummary(row, retrievalQuery = {}) {
   if (hasConflictingRoleExamples(row, retrievalQuery)) {
     return "根据目标岗位维护不同版本简历，把最相关的技能、项目和关键词放到对应版本里。";
   }
-  return row.action_summary || row.A_action;
+  return row.A_action || row.action_summary;
 }
 
 function buildCardTitle(row) {
@@ -752,6 +841,11 @@ function formatAdviceCardForPublic(row, retrievalQuery = {}) {
     targetRoles: row.target_roles || "",
     keywords: row.keywords || "",
     atsDimensions: row.ats_dimensions || "",
+    dbPriority: row.priority,
+    confidence: row.confidence || "",
+    mentorQualityScore: row.mentor_quality_score,
+    feedbackScore: row.feedback_score,
+    requiresAiRewrite: Number(row.requires_ai_rewrite || 0) === 1,
     retrieval_score: row.retrieval_score,
     matched_reasons: row.matched_reasons || [],
     roleMismatchPenalty: row.roleMismatchPenalty || 0,
@@ -762,6 +856,7 @@ function formatAdviceCardForPublic(row, retrievalQuery = {}) {
     mentor_career_keywords: row.mentor_career_keywords || null,
     mentor_career_path_display: row.mentor_career_path_display || null,
     mentor_company: row.mentor_company || null,
+    retrievalScope: row.retrieval_scope || null,
   };
 }
 
@@ -777,9 +872,11 @@ function baseSelectSql(where) {
       problem_tags, keywords, topic_slug, retrieval_text, priority, unlock_tier,
       advice_card_title, user_problem_summary, action_summary, safe_to_show_free,
       requires_ai_rewrite, mentor_quality_score, feedback_score,
-      mentor_title, mentor_career_keywords, mentor_career_path_display, mentor_company
+      mentor_title, mentor_career_keywords, mentor_career_path_display, mentor_company,
+      retrieval_scope
     FROM segments
-    WHERE ${where}
+    WHERE (${where})
+      AND (retrieval_scope IS NULL OR retrieval_scope = 'resume_edit')
     LIMIT 500
   `;
 }
@@ -798,10 +895,12 @@ function likeClauseForTerms(columns, terms, startIdx = 1) {
 
 async function queryRows(pool, where, params, retrievalQuery) {
   const { rows } = await pool.query(baseSelectSql(where), params);
-  const userRoleFamily = (retrievalQuery?.filters?.roleFamily || []).find(r => r !== "universal") || "";
+  const userRoleFamily = (retrievalQuery?.filters?.roleFamily || []).find(r => r !== "universal")
+    || retrievalQuery?.roleFamily || "";
+  const userTargetRole = retrievalQuery?.targetRole || "";
   return rows
     .filter((row) => isEligibleForAtsResumeReport(row))
-    .filter((row) => isRoleSafeForUser(row, userRoleFamily))
+    .filter((row) => isRoleSafeForUser(row, userRoleFamily, userTargetRole))
     .map((row) => {
       const retrieval_score = calculateRetrievalScore(row, retrievalQuery);
       const matched_reasons = buildMatchedReasons(row, retrievalQuery);
@@ -849,11 +948,7 @@ function isGenericUniversalResumeAdvice(card) {
 function rankCandidates(candidates, limit) {
   return candidates
     .filter((card) => card.retrieval_score > 0)
-    .sort((a, b) =>
-      b.retrieval_score - a.retrieval_score ||
-      Number(b.safeToShowFree) - Number(a.safeToShowFree) ||
-      String(a.adviceId).localeCompare(String(b.adviceId))
-    )
+    .sort((a, b) => compareCardsStable(a, b, [], new Set(), []))
     .slice(0, limit);
 }
 
@@ -918,7 +1013,9 @@ async function retrieveMentorAdvice(retrievalQuery = {}, options = {}) {
   const byId = new Map();
   for (const candidate of [...strictCandidates, ...fallbackCandidates]) {
     const existing = byId.get(candidate.adviceId);
-    if (!existing || candidate.retrieval_score > existing.retrieval_score) byId.set(candidate.adviceId, candidate);
+    if (!existing || compareCardsStable(candidate, existing, [], new Set(), []) < 0) {
+      byId.set(candidate.adviceId, candidate);
+    }
   }
   const candidates = rankCandidates([...byId.values()], limit);
   Object.defineProperty(candidates, "debug", {
@@ -945,7 +1042,7 @@ function selectFreeAdvice(candidates, retrievalQuery = candidates?.debug?.retrie
     .filter((card) => card.adviceIntent !== "application_timing")
     .filter((card) => !requireResumeIntent || FREE_HIGH_RISK_INTENTS.has(card.adviceIntent))
     .filter((card) => !card.matched_reasons?.includes("conflicting_role_examples"))
-    .sort((a, b) => b.retrieval_score - a.retrieval_score || String(a.adviceId).localeCompare(String(b.adviceId)))[0];
+    .sort((a, b) => compareCardsStable(a, b, [], new Set(), []))[0];
   return freeAdvice || (isAccountingQuery(retrievalQuery) ? ACCOUNTING_FALLBACK_FREE_ADVICE : FALLBACK_FREE_ADVICE);
 }
 
@@ -959,8 +1056,7 @@ function selectPaidAdvice(candidates, freeAdvice) {
     .filter((card) => !card.matched_reasons?.includes("conflicting_role_examples"))
     .sort((a, b) =>
       Number(b.unlockTier === "paid") - Number(a.unlockTier === "paid") ||
-      b.retrieval_score - a.retrieval_score ||
-      String(a.adviceId).localeCompare(String(b.adviceId))
+      compareCardsStable(a, b, [], new Set(), selected)
     );
 
   for (const card of paidCandidates) {
@@ -1008,10 +1104,45 @@ function priorityFromTags(tags = [], problemTags = []) {
   return "low";
 }
 
+function priorityForLane(lane) {
+  if (lane === "p0") return "high";
+  if (lane === "p1") return "medium";
+  return "low";
+}
+
+function priorityLaneFromSeverity(severity) {
+  if (severity === "critical" || severity === "high") return "p0";
+  if (severity === "medium") return "p1";
+  return "p2";
+}
+
+function forceAdvicePriority(item, priority) {
+  item.priority = priority;
+  item.priorityLabel = priorityLabel(priority);
+  return item;
+}
+
+function sortProblemsStable(a, b) {
+  const diff = severityWeight(b.severity) - severityWeight(a.severity);
+  if (Math.abs(diff) > 1e-9) return diff;
+  return String(a.tag || "").localeCompare(String(b.tag || ""));
+}
+
+function stableAdviceKey(card = {}) {
+  const raw = String(card.adviceId || card.chunk_id || card.id || "");
+  const numeric = raw.match(/\d+/)?.[0];
+  return `${numeric ? numeric.padStart(10, "0") : "9999999999"}:${raw}`;
+}
+
+function dbPriorityScore(card = {}) {
+  const numeric = Number(card.dbPriority ?? card.priorityRank);
+  return Number.isFinite(numeric) ? -numeric / 100 : 0;
+}
+
 function priorityLabel(priority) {
-  if (priority === "high" || priority === "critical") return "P0 必改";
-  if (priority === "medium") return "P1 建议改";
-  return "P2 加分项";
+  if (priority === "high" || priority === "critical") return "必改";
+  if (priority === "medium") return "建议改";
+  return "补充";
 }
 
 function generateUserDiagnosis(relatedProblemTags = [], targetProblemTags = [], internalAtsResult = {}, usedDiagnosisTags = new Set()) {
@@ -1058,7 +1189,7 @@ function generateUserDiagnosis(relatedProblemTags = [], targetProblemTags = [], 
   const weakDimLabels = { A: "格式规范", B: "基本资料", C: "内容质量", D: "JD 关键词匹配", E: "市场适配度", F: "经验匹配度" };
   const dimEntries = Object.entries(dims)
     .map(([k, v]) => ({ k, pct: v.max > 0 ? v.score / v.max : 1 }))
-    .sort((a, b) => a.pct - b.pct);
+    .sort((a, b) => (a.pct - b.pct) || a.k.localeCompare(b.k));
   if (dimEntries.length && dimEntries[0].pct < 0.65 && weakDimLabels[dimEntries[0].k]) {
     return `简历在「${weakDimLabels[dimEntries[0].k]}」维度得分偏低，这是影响 ATS 通过率的主要因素之一。`;
   }
@@ -1068,7 +1199,14 @@ function generateUserDiagnosis(relatedProblemTags = [], targetProblemTags = [], 
 // ── Personalize a generic DB diagnosis with user-specific resume context ──────
 // Injects job title, missing keywords, and ATS score into the summary
 // so it feels tailored rather than generic.
-function personalizeDiagnosis(diagnosis, internalAtsResult = {}) {
+function shouldAppendKeywordContext(diagnosis, relatedProblemTags = []) {
+  const text = String(diagnosis || "").toLowerCase();
+  if (/first person|第一人称|format|格式|font|spacing|length|页|标点|grammar|语法|拼写|排版/.test(text)) return false;
+  if ((relatedProblemTags || []).some((tag) => /jd_keyword|keyword|hard_skill|priority_keyword|target_role|role_alignment|summary/.test(tag))) return true;
+  return /jd|ats|keyword|关键词|skills?|summary|岗位|职位|role|position|定位|匹配/.test(text);
+}
+
+function personalizeDiagnosis(diagnosis, internalAtsResult = {}, relatedProblemTags = []) {
   if (!diagnosis) return diagnosis;
   const jobTitle = internalAtsResult.jobTitle || "";
   const missingKw = (internalAtsResult.topMissingKeywords || internalAtsResult.topMissingKw || []).slice(0, 3);
@@ -1087,11 +1225,13 @@ function personalizeDiagnosis(diagnosis, internalAtsResult = {}) {
 
   // Append a personalized sentence with concrete user data
   const additions = [];
-  if (jdRatio != null && jdRatio < 75 && !/\d+%/.test(result)) {
-    additions.push(`简历 JD 关键词匹配率约 ${jdRatio}%`);
-  }
-  if (missingKw.length > 0 && !missingKw.some(kw => result.includes(kw))) {
-    additions.push(`缺少如 ${missingKw.join("、")} 等高频词`);
+  if (shouldAppendKeywordContext(result, relatedProblemTags)) {
+    if (jdRatio != null && jdRatio < 75 && !/\d+%/.test(result)) {
+      additions.push(`简历 JD 关键词匹配率约 ${jdRatio}%`);
+    }
+    if (missingKw.length > 0 && !missingKw.some(kw => result.includes(kw))) {
+      additions.push(`缺少如 ${missingKw.join("、")} 等高频词`);
+    }
   }
   if (additions.length > 0) {
     result = result.replace(/[。！]$/, "") + `（${additions.join("，")}）。`;
@@ -1145,9 +1285,10 @@ function isBucketRoleSafe(bucket, targetRoleFamily) {
 function relatedTagsForCard(card = {}, targetProblemTags = []) {
   const cardReasons = splitCsv(card.matched_reasons || []);
   const text = `${card.title || ""} ${card.problemSummary || ""} ${card.actionSummary || ""} ${card.topic || ""} ${card.adviceIntent || ""}`.toLowerCase();
+  const targetTagSet = new Set(targetProblemTags.map((item) => item.tag || item).filter(Boolean));
   const tags = [];
   for (const problem of targetProblemTags) {
-    const tag = problem.tag;
+    const tag = problem.tag || problem;
     if (!tag) continue;
     if (cardReasons.includes(tag) || text.includes(tag.replace(/_/g, " "))) tags.push(tag);
     // Only match keyword/ATS tags if the card is specifically about JD/keyword matching, not generic format cards
@@ -1157,7 +1298,15 @@ function relatedTagsForCard(card = {}, targetProblemTags = []) {
     else if (/量化|result|impact|成果/.test(text) && /measurable|result|action/.test(tag)) tags.push(tag);
     else if (/linkedin|portfolio|searchability/.test(text) && /linkedin|portfolio|searchability/.test(tag)) tags.push(tag);
   }
+  if (!targetTagSet.has("uploaded_non_pdf_format")) {
+    return [...new Set(tags)].filter((tag) => tag !== "uploaded_non_pdf_format").slice(0, 3);
+  }
   return [...new Set(tags)].slice(0, 3);
+}
+
+function hasFileSubmissionFormatWarning(card = {}) {
+  const text = `${card.title || ""} ${card.problemSummary || ""} ${card.actionSummary || ""} ${card.mentorInsight || ""} ${card.example || ""}`.toLowerCase();
+  return /\bword\b|\.docx?\b|pdf格式|pdf 格式|一页pdf|一頁pdf|submit.*pdf|提交.*pdf|word文档|word 文件|word檔|word档/.test(text);
 }
 
 function isCardAlignedWithTargetProblems(card = {}, targetProblemTags = []) {
@@ -1174,6 +1323,9 @@ function isCardAlignedWithTargetProblems(card = {}, targetProblemTags = []) {
     card.targetSection,
   ].filter(Boolean).join(" ").toLowerCase();
 
+  if (hasFileSubmissionFormatWarning(card) && !tags.includes("uploaded_non_pdf_format") && !tags.includes("file_naming_issue")) {
+    return false;
+  }
   if (tags.some((tag) => /jd|keyword|hard_skill|priority_keyword/.test(tag))) {
     if (!/jd|ats|keyword|关键词|匹配|岗位|skills?|summary|target role|positioning/.test(text)) return false;
   }
@@ -1220,7 +1372,7 @@ function toAdviceItem(card = {}, targetProblemTags = [], index = 0, includePremi
       // Apply variant phrasing for common problem types
       raw = variantDiagnosis(raw, relatedProblemTags);
       // Inject user-specific context (job title, missing keywords, jdRatio)
-      currentDiagnosis = personalizeDiagnosis(raw, internalAtsResult);
+      currentDiagnosis = personalizeDiagnosis(raw, internalAtsResult, relatedProblemTags);
       usedDiagnosisTags.add("__card_own__");
     }
   }
@@ -1293,7 +1445,11 @@ function buildMentorLogoPoolFromItems(adviceItems = []) {
 function buildMentorLogoPoolFromCandidates(candidates = [], max = 16) {
   const byCompany = new Map();
   const buckets = groupAdviceByMentor(candidates);
-  const sortedBuckets = [...buckets].sort((a, b) => (b.cards?.[0]?.retrieval_score || 0) - (a.cards?.[0]?.retrieval_score || 0));
+  const sortedBuckets = [...buckets].sort((a, b) => {
+    const diff = stableCardScore(b.cards?.[0] || {}) - stableCardScore(a.cards?.[0] || {});
+    if (Math.abs(diff) > 1e-9) return diff;
+    return String(a.mentorName || "").localeCompare(String(b.mentorName || ""));
+  });
   for (const bucket of sortedBuckets) {
     const company = bucket.company || "";
     const companyLogo = bucket.companyLogo || resolveCompanyLogo(company);
@@ -1317,22 +1473,12 @@ function selectGlobalAdviceItems(candidates, targetProblemTags, count, coveredTa
   const usedDiagnosisTags = new Set();
   const cards = [...(candidates || [])]
     .filter((card) => !usedAdviceIds.has(card.adviceId))
-    .sort((a, b) => adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards));
+    .sort((a, b) => compareCardsStable(a, b, targetProblemTags, coveredTags, selectedCards));
 
-  while (selectedItems.length < count && cards.length) {
-    cards.sort((a, b) => {
-      const aCompany = inferCompanyFromMentor(a);
-      const bCompany = inferCompanyFromMentor(b);
-      const aCluster = a._topicCluster || inferTopicCluster(a);
-      const bCluster = b._topicCluster || inferTopicCluster(b);
-      const aPenalty = (companyCounts.get(aCompany) || 0) * 0.08 + (clusterCounts.get(aCluster) || 0) * 0.12;
-      const bPenalty = (companyCounts.get(bCompany) || 0) * 0.08 + (clusterCounts.get(bCluster) || 0) * 0.12;
-      return (adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - bPenalty) -
-        (adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards) - aPenalty);
-    });
-    const card = cards.shift();
-    if (!card || usedAdviceIds.has(card.adviceId)) continue;
-
+  function addCard(card) {
+    if (!card || usedAdviceIds.has(card.adviceId)) return false;
+    const idx = cards.findIndex((item) => item.adviceId === card.adviceId);
+    if (idx !== -1) cards.splice(idx, 1);
     const item = toAdviceItem(card, targetProblemTags, selectedItems.length, true, internalAtsResult, usedDiagnosisTags);
     const meta = generateAdviceExplanationMetadata(card, userProfile);
     item.matchReason = meta.matchReason;
@@ -1349,6 +1495,33 @@ function selectGlobalAdviceItems(candidates, targetProblemTags, count, coveredTa
     const cluster = card._topicCluster || inferTopicCluster(card);
     companyCounts.set(company, (companyCounts.get(company) || 0) + 1);
     clusterCounts.set(cluster, (clusterCounts.get(cluster) || 0) + 1);
+    return true;
+  }
+
+  for (const problem of [...targetProblemTags].sort(sortProblemsStable)) {
+    if (selectedItems.length >= count) break;
+    if (coveredTags.has(problem.tag)) continue;
+    const covering = cards
+      .filter((card) => relatedTagsForCard(card, targetProblemTags).includes(problem.tag))
+      .sort((a, b) => compareCardsStable(a, b, [problem], coveredTags, selectedCards))[0];
+    addCard(covering);
+  }
+
+  while (selectedItems.length < count && cards.length) {
+    cards.sort((a, b) => {
+      const aCompany = inferCompanyFromMentor(a);
+      const bCompany = inferCompanyFromMentor(b);
+      const aCluster = a._topicCluster || inferTopicCluster(a);
+      const bCluster = b._topicCluster || inferTopicCluster(b);
+      const aPenalty = (companyCounts.get(aCompany) || 0) * 0.08 + (clusterCounts.get(aCluster) || 0) * 0.12;
+      const bPenalty = (companyCounts.get(bCompany) || 0) * 0.08 + (clusterCounts.get(bCluster) || 0) * 0.12;
+      const diff = (stableCardScore(b, targetProblemTags, coveredTags, selectedCards) - bPenalty) -
+        (stableCardScore(a, targetProblemTags, coveredTags, selectedCards) - aPenalty);
+      if (Math.abs(diff) > 1e-9) return diff;
+      return stableAdviceKey(a).localeCompare(stableAdviceKey(b));
+    });
+    const card = cards.shift();
+    addCard(card);
   }
 
   if (selectedItems.length < count) {
@@ -1485,7 +1658,7 @@ function groupAdviceByMentor(candidates = []) {
     splitCsv(card.roleFamily || card.role_family || "").filter(Boolean).forEach((rf) => b.roleFamilies.add(rf));
   }
   return [...buckets.values()].map((bucket) => {
-    const sorted = bucket.cards.sort((a, b) => (b.retrieval_score || 0) - (a.retrieval_score || 0));
+    const sorted = bucket.cards.sort((a, b) => compareCardsStable(a, b, [], new Set(), []));
     return {
       ...bucket,
       badges: buildMentorBadges(sorted),
@@ -1574,12 +1747,30 @@ function adviceSelectionScore(card, targetProblemTags, coveredTags, selectedCard
   );
 }
 
+function stableCardScore(card, targetProblemTags = [], coveredTags = new Set(), selectedCards = []) {
+  return (
+    adviceSelectionScore(card, targetProblemTags, coveredTags, selectedCards) +
+    dbPriorityScore(card) +
+    0.035 * qualityNormalized(card.mentorQualityScore) +
+    0.025 * qualityNormalized(card.feedbackScore) +
+    0.020 * ({ high: 1, medium: 0.65, low: 0.25 }[normalizeTerm(card.confidence)] || 0.5) +
+    0.010 * Number(card.safeToShowFree || false)
+  );
+}
+
+function compareCardsStable(a, b, targetProblemTags = [], coveredTags = new Set(), selectedCards = []) {
+  const diff = stableCardScore(b, targetProblemTags, coveredTags, selectedCards) -
+    stableCardScore(a, targetProblemTags, coveredTags, selectedCards);
+  if (Math.abs(diff) > 1e-9) return diff;
+  return stableAdviceKey(a).localeCompare(stableAdviceKey(b));
+}
+
 function selectTopAdviceForMentor(mentorBucket, targetProblemTags, count, coveredTags = new Set(), internalAtsResult = {}) {
   const selected = [];
   const cards = [...(mentorBucket.cards || [])];
   const usedDiagnosisTags = new Set();
   while (selected.length < count && cards.length) {
-    cards.sort((a, b) => adviceSelectionScore(b, targetProblemTags, coveredTags, selected) - adviceSelectionScore(a, targetProblemTags, coveredTags, selected));
+    cards.sort((a, b) => compareCardsStable(a, b, targetProblemTags, coveredTags, selected));
     const card = cards.shift();
     const item = toAdviceItem(card, targetProblemTags, selected.length, true, internalAtsResult, usedDiagnosisTags);
     selected.push(item);
@@ -1592,14 +1783,26 @@ function selectTopAdviceForMentor(mentorBucket, targetProblemTags, count, covere
 }
 
 function normalizeFreeAdviceLanes(adviceItems = [], internalAtsResult = {}) {
-  // Prefer high-quality DB items; only fill gaps with fallback (not replace DB with fallback)
-  const dbItems = adviceItems.filter((item) => item.source !== "fallback");
-  if (dbItems.length >= 3) return dbItems.slice(0, 3);
+  const priorityOrder = ["high", "medium", "low"];
+  const byPriority = new Map();
+  const overflow = [];
+  for (const item of adviceItems) {
+    const priority = priorityOrder.includes(item.priority) ? item.priority : "low";
+    if (!byPriority.has(priority)) {
+      byPriority.set(priority, item);
+    } else {
+      overflow.push(item);
+    }
+  }
 
-  // Fill remaining slots with fallback without overriding existing DB items
-  const usedTags = new Set(dbItems.flatMap((item) => item.relatedProblemTags || []));
-  const extras = fallbackAdviceItems(internalAtsResult, 3 - dbItems.length, usedTags);
-  return [...dbItems, ...extras].slice(0, 3);
+  const usedTags = new Set(adviceItems.flatMap((item) => item.relatedProblemTags || []));
+  const fallback = fallbackAdviceItems(internalAtsResult, 3, usedTags);
+  const result = [];
+  for (const priority of priorityOrder) {
+    const item = byPriority.get(priority) || overflow.shift() || fallback.shift();
+    if (item) result.push(forceAdvicePriority(item, priority));
+  }
+  return result.slice(0, 3);
 }
 
 const BIG_TECH_COMPANIES = new Set([
@@ -1615,8 +1818,10 @@ function mentorMatchScore(bucket, targetProblemTags, targetRoleFamily = "") {
 
   // Top-k average card score (not sum — prevents large buckets winning by volume)
   const topK = Math.min(3, cards.length);
-  const cardScores = cards.map((card) => adviceSelectionScore(card, targetProblemTags, new Set(), []));
-  cardScores.sort((a, b) => b - a);
+  const cardScores = cards
+    .map((card) => ({ score: stableCardScore(card, targetProblemTags, new Set(), []), key: stableAdviceKey(card) }))
+    .sort((a, b) => (b.score - a.score) || a.key.localeCompare(b.key))
+    .map((item) => item.score);
   const avgTopKScore = cardScores.slice(0, topK).reduce((s, v) => s + v, 0) / topK;
 
   // Weighted problem coverage (severity-aware)
@@ -1650,7 +1855,13 @@ function selectDiverseMentors(mentorBuckets, targetCount, targetProblemTags = []
   const selected = [];
   const usedCompanies = new Set();
   const usedIntents = new Set();
-  const sorted = [...mentorBuckets].sort((a, b) => mentorMatchScore(b, targetProblemTags, targetRoleFamily) - mentorMatchScore(a, targetProblemTags, targetRoleFamily));
+  const sorted = [...mentorBuckets].sort((a, b) => {
+    const diff = mentorMatchScore(b, targetProblemTags, targetRoleFamily) - mentorMatchScore(a, targetProblemTags, targetRoleFamily);
+    if (Math.abs(diff) > 1e-9) return diff;
+    const aKey = `${a.company || ""}:${a.mentorName || ""}:${stableAdviceKey(a.cards?.[0] || {})}`;
+    const bKey = `${b.company || ""}:${b.mentorName || ""}:${stableAdviceKey(b.cards?.[0] || {})}`;
+    return aKey.localeCompare(bKey);
+  });
 
   // Pass 1: prefer unique company + unique primary intent
   for (const bucket of sorted) {
@@ -1742,25 +1953,39 @@ function selectFreeMentorPlan(candidates, internalAtsResult) {
     card._topicCluster = card._topicCluster || inferTopicCluster(card);
   }
 
-  // Step 2: Issue-first — rank problems by severity, find best advice per problem
-  const rankedProblems = [...targetProblemTags].sort((a, b) => severityWeight(b.severity) - severityWeight(a.severity));
+  // Step 2: Issue-first — pick one free card for each priority lane.
+  const rankedProblems = [...targetProblemTags].sort(sortProblemsStable);
+  const laneOrder = ["p0", "p1", "p2"];
   const selectedCards = [];
+  const selectedLanes = [];
   const usedCardIds = new Set();
+  const usedProblemTags = new Set();
   const coveredTags = new Set();
 
-  for (const problem of rankedProblems.slice(0, 3)) {
-    if (selectedCards.length >= 3) break;
-    const bestCard = eligibleCandidates
+  function nextProblemForLane(lane) {
+    const exact = rankedProblems.find((problem) =>
+      !usedProblemTags.has(problem.tag) && priorityLaneFromSeverity(problem.severity) === lane
+    );
+    return exact || rankedProblems.find((problem) => !usedProblemTags.has(problem.tag)) || null;
+  }
+
+  function bestCardForProblem(problem) {
+    if (!problem) return null;
+    return eligibleCandidates
       .filter((card) => !usedCardIds.has(card.adviceId))
       .filter((card) => relatedTagsForCard(card, targetProblemTags).includes(problem.tag))
-      .sort((a, b) => {
-        const sa = getProblemFitScore(a, [problem]) * 0.5 + getActionabilityScore(a) * 0.3 + (1 - (a.roleMismatchPenalty || 0)) * 0.2;
-        const sb = getProblemFitScore(b, [problem]) * 0.5 + getActionabilityScore(b) * 0.3 + (1 - (b.roleMismatchPenalty || 0)) * 0.2;
-        return sb - sa;
-      })[0];
+      .sort((a, b) => compareCardsStable(a, b, [problem], coveredTags, selectedCards))[0] || null;
+  }
+
+  for (const lane of laneOrder) {
+    if (selectedCards.length >= 3) break;
+    const problem = nextProblemForLane(lane);
+    const bestCard = bestCardForProblem(problem);
     if (bestCard) {
       selectedCards.push(bestCard);
+      selectedLanes.push(lane);
       usedCardIds.add(bestCard.adviceId);
+      if (problem?.tag) usedProblemTags.add(problem.tag);
       relatedTagsForCard(bestCard, targetProblemTags).forEach((t) => coveredTags.add(t));
     }
   }
@@ -1769,10 +1994,12 @@ function selectFreeMentorPlan(candidates, internalAtsResult) {
   if (selectedCards.length < 3) {
     const remaining = eligibleCandidates
       .filter((card) => !usedCardIds.has(card.adviceId))
-      .sort((a, b) => adviceSelectionScore(b, targetProblemTags, coveredTags, selectedCards) - adviceSelectionScore(a, targetProblemTags, coveredTags, selectedCards));
+      .sort((a, b) => compareCardsStable(a, b, targetProblemTags, coveredTags, selectedCards));
     for (const card of remaining) {
       if (selectedCards.length >= 3) break;
+      const lane = laneOrder.find((item) => !selectedLanes.includes(item)) || "p2";
       selectedCards.push(card);
+      selectedLanes.push(lane);
       usedCardIds.add(card.adviceId);
       relatedTagsForCard(card, targetProblemTags).forEach((t) => coveredTags.add(t));
     }
@@ -1782,6 +2009,7 @@ function selectFreeMentorPlan(candidates, internalAtsResult) {
   const usedDiagnosisTags = new Set();
   let adviceItems = selectedCards.map((card, i) => {
     const item = toAdviceItem(card, targetProblemTags, i, true, internalAtsResult, usedDiagnosisTags);
+    forceAdvicePriority(item, priorityForLane(selectedLanes[i] || laneOrder[i] || "p2"));
     const meta = generateAdviceExplanationMetadata(card, userProfile);
     item.matchReason = meta.matchReason;
     item.mentorFitType = meta.mentorFitType;
@@ -1906,9 +2134,10 @@ function selectPremiumMentorPlan(candidates, internalAtsResult, freeMentorPlan =
       const tag = problem.tag;
       if (allCovered.has(tag)) continue;
       // 找能覆蓋這個 tag 的候選
-      const coverCandidate = candidates
+      const coverCandidate = eligibleCandidates
         .filter((card) => !allAdviceItems.some((a) => a.adviceId === card.adviceId))
-        .find((card) => relatedTagsForCard(card, targetProblemTags).includes(tag));
+        .filter((card) => relatedTagsForCard(card, targetProblemTags).includes(tag))
+        .sort((a, b) => compareCardsStable(a, b, [problem], allCovered, []))[0];
       if (!coverCandidate) continue;
       // 找最合適的導師（優先選和這個 card 同一個 mentorName 的，或最後一個導師）
       const targetMentor = mentors.find((m) => m.mentorName === coverCandidate.mentorName) || mentors[mentors.length - 1];
@@ -1919,7 +2148,10 @@ function selectPremiumMentorPlan(candidates, internalAtsResult, freeMentorPlan =
       );
       const newItem = toAdviceItem(coverCandidate, targetProblemTags, targetMentor.adviceItems.indexOf(toReplace), true, internalAtsResult, new Set());
       const idx = targetMentor.adviceItems.indexOf(toReplace);
-      if (idx !== -1) targetMentor.adviceItems[idx] = newItem;
+      if (idx !== -1) {
+        targetMentor.adviceItems[idx] = newItem;
+        allAdviceItems.push(newItem);
+      }
       allCovered.add(tag);
     }
   }

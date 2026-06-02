@@ -142,6 +142,8 @@ const ROLE_DISPLAY_NAMES = {
   logistics_operations: "物流运营",
   accounting:           "会计",
   software_engineer:    "软件工程师",
+  machine_learning_engineer: "机器学习工程师",
+  ai_engineer:          "AI 工程师",
   data_analyst:         "数据分析师",
   data_scientist:       "数据科学家",
   product_manager:      "产品经理",
@@ -197,9 +199,11 @@ const SOFT_SKILL_KEYWORDS = new Set([
 const ROLE_FAMILIES = [
   { role: "logistics_operations", terms: ["揽收", "调度", "物流", "仓库", "库管", "司机", "客服", "运营", "末端", "配送", "异常", "卡量", "时效", "完结率", "pickup", "dispatch", "logistics", "warehouse", "last-mile", "parcel"] },
   { role: "accounting", terms: ["accountant", "staff accountant", "accounting", "bookkeeping", "payroll", "tax preparation", "quickbooks", "financial statements", "reconciliation"] },
+  { role: "machine_learning_engineer", terms: ["machine learning engineer", "ml engineer", "mle", "deep learning engineer", "model deployment", "ml pipeline", "pytorch", "tensorflow"] },
+  { role: "ai_engineer", terms: ["ai engineer", "artificial intelligence engineer", "llm engineer", "generative ai engineer", "rag", "fine-tuning", "langchain"] },
   { role: "software_engineer", terms: ["software engineer", "swe", "backend", "frontend", "full stack", "full-stack", "api", "microservice", "react", "node", "java", "python"] },
   { role: "data_analyst", terms: ["data analyst", "business analyst", "analytics", "sql", "tableau", "power bi", "excel", "dashboard"] },
-  { role: "data_scientist", terms: ["data scientist", "machine learning", "ml", "modeling", "experiment", "statistics", "python", "pandas"] },
+  { role: "data_scientist", terms: ["data scientist", "statistical modeling", "experimentation", "experiment design", "statistics", "python", "pandas"] },
   { role: "product_manager", terms: ["product manager", "pm", "roadmap", "user research", "stakeholder", "metrics", "launch"] },
   { role: "financial_analyst", terms: ["financial analyst", "finance", "valuation", "forecast", "investment", "portfolio", "excel"] },
   { role: "marketing", terms: ["marketing", "campaign", "brand", "content", "seo", "growth", "social media"] }
@@ -2180,6 +2184,7 @@ const PROBLEM_TAG_DEFS = {
   inconsistent_date_format:  { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.2  },
   missing_section_dates:     { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.2  },
   file_naming_issue:         { dimension: "A", topic: "format",                severity: "low",      retrievalWeight: 0.15 },
+  uploaded_non_pdf_format:   { dimension: "A", topic: "format",                severity: "medium",   retrievalWeight: 0.45 },
   // B
   missing_summary:           { dimension: "B", topic: "resume_structure",      severity: "high",     retrievalWeight: 0.6  },
   missing_gpa:               { dimension: "B", topic: "education_completeness", severity: "medium",  retrievalWeight: 0.4  },
@@ -2218,6 +2223,7 @@ function makeTag(tagKey) {
 function buildProblemTags({
   resumeOutdated, isChronological, inconsistentDates, inconsistentMonthStyle,
   educationHasDates, projectsHasDates, fileNameIssues,
+  uploadedNonPdfFormat,
   hasSummary, isRecentGraduate, hasEducation, hasGPA, hasCoursework,
   emailValid, phoneValid, expLocationResult,
   quantifiedCount, weakPhraseCount, writeGoodResult, repetitiveVerbResult,
@@ -2235,6 +2241,7 @@ function buildProblemTags({
   if (inconsistentDates || inconsistentMonthStyle) push("inconsistent_date_format");
   if ((hasEducation && !educationHasDates) || !projectsHasDates) push("missing_section_dates");
   if (fileNameIssues && fileNameIssues.length) push("file_naming_issue");
+  if (uploadedNonPdfFormat) push("uploaded_non_pdf_format");
 
   // B
   if (!hasSummary && !isRecentGraduate) push("missing_summary");
@@ -2425,6 +2432,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   else if (normalized.length < 400) A -= 2;
   else if (normalized.length > 9000) A -= 1;
   const fileNameResult = analyzeFileName(options.fileName);
+  const uploadedNonPdfFormat = /\.(docx?|txt)$/i.test(String(options.fileName || ""));
   A += fileNameResult.score;
   if (hasInconsistentDateFormat(normalized)) A -= 1;
   if (inconsistentMonthStyle) A -= 0.5;
@@ -2607,6 +2615,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const problemTagsInput = {
     resumeOutdated, isChronological, inconsistentDates, inconsistentMonthStyle,
     educationHasDates, projectsHasDates, fileNameIssues: fileNameResult.issues,
+    uploadedNonPdfFormat,
     hasSummary, isRecentGraduate, hasEducation, hasGPA, hasCoursework,
     emailValid, phoneValid: phoneInfo.valid, expLocationResult,
     quantifiedCount, weakPhraseCount, writeGoodResult, repetitiveVerbResult,

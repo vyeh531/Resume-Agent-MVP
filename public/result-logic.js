@@ -178,6 +178,23 @@ function normalizeProblemList() {
 function isIrrelevantSuggestion(text) {
   return /(供应链|marketing analyst|SaaS|银行|制造|自动化|汽车行业|bank)/i.test(String(text || ""));
 }
+function isMlTargetRole() {
+  return /\b(machine learning|mle|ml engineer|ai engineer)\b/i.test(getTargetJobTitle());
+}
+function isIrrelevantMlAdvice(item) {
+  if (!isMlTargetRole()) return false;
+  const text = [
+    item?.title,
+    item?.currentDiagnosis,
+    item?.problemSummary,
+    item?.action,
+    item?.actionSummary,
+    item?.mentorInsight,
+    item?.hrPerspective,
+    ...(item?.evidence || [])
+  ].filter(Boolean).join(" ");
+  return /\b(financial analyst|investment analyst|risk analyst|accounting|accountant|valuation|fp&a|financial reporting|会计|投资分析|金融公司)\b/i.test(text);
+}
 function buildRoleAwareSuggestions() {
   const job = getTargetJobTitle();
   if (!/\b(machine learning|mle|ml engineer|ai engineer)\b/i.test(job)) return [];
@@ -491,9 +508,9 @@ function priorityBadge(p) {
   const lv = (p === "high" || p === "critical" || p === "P0") ? "high"
            : (p === "medium" || p === "P1") ? "medium" : "low";
   const cfg = {
-    high:   { dot:"#DC2626", bg:"#FFF1F1", color:"#991B1B", border:"#FCA5A5", label:"P0 必改" },
-    medium: { dot:"#EA580C", bg:"#FFF7ED", color:"#9A3412", border:"#FDBA74", label:"P1 建议改" },
-    low:    { dot:"#2563EB", bg:"#EFF6FF", color:"#1D4ED8", border:"#BFDBFE", label:"P2 加分项" },
+    high:   { dot:"#DC2626", bg:"#FFF1F1", color:"#991B1B", border:"#FCA5A5", label:"必改" },
+    medium: { dot:"#EA580C", bg:"#FFF7ED", color:"#9A3412", border:"#FDBA74", label:"建议改" },
+    low:    { dot:"#2563EB", bg:"#EFF6FF", color:"#1D4ED8", border:"#BFDBFE", label:"补充" },
   };
   const c = cfg[lv] || cfg.medium;
   return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:${c.bg};color:${c.color};border:1px solid ${c.border};letter-spacing:.01em;"><span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${c.label}</span>`;
@@ -521,11 +538,6 @@ function renderApiAdviceItem(item, i) {
   const fitChip = fitCfg
     ? `<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:${fitCfg.bg};color:${fitCfg.color};border:1px solid ${fitCfg.border};">${fitCfg.label}</span>` : "";
 
-  const evidenceChips = (item.evidence || []).length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;">${item.evidence.map(e =>
-        `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">${escapeHtml(e)}</span>`
-      ).join("")}</div>` : "";
-
   const divider = i > 0
     ? `<div style="height:1px;background:linear-gradient(to right,transparent,rgba(0,0,0,0.07),transparent);margin:22px 0;"></div>` : "";
 
@@ -544,7 +556,6 @@ function renderApiAdviceItem(item, i) {
           <span style="font-size:11px;font-weight:700;color:#92400E;letter-spacing:.02em;">你的现状</span>
         </div>
         <p style="margin:0 0 0 9px;font-size:13px;line-height:1.65;color:#44403C;">${escapeHtml(diagnosis)}</p>
-        ${evidenceChips ? `<div style="margin-left:9px;">${evidenceChips}</div>` : ""}
       </div>` : ""}
       ${action ? `<div style="background:#F6FEF9;border:1px solid #D1FAE5;border-radius:12px;padding:12px 14px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
@@ -582,12 +593,7 @@ function renderFreeMentor(m) {
   const title = m.mentorTitle || "";
   const careerPath = m.careerPathDisplay || "";
   const companyMeta = [company, title].filter(Boolean).join(" · ");
-  const adviceHtml = (m.adviceItems || []).slice(0, 3).map(renderApiAdviceItem).join("");
-
-  // Covered problem chips (shown as context tags at the top)
-  const matchedTags = (m.matchedProblems || []).slice(0, 4).map(t =>
-    `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">${escapeHtml(String(t).replace(/_/g," "))}</span>`
-  ).join("");
+  const adviceHtml = (m.adviceItems || []).filter((item) => !isIrrelevantMlAdvice(item)).slice(0, 3).map(renderApiAdviceItem).join("");
 
   mentorFreeEl.innerHTML = `
     <div style="background:#FFFDF7;border:1px solid rgba(0,0,0,0.07);border-radius:20px;padding:20px 20px 18px;box-shadow:0 1px 6px rgba(0,0,0,0.04);">
@@ -602,7 +608,6 @@ function renderFreeMentor(m) {
           ${careerPath ? `<div style="font-size:11.5px;color:#9CA3AF;margin-top:2px;"><span style="font-weight:600;color:#A8A29E;">职业路径</span> · ${escapeHtml(careerPath)}</div>` : ""}
         </div>
       </div>
-      ${matchedTags ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">${matchedTags}</div>` : ""}
       <div style="height:1px;background:rgba(0,0,0,0.05);margin:0 0 18px;"></div>
       ${adviceHtml}
     </div>`;
@@ -761,7 +766,7 @@ if (atsResult && atsResult.atsScore) {
   if (problemsEl) {
     const problems = normalizeProblemList();
     problemsEl.innerHTML = problems.map((p) =>
-      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:var(--rose);font-weight:600;">●</span>${escapeHtml(p)}</li>`
+      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--rose);"></span>${escapeHtml(p)}</li>`
     ).join("") + renderPaywallMoreBlock("problems");
   }
 
@@ -769,20 +774,29 @@ if (atsResult && atsResult.atsScore) {
   const suggestionsEl = document.getElementById("atsSuggestions");
   if (suggestionsEl) {
     const suggestions = normalizeSuggestionList();
-    suggestionsEl.innerHTML = suggestions.map((sg, i) =>
-      `<li style="margin-bottom:10px;padding-left:28px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;background:var(--jade);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">${i + 1}</span>${escapeHtml(sg)}</li>`
+    suggestionsEl.innerHTML = suggestions.map((sg) =>
+      `<li style="margin-bottom:10px;padding-left:20px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--jade);"></span>${escapeHtml(sg)}</li>`
     ).join("") + renderPaywallMoreBlock("suggestions");
   }
 
-  // Chevron toggles
+  // Keep the first three bullets visible; clicking the header only reveals the paid teaser.
   ["atsProblemsDetails", "atsSuggestionsDetails"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const chevId = id === "atsProblemsDetails" ? "atsProblemsChev" : "atsSuggestionsChev";
-    el.addEventListener("toggle", () => {
+    el.open = true;
+    el.classList.add("ats-preview-details");
+    el.classList.remove("is-expanded");
+    const summary = el.querySelector("summary");
+    summary?.addEventListener("click", (event) => {
+      event.preventDefault();
+      el.open = true;
+      el.classList.toggle("is-expanded");
       const chev = document.getElementById(chevId);
-      if (chev) chev.style.transform = el.open ? "rotate(0deg)" : "rotate(-90deg)";
+      if (chev) chev.style.transform = el.classList.contains("is-expanded") ? "rotate(0deg)" : "rotate(-90deg)";
     });
+    const chev = document.getElementById(chevId);
+    if (chev) chev.style.transform = "rotate(-90deg)";
   });
 
   // ATS tile detail（覆盖前面的预设）

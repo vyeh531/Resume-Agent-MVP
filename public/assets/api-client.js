@@ -162,9 +162,6 @@ async function scoreResumeAPI(resumeText, jobTitle, jdText) {
     const publicReport = result.publicReport || result.data || {};
     return {
       ...publicReport,
-      premiumMentors: result.premiumMentors || null,
-      premiumAdviceItems: result.premiumAdviceItems || null,
-      mentorLogoPool: result.mentorLogoPool || null,
       reportId: result.reportId || null,
       reportAccessToken: result.reportAccessToken || null,
     };

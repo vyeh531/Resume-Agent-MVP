@@ -1,8 +1,8 @@
 const STORE_KEY = "resumeFixMVP";
 // NOTE: API_BASE is declared in api-client.js (loaded before this file)
-let isSubmitting = false;
+window.__resumeAppState = window.__resumeAppState || { isSubmitting: false, loaderRotateTimer: null };
 
-const Store = {
+window.Store = window.Store || {
   get() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
     catch(e) { return {}; }
@@ -16,9 +16,7 @@ const Store = {
   },
   clear() { try { localStorage.removeItem(STORE_KEY); } catch(e) {} }
 };
-window.Store = Store;
 
-let _loaderRotateTimer = null;
 const ANALYSIS_MESSAGES = [
   ["正在分析简历…",        "导师正在读取你的简历内容"],
   ["正在匹配导师…",        "从 1,300+ 位导师中筛选最适合的大佬"],
@@ -45,11 +43,14 @@ function showLoader(text, subtext, rotate) {
   o.classList.add("show");
 
   // Stop any previous rotation
-  if (_loaderRotateTimer) { clearInterval(_loaderRotateTimer); _loaderRotateTimer = null; }
+  if (window.__resumeAppState.loaderRotateTimer) {
+    clearInterval(window.__resumeAppState.loaderRotateTimer);
+    window.__resumeAppState.loaderRotateTimer = null;
+  }
 
   if (rotate) {
     let idx = 0;
-    _loaderRotateTimer = setInterval(() => {
+    window.__resumeAppState.loaderRotateTimer = setInterval(() => {
       idx = (idx + 1) % ANALYSIS_MESSAGES.length;
       // Fade out → update → fade in
       textEl.style.opacity = "0";
@@ -64,13 +65,16 @@ function showLoader(text, subtext, rotate) {
   }
 }
 function hideLoader() {
-  if (_loaderRotateTimer) { clearInterval(_loaderRotateTimer); _loaderRotateTimer = null; }
+  if (window.__resumeAppState.loaderRotateTimer) {
+    clearInterval(window.__resumeAppState.loaderRotateTimer);
+    window.__resumeAppState.loaderRotateTimer = null;
+  }
   const o = document.querySelector(".loader-overlay");
   if (o) o.classList.remove("show");
 }
 
 async function submitResume(form) {
-  if (isSubmitting) return false;
+  if (window.__resumeAppState.isSubmitting) return false;
   const file     = form.elements["resume"].files[0];
   const job      = form.elements["job"].value.trim();
   const jd       = form.elements["jd"].value.trim();
@@ -79,7 +83,7 @@ async function submitResume(form) {
   if (!file) { errorBox.textContent = "请先上传你的简历文件"; errorBox.classList.add("show"); return false; }
   if (!job && !jd) { errorBox.textContent = "请填写目标岗位或粘贴目标岗位 JD，二选一即可"; errorBox.classList.add("show"); return false; }
   errorBox.classList.remove("show");
-  isSubmitting = true;
+  window.__resumeAppState.isSubmitting = true;
   if (btn) btn.disabled = true;
   try {
     showLoader("准备文件…", "读取简历内容…");
@@ -88,7 +92,7 @@ async function submitResume(form) {
     const atsRaw    = await scoreResumeAPI(resumeText, job || null, jd);
     const atsResult = formatATSResult(atsRaw);
     const targetJob = job || atsRaw.jobTitle || "";
-    Store.set({
+    window.Store.set({
       resumeName: file.name,
       jobTitle: targetJob,
       targetLabel: targetJob,
@@ -97,9 +101,9 @@ async function submitResume(form) {
       atsResult,
       freeMentorAdvice: atsRaw.freeMentorAdvice || null,
       lockedAdvicePreview: atsRaw.lockedAdvicePreview || null,
-      premiumMentors: atsRaw.premiumMentors || null,
-      premiumAdviceItems: atsRaw.premiumAdviceItems || null,
-      mentorLogoPool: atsRaw.mentorLogoPool || atsRaw.lockedAdvicePreview?.mentorLogoPool || atsRaw.freeMentorAdvice?.mentorLogoPool || null,
+      premiumMentors: null,
+      premiumAdviceItems: null,
+      mentorLogoPool: atsRaw.lockedAdvicePreview?.mentorLogoPool || atsRaw.freeMentorAdvice?.mentorLogoPool || null,
       submittedAt: Date.now(),
       isPaid: false,
       mentorAdvice: null
@@ -110,7 +114,7 @@ async function submitResume(form) {
     errorBox.textContent = "❌ " + (err.message || "未知错误");
     errorBox.classList.add("show");
     hideLoader();
-    isSubmitting = false;
+    window.__resumeAppState.isSubmitting = false;
     if (btn) btn.disabled = false;
   }
   return false;
@@ -148,27 +152,70 @@ function bindFileUpload() {
 
 function mockLogin(btn) {
   btn.disabled = true;
-  Store.set({ userId: "mock_" + Date.now() });
+  window.Store.set({ userId: "mock_" + Date.now() });
   setTimeout(() => { window.location.href = "/result"; }, 800);
 }
 function mockPayment(btn) {
   btn.disabled = true;
   showLoader("正在确认支付…", "解锁全部 4 位导师建议");
-  setTimeout(() => { Store.set({ isPaid: true, paidAt: Date.now() }); window.location.href = "/report"; }, 1800);
+  setTimeout(async () => {
+    try {
+      const s = window.Store.get();
+      if (!s.reportId || !s.reportAccessToken) throw new Error("缺少报告解锁凭证");
+
+      const markResponse = await fetch(`/api/v1/reports/${encodeURIComponent(s.reportId)}/mark-paid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportAccessToken: s.reportAccessToken }),
+      });
+      if (!markResponse.ok) {
+        const error = await markResponse.json().catch(() => ({}));
+        throw new Error(error.error || "支付状态更新失败");
+      }
+
+      const unlockResponse = await fetch(`/api/v1/reports/${encodeURIComponent(s.reportId)}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportAccessToken: s.reportAccessToken }),
+      });
+      if (!unlockResponse.ok) {
+        const error = await unlockResponse.json().catch(() => ({}));
+        throw new Error(error.error || "完整报告解锁失败");
+      }
+
+      const unlocked = await unlockResponse.json();
+      const premiumReport = unlocked.premiumReport || {};
+      window.Store.set({
+        isPaid: true,
+        paidAt: Date.now(),
+        premiumMentors: premiumReport.mentors || null,
+        premiumAdviceItems: premiumReport.allAdviceItems || null,
+        mentorLogoPool: premiumReport.mentorLogoPool || s.mentorLogoPool || null,
+      });
+      window.location.href = "/report";
+    } catch (err) {
+      hideLoader();
+      btn.disabled = false;
+      alert(err.message || "支付确认失败，请重试");
+    }
+  }, 1800);
 }
 
 function guardSubmitted() {
-  const s = Store.get();
+  const s = window.Store.get();
   if (!s.resumeName) window.location.href = "/";
+  if (!s.isPaid && (s.premiumMentors || s.premiumAdviceItems)) {
+    window.Store.set({ premiumMentors: null, premiumAdviceItems: null });
+  }
 }
 function guardPaid() {
-  const s = Store.get();
+  const s = window.Store.get();
   if (!s.isPaid) window.location.href = "/result";
 }
 
 function buildMarkdown() {
   const M = window.MOCK || {};
-  const s = Store.get();
+  const s = window.Store.get();
   const sc = M.scores || {};
   const st = M.student || {};
   const lines = [];
@@ -223,3 +270,11 @@ if (document.readyState === "loading") {
 } else {
   initPage();
 }
+
+window.submitResume = submitResume;
+window.mockLogin = mockLogin;
+window.mockPayment = mockPayment;
+window.guardSubmitted = guardSubmitted;
+window.guardPaid = guardPaid;
+window.exportReport = exportReport;
+window.copyReport = copyReport;
