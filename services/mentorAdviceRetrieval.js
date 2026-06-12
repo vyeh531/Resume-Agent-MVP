@@ -3420,6 +3420,10 @@ function formatAdviceCardForPublic(row, retrievalQuery = {}) {
     canonicalActionFamily: row.canonical_action_family || "",
     actionDepth: row.action_depth || "",
     actionReviewStatus: row.action_review_status || "",
+    actionSemanticReviewStatus: row.action_semantic_review_status || "",
+    actionSemanticReviewSource: row.action_semantic_review_source || "",
+    actionSemanticReviewConfidence: row.action_semantic_review_confidence || null,
+    actionSemanticReviewIssues: row.action_semantic_review_issues || [],
     actionDisplayModeUsed: preliminary.usedMode,
     canonicalTitle: row.canonical_title || "",
     titleReviewStatus: row.title_review_status || "",
@@ -3454,6 +3458,8 @@ function baseSelectSql(where, limit = 500) {
       action_specificity, display_action_mode, generalized_action,
       activation_role_family, activation_keywords, grounding_terms,
       canonical_action_family, action_depth, action_review_status,
+      action_semantic_review_status, action_semantic_review_source,
+      action_semantic_review_confidence, action_semantic_review_issues,
       canonical_title, title_review_status, title_source, title_confidence,
       to_jsonb(segments)->>'humanized_mentor_insight' AS humanized_mentor_insight,
       to_jsonb(segments)->>'humanized_hr_perspective' AS humanized_hr_perspective,
@@ -4972,6 +4978,8 @@ function isResumeGroundedAdvice(card = {}, internalAtsResult = {}) {
 }
 
 function isGovernedAdviceDisplayable(card = {}, internalAtsResult = {}) {
+  const semanticStatus = normalizeTerm(card.actionSemanticReviewStatus || card.action_semantic_review_status || "");
+  if (semanticStatus === "blocked") return false;
   const resolved = actionGovernance.resolveDisplayAction(card, governanceContextFromInternal(internalAtsResult));
   if (!resolved.allowed || !resolved.action) return false;
   return actionPreconditionGate(card, internalAtsResult).allowed;
@@ -8134,7 +8142,7 @@ async function retrieveInsiderTips(options = {}) {
     rows = result.rows;
   } catch (err) {
     console.error("[insider-tips] query error:", err.message);
-    return [];
+    return buildGeneralInsiderTips(retrievalQuery, limit);
   }
 
   const tips = rows

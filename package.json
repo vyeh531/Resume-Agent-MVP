@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "check:encoding": "node scripts/check_text_encoding.js",
+    "migrate:analysis-jobs": "node scripts/migrate_analysis_jobs.js",
     "test": "node scripts/test_public_response_boundaries.js"
   },
   "dependencies": {

@@ -1,4 +1,7 @@
-import { startAnalysisJob } from '../../../lib/analysisJobs';
+import { after } from 'next/server';
+import { runAnalysisJob, startAnalysisJob } from '../../../lib/analysisJobs';
+
+export const maxDuration = 300;
 
 export async function POST(request) {
   try {
@@ -16,7 +19,9 @@ export async function POST(request) {
       return Response.json({ success: false, error: 'jobTitle or jdText is required' }, { status: 400 });
     }
 
-    const job = startAnalysisJob({ resumeText, jobTitle, jdText, fileName, userId });
+    const input = { resumeText, jobTitle, jdText, fileName, userId };
+    const job = await startAnalysisJob(input);
+    after(() => runAnalysisJob(job.jobId, input));
     return Response.json({ success: true, job }, { status: 202 });
   } catch (error) {
     return Response.json({ success: false, error: error.message }, { status: 400 });

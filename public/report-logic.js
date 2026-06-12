@@ -11,7 +11,7 @@ if (typeof guardSubmitted === 'function') {
 
 const s = window.Store.get();
 const atsResult = s.atsResult || {};
-if (s.reportId && s.reportAccessToken && (!s.premiumKeywordBreakdown || !s.premiumAdviceItems || !Array.isArray(s.companyInsiderTips))) {
+if (s.reportId && s.reportAccessToken && (!s.premiumKeywordBreakdown || !s.premiumAdviceItems || !Array.isArray(s.companyInsiderTips) || s.companyInsiderTips.length < 1)) {
   fetch(`/api/v1/reports/${encodeURIComponent(s.reportId)}/unlock`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1929,7 +1929,47 @@ function renderInsiderTipsSection(tips) {
   }).join('');
 }
 
-const insiderTips = s.companyInsiderTips || [];
+function buildDefaultCompanyInsiderTips(limit = 4) {
+  const targetRole = getTargetJobTitle() || s.jobTitle || atsResult.jobTitle || atsResult.profile?.targetRole || atsResult.raw?.jobTitle || "目标岗位";
+  const base = [
+    {
+      knowledgeTitle: "ATS 往往先读结构，再读内容",
+      insight: "很多筛选系统会先用 section 标题、日期、职位名和关键词位置判断简历结构；如果 Skills、Experience、Projects 的边界不清楚，后面的关键词即使出现，也可能被归到错误语境里。",
+      knowledgeType: "industry_pattern",
+    },
+    {
+      knowledgeTitle: "招聘方会看关键词出现的位置",
+      insight: "同一个关键词出现在 Skills 和出现在 Experience 里的权重感不一样；只在技能栏出现，容易被当作会用工具，放在经历结果里，才更像真实做过相关任务。",
+      knowledgeType: "talent_profile",
+    },
+    {
+      knowledgeTitle: "JD 的前几条职责通常不是随机排序",
+      insight: "很多岗位描述会把最常筛选的职责和 required skills 放在前半段；如果简历最上方没有回应这些高优先级信号，即使后面内容不错，也可能在快速扫描时被低估。",
+      knowledgeType: "credential_expectation",
+    },
+    {
+      knowledgeTitle: "过度贴合单一 JD 也可能扣分",
+      insight: "简历如果把某一份 JD 的词逐条硬塞进去，反而会显得像关键词堆砌；更稳的做法是覆盖同类岗位都会反复出现的核心信号，让简历对一组相似岗位都有解释力。",
+      knowledgeType: "company_preference",
+    },
+  ];
+  return base.slice(0, Math.max(1, limit)).map((tip, index) => ({
+    company: "通用招聘规律",
+    companyLogo: "",
+    industryLabel: "跨行业筛选",
+    ...tip,
+    relevanceReason: `与你申请的 ${targetRole} 方向相关。`,
+    sourceMentorName: "",
+    sourceMentorTitle: "",
+    sourceTopic: "通用招聘筛选",
+    sourceAdviceId: `general_insider_${index + 1}`,
+    score: Number((0.35 - index * 0.01).toFixed(3)),
+    source: "fallback",
+  }));
+}
+const insiderTips = Array.isArray(s.companyInsiderTips) && s.companyInsiderTips.length
+  ? s.companyInsiderTips
+  : buildDefaultCompanyInsiderTips(4);
 const insiderEl = document.getElementById('insiderTipsList');
 const insiderSection = document.getElementById('insider-tips');
 const insiderDivider = document.getElementById('insider-tips-divider');
@@ -2111,6 +2151,7 @@ function buildAiRewritePdfElement() {
         <li>每条经历尽量写成“动作 + 方法/工具 + 结果/影响”。</li>
         <li>补齐 JD keyword，但不能为了关键词牺牲真实度和可读性。</li>
         <li>语言要专业、简洁、ATS 可读，避免空泛形容词。</li>
+        <li>去 AI 化：避免模板化、过度工整或夸张的 AI 语气；保留用户真实经历的个人表达，句子长短自然，不要写成一眼能看出是模型生成的履历。</li>
       </ul>
     </section>`;
   return el;

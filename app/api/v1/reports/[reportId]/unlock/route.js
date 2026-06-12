@@ -1,6 +1,6 @@
 import db from '../../../../../../database';
 import { formatPremiumUnlockedReport } from '../../../../../../src/ats/report-formatter';
-import { retrieveInsiderTips } from '../../../../../../services/mentorAdviceRetrieval';
+import { buildGeneralInsiderTips, retrieveInsiderTips } from '../../../../../../services/mentorAdviceRetrieval';
 
 function reportTokenFromRequest(request) {
   return (
@@ -49,11 +49,19 @@ export async function POST(request, { params: paramsPromise }) {
           detailedSuggestions: premiumReport?.detailedSuggestions || fallbackPremiumReport.detailedSuggestions || null,
         }
       : premiumReport;
-    if (!Array.isArray(hydratedPremiumReport.companyInsiderTips)) {
-      hydratedPremiumReport.companyInsiderTips = await retrieveInsiderTips({
-        internalAtsResult: unlock.report.internalAtsResult,
-        limit: 4,
-      });
+    if (!Array.isArray(hydratedPremiumReport.companyInsiderTips) || hydratedPremiumReport.companyInsiderTips.length < 1) {
+      try {
+        hydratedPremiumReport.companyInsiderTips = await retrieveInsiderTips({
+          internalAtsResult: unlock.report.internalAtsResult,
+          limit: 4,
+        });
+      } catch (error) {
+        console.warn('[ATS-Report] Insider tips unavailable, using general fallback:', error.message);
+        hydratedPremiumReport.companyInsiderTips = buildGeneralInsiderTips(unlock.report.internalAtsResult?.retrievalQuery || {}, 4);
+      }
+      if (!Array.isArray(hydratedPremiumReport.companyInsiderTips) || hydratedPremiumReport.companyInsiderTips.length < 1) {
+        hydratedPremiumReport.companyInsiderTips = buildGeneralInsiderTips(unlock.report.internalAtsResult?.retrievalQuery || {}, 4);
+      }
     }
     return Response.json({
       success: true,

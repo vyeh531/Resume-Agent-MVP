@@ -17,6 +17,11 @@ const COLUMNS = [
   ["canonical_action_family", "text"],
   ["action_depth", "text"],
   ["action_review_status", "text"],
+  ["action_semantic_review_status", "text"],
+  ["action_semantic_review_source", "text"],
+  ["action_semantic_review_confidence", "numeric"],
+  ["action_semantic_review_issues", "jsonb"],
+  ["action_semantic_reviewed_at", "timestamptz"],
 ];
 
 async function columnExists(pool, column) {
@@ -58,6 +63,7 @@ async function main() {
     await pool.query("CREATE INDEX IF NOT EXISTS idx_segments_display_action_mode ON segments (display_action_mode)");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_segments_canonical_action_family ON segments (canonical_action_family)");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_segments_action_specificity ON segments (action_specificity)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_segments_action_semantic_review_status ON segments (action_semantic_review_status)");
     await pool.query("COMMIT");
   } catch (error) {
     await pool.query("ROLLBACK");

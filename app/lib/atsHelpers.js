@@ -16,6 +16,7 @@ import {
   formatPublicFreeMentorAdvice,
   formatPremiumMentorReport,
   retrieveInsiderTips,
+  buildGeneralInsiderTips,
 } from '../../services/mentorAdviceRetrieval';
 import { parsePDF, parseDocx } from '../../file-parser';
 import db from '../../database';
@@ -99,7 +100,26 @@ export async function buildAtsReportPayload(rawScoreResult, input, userId = null
   const internalAtsResult = formatInternalAtsResult(rawScoreResult, input);
   mark('format_internal_ats');
   const retrievalQuery = internalAtsResult.retrievalQuery;
-  const mentorCandidates = await retrieveMentorAdvice(retrievalQuery);
+  let mentorCandidates = [];
+  try {
+    mentorCandidates = await retrieveMentorAdvice(retrievalQuery);
+  } catch (error) {
+    console.warn('[Advice Retrieval] unavailable, using fallback advice:', error.message);
+    mentorCandidates = [];
+    Object.defineProperty(mentorCandidates, 'debug', {
+      enumerable: false,
+      value: {
+        strictCandidates: 0,
+        fallbackCandidates: 0,
+        rawRows: 0,
+        eligibleRows: 0,
+        excludedInterviewAdvice: 0,
+        maxRoleMismatchPenalty: 0,
+        selectedScope: 'offline_fallback',
+        retrievalQuery,
+      },
+    });
+  }
   mark('retrieve_mentor_advice');
   const freeMentorPlan = selectFreeMentorPlan(mentorCandidates, internalAtsResult);
   const premiumMentorPlan = selectPremiumMentorPlan(mentorCandidates, internalAtsResult, freeMentorPlan);
@@ -107,7 +127,16 @@ export async function buildAtsReportPayload(rawScoreResult, input, userId = null
   const freeAdvice = formatPublicFreeMentorAdvice(freeMentorPlan, internalAtsResult);
   const paidAdvice = premiumMentorPlan.slice(1);
   const premiumMentorReport = formatPremiumMentorReport(premiumMentorPlan, internalAtsResult);
-  const companyInsiderTips = await retrieveInsiderTips({ internalAtsResult, limit: 4 });
+  let companyInsiderTips = [];
+  try {
+    companyInsiderTips = await retrieveInsiderTips({ internalAtsResult, limit: 4 });
+  } catch (error) {
+    console.warn('[Insider Tips] unavailable, using general fallback:', error.message);
+    companyInsiderTips = buildGeneralInsiderTips(internalAtsResult.retrievalQuery || {}, 4);
+  }
+  if (!Array.isArray(companyInsiderTips) || companyInsiderTips.length < 1) {
+    companyInsiderTips = buildGeneralInsiderTips(internalAtsResult.retrievalQuery || {}, 4);
+  }
   mark('format_reports');
   logRetrievalDebug({
     reportContext: input?.jobTitle || rawScoreResult.jobTitle || 'unknown',
