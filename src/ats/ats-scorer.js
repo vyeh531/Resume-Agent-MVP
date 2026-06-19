@@ -1,6 +1,7 @@
 "use strict";
 
 const { findRoleDictionaryEntry, inferCanonicalRoleFamily, roleToProfile } = require("./role-dictionary");
+const { analyzeMarketingResume } = require("./marketing-lens");
 
 const STOP_WORDS = new Set([
   "the", "a", "an", "and", "or", "of", "in", "to", "for", "is", "are", "be",
@@ -2085,8 +2086,10 @@ function detectShortTenures(entries) {
   for (const entry of entries) {
     const dur = entry.dateRange.durationMonths;
     if (dur >= 0 && dur <= 3) {
-      const text = entry.titleLines.join(" ").toLowerCase();
-      const isIntern = /intern|internship|co-?op|contractor|contract\b|temp\b|temporary|part[- ]time|volunteer/i.test(text);
+      const titleText = entry.titleLines.join(" ");
+      const fullText = `${titleText} ${entry.rawText || ""}`;
+      if (!looksLikeEmploymentEntry(entry)) continue;
+      const isIntern = /intern|internship|co-?op|contractor|contract\b|temp\b|temporary|part[- ]time|volunteer/i.test(fullText);
       if (!isIntern) {
         // Priority 1: a line that looks like a company name (has legal/tech suffix)
         const companyLine = entry.titleLines.find((l) =>
@@ -2107,6 +2110,24 @@ function detectShortTenures(entries) {
     }
   }
   return issues;
+}
+
+function looksLikeEmploymentEntry(entry) {
+  const titleText = entry.titleLines.join(" ");
+  const rawText = entry.rawText || "";
+  const combined = `${titleText} ${rawText}`;
+  const hasProjectSignal = /\b(project|capstone|case\s+study|coursework|academic|competition|hackathon|research\s+project|portfolio)\b/i.test(combined);
+  const hasEmploymentSignal = /\b(engineer|developer|analyst|manager|specialist|consultant|assistant|associate|coordinator|designer|marketer|strategist|intern|internship|trainee|contractor|founder|lead|director|officer|researcher|scientist|editor|producer|tutor|teacher)\b/i.test(titleText);
+  const hasCompanySignal = entry.titleLines.some((l) =>
+    !/\d{4}/.test(l) &&
+    /\b(inc\.?|l\.?l\.?c\.?|ltd\.?|co\.,|corp\.?|company|agency|group|studio|labs?|laborator(?:y|ies)|technology|technologies|tech|systems?|solutions?|consulting|capital|ventures?|university|college|school|institute|department)\b/i.test(l)
+  );
+  const hasWorkBullets = getBulletLines(rawText).some((line) =>
+    /\b(client|customer|stakeholder|team|cross-functional|production|launched|shipped|deployed|managed|owned|supported|reported|revenue|budget|sales|campaign|operations)\b/i.test(line)
+  );
+
+  if (hasProjectSignal && !(hasCompanySignal && hasEmploymentSignal)) return false;
+  return hasCompanySignal || hasEmploymentSignal || hasWorkBullets;
 }
 
 function computeMustHaveFrequencyBonus(coreSkills, resumeText) {
@@ -2226,21 +2247,6 @@ function hasInconsistentMonthStyle(text) {
 
 function checkGPA(educationText) {
   return /\b(GPA|G\.P\.A\.)\s*[:;]?\s*\d\.\d|\b\d\.\d+\s*[\/]\s*4(\.\d+)?\b/i.test(educationText);
-}
-
-function extractGpaValue(educationText) {
-  const text = String(educationText || "");
-  const patterns = [
-    /\b(?:GPA|G\.P\.A\.)\s*[:;]?\s*([0-4](?:\.\d{1,2})?)\s*(?:\/\s*4(?:\.0)?)?/i,
-    /\b([0-4](?:\.\d{1,2})?)\s*\/\s*4(?:\.0)?\b/i,
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (!match) continue;
-    const value = Number(match[1]);
-    if (Number.isFinite(value) && value >= 0 && value <= 4.33) return value;
-  }
-  return null;
 }
 
 function checkSectionHasDates(text) {
@@ -2499,11 +2505,15 @@ const PROBLEM_TAG_DEFS = {
   repetitive_verbs:          { dimension: "C", topic: "content_quality",       severity: "low",      retrievalWeight: 0.4  },
   low_bullet_coverage:       { dimension: "C", topic: "content_quality",       severity: "medium",   retrievalWeight: 0.5  },
   short_tenure_unexplained:  { dimension: "C", topic: "career_narrative",      severity: "high",     retrievalWeight: 0.6  },
+  marketing_metric_gap:      { dimension: "C", topic: "content_quality",       severity: "medium",   retrievalWeight: 0.72 },
+  marketing_audience_channel_gap: { dimension: "C", topic: "experience_rewrite", severity: "medium", retrievalWeight: 0.7 },
   // D
   keyword_gap_critical:      { dimension: "D", topic: "keyword_alignment",     severity: "critical", retrievalWeight: 0.9  },
   keyword_gap_major:         { dimension: "D", topic: "keyword_alignment",     severity: "high",     retrievalWeight: 0.75 },
   keyword_gap_minor:         { dimension: "D", topic: "keyword_alignment",     severity: "medium",   retrievalWeight: 0.5  },
   missing_tools:             { dimension: "D", topic: "tools_alignment",       severity: "high",     retrievalWeight: 0.7  },
+  marketing_tool_gap:         { dimension: "D", topic: "keyword_alignment",     severity: "high",     retrievalWeight: 0.78 },
+  marketing_experience_keyword_gap: { dimension: "D", topic: "experience_rewrite", severity: "medium", retrievalWeight: 0.68 },
   // E
   all_china_experience:      { dimension: "E", topic: "market_fit",            severity: "critical", retrievalWeight: 0.9  },
   partial_china_experience:  { dimension: "E", topic: "market_fit",            severity: "high",     retrievalWeight: 0.7  },
@@ -2512,6 +2522,7 @@ const PROBLEM_TAG_DEFS = {
   role_mismatch:             { dimension: "F", topic: "career_positioning",    severity: "high",     retrievalWeight: 0.8  },
   job_title_mismatch:        { dimension: "F", topic: "career_positioning",    severity: "medium",   retrievalWeight: 0.55 },
   summary_missing_role:      { dimension: "F", topic: "career_positioning",    severity: "medium",   retrievalWeight: 0.5  },
+  marketing_business_goal_gap:{ dimension: "F", topic: "summary_positioning",  severity: "medium",   retrievalWeight: 0.66 },
   career_growth_optimization:{ dimension: "F", topic: "career_growth",         severity: "low",      retrievalWeight: 0.35 }
 };
 
@@ -2850,8 +2861,6 @@ function detectResumeSectionTitles(text) {
     { title: "Education", key: "education", re: /^(education|academic background)\b/i },
     { title: "Activities", key: "activities", re: /^(activities|leadership activities|extracurriculars?)\b/i },
     { title: "Awards", key: "awards", re: /^(awards?|honors?)\b/i },
-    { title: "Interests", key: "interests", re: /^(interests?|hobbies)\b/i },
-    { title: "Languages", key: "languages", re: /^(languages?)\b/i },
     { title: "Publications", key: "publications", re: /^(publications?|papers?|research publications?)\b/i },
     { title: "Certifications", key: "certifications", re: /^(certifications?|licenses?)\b/i }
   ];
@@ -2915,8 +2924,6 @@ function buildResumeFacts({
   const educationIndex = detectSectionOrder(sectionTitles, "education");
   const experienceIndex = detectSectionOrder(sectionTitles, "experience");
   const projectsIndex = detectSectionOrder(sectionTitles, "projects");
-  const sectionOrder = unique(sectionTitles.map((item) => item.key));
-  const sectionPositions = Object.fromEntries(sectionOrder.map((key, index) => [key, index]));
   const allTerms = unique(keywordMatch?.allTerms || []);
   const presentInResume = unique(keywordMatch?.allMatched || termsPresentInText(allTerms, normalized));
   const presentInSkills = termsPresentInText(allTerms, skillsText);
@@ -2928,7 +2935,6 @@ function buildResumeFacts({
   const missingDatesSections = [];
   if (educationText.trim() && !educationHasDates) missingDatesSections.push("education");
   if (projectsText.trim() && !projectsHasDates) missingDatesSections.push("projects");
-  const gpaValue = extractGpaValue(educationText);
 
   const hasProfessionalExperienceTitle = detectedTitles.includes("Professional Experience");
   const hasInternshipTitle = detectedTitles.includes("Internship");
@@ -2941,8 +2947,6 @@ function buildResumeFacts({
     sections: {
       detectedTitles,
       normalizedSections,
-      sectionOrder,
-      sectionPositions,
       hasSummary: Boolean((summaryText || "").trim()),
       hasObjective: detectedTitles.includes("Objective"),
       hasExperience: Boolean((sections?.experience || "").trim()),
@@ -2953,8 +2957,6 @@ function buildResumeFacts({
       hasSkills: Boolean((skillsText || "").trim()),
       hasActivities: normalizedSections.includes("activities"),
       hasAwards: normalizedSections.includes("awards"),
-      hasInterests: normalizedSections.includes("interests"),
-      hasLanguages: normalizedSections.includes("languages"),
       hasPublications: normalizedSections.includes("publications"),
       hasCertifications: normalizedSections.includes("certifications"),
       educationBeforeExperience: educationIndex >= 0 && experienceIndex >= 0 && educationIndex < experienceIndex,
@@ -3017,8 +3019,7 @@ function buildResumeFacts({
     },
     education: {
       hasCoursework: Boolean(hasCoursework),
-      hasGPA: Boolean(hasGPA),
-      gpaValue
+      hasGPA: Boolean(hasGPA)
     }
   };
 }
@@ -3213,6 +3214,16 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const targetRole = detectRoleFamily(roleSource || jobTitle);
   const explicitTargetRole = detectExplicitTargetRole(jobTitle, jdText);
   const resumeRole = detectRoleFamily(normalized);
+  const marketingLens = analyzeMarketingResume({
+    jobTitle,
+    jdText,
+    resumeText: normalized,
+    sections,
+    rawBullets,
+    keywordProfile,
+    keywordMatch,
+    detectedRole: targetRole
+  });
   F = clamp(F, 0, DIMENSION_MAX.F);
 
   const wordCount = normalized.split(/\s+/).filter(Boolean).length;
@@ -3287,6 +3298,16 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     targetRole, resumeRole, jobTitleAligned, summaryMentionsRole, total
   };
   const problemTags = buildProblemTags(problemTagsInput);
+  if (marketingLens.active) {
+    const existingTags = new Set(problemTags.map((item) => item.tag));
+    for (const tag of marketingLens.tags) {
+      const tagItem = makeTag(tag);
+      if (tagItem && !existingTags.has(tagItem.tag)) {
+        problemTags.push(tagItem);
+        existingTags.add(tagItem.tag);
+      }
+    }
+  }
   const problemEvidence = buildProblemEvidence({
     expLocationResult,
     rawBullets,
@@ -3315,11 +3336,17 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     allChina, hasAnyChinaExp, formatPenaltyTriggered, isChronological, shortTenures,
     exactJobTitle, scoreCaps
   });
+  if (marketingLens.active) {
+    problems.push(...marketingLens.problems);
+  }
   const suggestions = buildSuggestions({
     hasJD, missingKeywords, keywordMatch, quantifiedCount, strongVerbCount, impactCount,
     targetRole, resumeRole, allChina, hasAnyChinaExp, isChronological, shortTenures,
     hasSummary, isRecentGraduate, exactJobTitle
   });
+  if (marketingLens.active) {
+    suggestions.push(...marketingLens.suggestions);
+  }
 
   const dimensionProblems = buildDimensionProblems({
     checks: {
