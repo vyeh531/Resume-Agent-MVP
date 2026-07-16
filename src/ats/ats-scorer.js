@@ -795,6 +795,15 @@ function normalizeText(text) {
     .replace(/\ufeff/g, ""); // strip BOM
 }
 
+function normalizeQuantifierText(text) {
+  return normalizeText(text)
+    .replace(/[\uFF10-\uFF19]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10))
+    .replace(/\uFF05/g, "%")
+    .replace(/\uFF0C/g, ",")
+    .replace(/\uFF0E/g, ".")
+    .replace(/\u00A0/g, " ");
+}
+
 function tokenize(text) {
   return normalizeText(text)
     .toLowerCase()
@@ -1207,7 +1216,7 @@ function parseSectionsLegacy(text) {
   // pdf-parse strips spaces, turning section headers into single merged words.
   const headingMap = [
     ["summary", /^(summary|profile|professionalsummary|professional summary|careerobjective|career objective|objective)\b/i, ["summary", "profile", "professionalsummary", "professional summary", "careerobjective", "career objective", "objective"]],
-    ["experience", /^(experience|workexperience|work experience|professionalexperience|professional experience|employment)\b/i, ["professionalexperience", "professional experience", "workexperience", "work experience", "experience", "employment"]],
+    ["experience", /^(experience|workexperience|work experience|professionalexperience|professional experience|employment|employment history|career history|work history|relevant experience|relevant work experience|selected experience|leadership experience|work\s*(?:&|and)\s*leadership experience|internship experience)\b/i, ["professionalexperience", "professional experience", "workexperience", "work experience", "relevantworkexperience", "relevant work experience", "relevantexperience", "relevant experience", "selectedexperience", "selected experience", "leadershipexperience", "leadership experience", "workandleadershipexperience", "work and leadership experience", "work&leadershipexperience", "work & leadership experience", "internshipexperience", "internship experience", "employment history", "career history", "work history", "experience", "employment"]],
     ["projects", /^(projects?|projectexperience|project experience|selectedprojects|selected projects)\b/i, ["projectexperience", "project experience", "selectedprojects", "selected projects", "projects", "project"]],
     ["skills", /^(skills?|technicalskills?|technical skills?|coreskills?|core skills?|competencies)\b/i, ["technicalskills", "technical skills", "coreskills", "core skills", "competencies", "skills", "skill"]],
     ["education", /^(education|academicbackground|academic background)\b/i, ["academicbackground", "academic background", "education"]],
@@ -1236,7 +1245,7 @@ function parseSections(text) {
 
   const headingMap = [
     ["summary", /^(summary|profile|professionalsummary|professional summary|careerobjective|career objective|objective)\b/i, ["summary", "profile", "professionalsummary", "professional summary", "careerobjective", "career objective", "objective"]],
-    ["experience", /^(experience|workexperience|work experience|professionalexperience|professional experience|employment)\b/i, ["professionalexperience", "professional experience", "workexperience", "work experience", "experience", "employment"]],
+    ["experience", /^(experience|workexperience|work experience|professionalexperience|professional experience|employment|employment history|career history|work history|relevant experience|relevant work experience|selected experience|leadership experience|work\s*(?:&|and)\s*leadership experience|internship experience)\b/i, ["professionalexperience", "professional experience", "workexperience", "work experience", "relevantworkexperience", "relevant work experience", "relevantexperience", "relevant experience", "selectedexperience", "selected experience", "leadershipexperience", "leadership experience", "workandleadershipexperience", "work and leadership experience", "work&leadershipexperience", "work & leadership experience", "internshipexperience", "internship experience", "employment history", "career history", "work history", "experience", "employment"]],
     ["projects", /^(projects?|projectexperience|project experience|selectedprojects|selected projects)\b/i, ["projectexperience", "project experience", "selectedprojects", "selected projects", "projects", "project"]],
     ["skills", /^(skills?|technicalskills?|technical skills?|coreskills?|core skills?|competencies)\b/i, ["technicalskills", "technical skills", "coreskills", "core skills", "competencies", "skills", "skill"]],
     ["education", /^(education|academicbackground|academic background)\b/i, ["academicbackground", "academic background", "education"]],
@@ -1282,11 +1291,13 @@ function sectionText(sections, names) {
 }
 
 function bulletsFromSection(text) {
-  return getBulletLines(text).map((line) => line.replace(/^[^a-zA-Z]+/, "").trim());
+  return getBulletLines(text).map(stripBulletMarker);
 }
 
 function stripBulletMarker(line) {
-  return String(line || "").replace(/^[^a-zA-Z]+/, "").trim();
+  return String(line || "")
+    .replace(/^\s*(?:[-*]|\d+[.)]|[A-Za-z][.)])\s*/, "")
+    .trim();
 }
 
 function hasQuantifiedResult(text) {
@@ -1294,7 +1305,26 @@ function hasQuantifiedResult(text) {
 }
 
 function countQuantifiedResults(text) {
-  const matches = normalizeText(text).match(/\d+\s*%|\$[\d,]+[kKmMbB]?|\b\d+[kKmMbB]\b|\b[1-9]\d{2,}\b|\b\d+x\b/gi) || [];
+  const source = normalizeQuantifierText(text);
+  const number = String.raw`\d+(?:,\d{3})*(?:\.\d+)?`;
+  const metricUnits = [
+    "users?", "customers?", "clients?", "employees?", "engineers?", "students?",
+    "transactions?", "requests?", "events?", "records?", "rows?", "datasets?",
+    "models?", "reports?", "dashboards?", "campaigns?", "projects?", "features?",
+    "services?", "apis?", "locations?", "markets?", "teams?", "stakeholders?",
+    "accounts?", "tickets?", "bugs?", "incidents?", "experiments?", "tests?",
+    "hours?", "minutes?", "days?", "weeks?", "months?",
+    "people", "members?", "partners?", "vendors?"
+  ].join("|");
+  const chineseMetricUnits = String.raw`[\u4e2a\u540d\u4f4d\u4eba\u5bb6\u6b21\u9879\u6761\u4efd\u5c0f\u65f6\u5206\u949f\u5929\u5468\u6708\u4e07\u5343\u4ebf]`;
+  const matches = source.match(new RegExp([
+    String.raw`(?:[$\u20AC\u00A3\u00A5]|\b(?:usd|cad|aud|eur|gbp|rmb|cny)\b)\s*${number}\s*(?:k|m|b|mm|bn|thousand|million|billion)?\+?`,
+    String.raw`${number}\+?\s*(?:%|\b(?:percent(?:age)?(?:\s+points?)?|pp|bps?|x|times|fold)\b)`,
+    String.raw`${number}\s*(?:k|m|b|mm|bn|thousand|million|billion)\+?\b`,
+    String.raw`${number}\+?(?:\s+|-)*(?:major\s+|new\s+|legacy\s+|daily\s+|weekly\s+|monthly\s+)?(?:${metricUnits})\b`,
+    String.raw`${number}\s*${chineseMetricUnits}\+?`,
+    String.raw`\b(?:[1-9]\d{2,}|\d{1,3}(?:,\d{3})+)\+?\b`
+  ].join("|"), "gi")) || [];
   return matches.filter((m) => {
     const digits = m.replace(/[^0-9]/g, "");
     return !/^20[0-3]\d$/.test(digits);
