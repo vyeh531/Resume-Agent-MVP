@@ -122,6 +122,16 @@ const DIMENSION_MAX = {
   F: 23
 };
 
+const KEYWORD_PROFILE_LIMITS = {
+  core_skills: 11,
+  tools: 10,
+  domain_keywords: 10,
+  nice_to_have: 10,
+  action_verbs: 8
+};
+
+const TOP_MISSING_KEYWORD_LIMIT = 17;
+
 const SOFT_KEYWORD_TERMS = new Set([
   "communication", "communicate effectively", "communicated", "collaboration",
   "cross-functional collaboration", "cross-team collaboration", "stakeholder management",
@@ -407,6 +417,10 @@ const CATEGORY_PHRASES = {
     "foundation design", "retaining wall design", "site grading",
     // Education / Instructional Design
     "curriculum development", "lesson planning", "instructional design",
+    "lesson plans", "curriculum implementation", "classroom leadership",
+    "early childhood education", "child development", "family communication",
+    "licensing guidelines", "licensing compliance", "preschool education",
+    "montessori method", "montessori materials",
     "e-learning", "learning management system", "lms", "classroom management",
     "differentiated instruction", "assessment design", "student outcomes",
     "pedagogy", "tutoring", "academic advising", "educational technology",
@@ -595,6 +609,9 @@ const CATEGORY_PHRASES = {
     "k-12", "higher education", "professional development",
     "training and development", "accreditation", "learning objectives",
     "course design", "syllabus development", "faculty development",
+    "montessori", "montessori method", "early education", "preschool",
+    "child care", "daycare", "mixed-age classrooms", "young learners",
+    "lifelong learners", "preschool children",
     // Healthcare domain (clinical/operational)
     "value-based care", "health outcomes", "patient satisfaction",
     "clinical workflow", "telemedicine", "telehealth", "care management",
@@ -781,6 +798,29 @@ const FALLBACK_ROLE_LEXICON = {
     action_verbs: ["analyze", "build", "report", "visualize"],
     domain_keywords: ["kpi", "customer analytics", "stakeholder communication"],
     nice_to_have: ["statistics", "etl"]
+  },
+  "lead teacher": {
+    target_role: ["lead teacher", "preschool teacher", "early childhood teacher"],
+    core_skills: [
+      "classroom management", "lesson planning", "lesson plans",
+      "curriculum implementation", "child development", "early childhood education",
+      "family communication", "licensing guidelines"
+    ],
+    tools: [],
+    action_verbs: ["teach", "develop", "mentor", "lead", "communicate", "create"],
+    domain_keywords: ["montessori", "preschool", "child care", "early education", "mixed-age classrooms"],
+    nice_to_have: ["teaching credential", "cpr", "first aid"]
+  },
+  "teacher": {
+    target_role: ["teacher", "preschool teacher", "early childhood teacher"],
+    core_skills: [
+      "classroom management", "lesson planning", "curriculum development",
+      "child development", "student engagement", "family communication"
+    ],
+    tools: [],
+    action_verbs: ["teach", "develop", "mentor", "communicate", "create"],
+    domain_keywords: ["education", "preschool", "child care", "early education"],
+    nice_to_have: ["teaching credential", "cpr", "first aid"]
   }
 };
 
@@ -860,7 +900,7 @@ function buildKeywordProfile(jdText = "", jobTitle = "") {
 
   if (jdText && jdText.trim()) {
     const jdProfile = extractJdProfile(jdText, jobTitle);
-    return normalizeProfile({
+    return limitKeywordProfile(normalizeProfile({
       source: roleEntry ? "jd+role_dictionary" : "jd",
       role_id: roleEntry?.role_id || null,
       canonical_role: roleEntry?.canonical_role || null,
@@ -870,17 +910,17 @@ function buildKeywordProfile(jdText = "", jobTitle = "") {
       action_verbs: unique([...jdProfile.action_verbs, ...termsFromJdThatMatchRole(jdText, roleProfile?.action_verbs || [])]),
       domain_keywords: unique([...jdProfile.domain_keywords, ...termsFromJdThatMatchRole(jdText, roleProfile?.domain_keywords || [])]),
       nice_to_have: unique([...jdProfile.nice_to_have, ...termsFromJdThatMatchRole(jdText, roleProfile?.nice_to_have || [])])
-    });
+    }));
   }
   if (roleProfile) {
-    return normalizeProfile({
+    return limitKeywordProfile(normalizeProfile({
       source: "role_dictionary",
       role_id: roleEntry.role_id,
       canonical_role: roleEntry.canonical_role,
       ...roleProfile
-    });
+    }));
   }
-  return fallbackRoleProfile(jobTitle);
+  return limitKeywordProfile(fallbackRoleProfile(jobTitle));
 }
 
 function termsFromJdThatMatchRole(jdText, roleTerms) {
@@ -899,8 +939,10 @@ function extractJdProfile(jdText, jobTitle = "") {
   const respText = cleanLines(sections.responsibilities);
   const niceText = cleanLines(sections.nice_to_have);
   const otherText = cleanLines(sections.other);
-  // Priority order: requirements first, then responsibilities, nice_to_have, other
-  const orderedTexts = [reqText, respText, niceText, otherText];
+  const focusedTexts = [reqText, respText, niceText].filter((text) => text.trim());
+  // Priority order: requirements first, then responsibilities, nice_to_have.
+  // If a JD has no recognizable structure, fall back to the full text.
+  const orderedTexts = focusedTexts.length ? [reqText, respText, niceText] : [otherText];
   const allText = orderedTexts.join("\n");
 
   const collectOrdered = (categoryTerms) => {
@@ -995,6 +1037,14 @@ function normalizeProfile(profile) {
   return normalized;
 }
 
+function limitKeywordProfile(profile) {
+  const limited = { ...profile };
+  for (const [key, limit] of Object.entries(KEYWORD_PROFILE_LIMITS)) {
+    limited[key] = (limited[key] || []).slice(0, limit);
+  }
+  return limited;
+}
+
 function cleanKeyword(value) {
   return String(value || "")
     .toLowerCase()
@@ -1006,7 +1056,7 @@ function cleanKeyword(value) {
 function parseJdSections(jdText) {
   const normalized = normalizeText(jdText);
   const lines = normalized.split("\n");
-  const sections = { requirements: [], responsibilities: [], nice_to_have: [], other: [] };
+  const sections = { requirements: [], responsibilities: [], nice_to_have: [], other: [], ignored: [] };
   let current = "other";
 
   for (const rawLine of lines) {
@@ -1017,6 +1067,7 @@ function parseJdSections(jdText) {
 
     if (isShort && (
       /\b(what we'?re looking for|requirements?|qualifications?|must.?have|required skills?|required qualifications?)\b/.test(lower) ||
+      /\bwe want\b.*\b(have|with|required|requirements?)\b/.test(lower) ||
       /【?(任职要求|要求)】?/.test(line)
     )) { current = "requirements"; continue; }
 
@@ -1026,11 +1077,17 @@ function parseJdSections(jdText) {
 
     if (isShort && (
       /\b(what you'?ll work on|what you'?ll do|responsibilities?|duties|your role|job summary)\b/.test(lower) ||
+      /^as\s+(?:an?\s+)?[a-z][a-z\s/-]{2,60},?\s+you'?ll:?$/.test(lower) ||
       /【?(岗位职责|职责)】?/.test(line)
     )) { current = "responsibilities"; continue; }
 
+    if (isShort && /\b(what we offer|we offer|benefits?|perks?|compensation)\b/.test(lower)) {
+      current = "ignored";
+      continue;
+    }
+
     if (isShort && (
-      /\b(about us|about the company|who we are|what we offer|we offer|benefits?|perks?|compensation)\b/.test(lower) ||
+      /\b(about us|about the company|who we are)\b/.test(lower) ||
       /【?(公司|公司介绍|网站|地点|关于)】?/.test(line)
     )) { current = "other"; continue; }
 
@@ -1058,14 +1115,22 @@ function getJdKeywordText(text) {
     const startsRelevant = /【?(岗位职责|任职要求|职责|要求)】?|^(responsibilities?|requirements?|qualifications?|what you will do|what you'?ll work on|what we'?re looking for|duties|nice to have|nice-to-have)\b/i.test(line);
     const startsIrrelevant = /【?(公司|公司介绍|网站|地点|岗位)】?|^(about us|about the company|about [a-z]+:|company|website|location|what we offer|benefits?|perks?)\b/i.test(line);
 
-    if (startsRelevant) {
+    const startsRelevantExtended =
+      startsRelevant ||
+      /^as\s+(?:an?\s+)?[a-z][a-z\s/-]{2,60},?\s+you'?ll:?$/i.test(line) ||
+      /^we want\b.*\b(have|with|required|requirements?)\b/i.test(line);
+    const startsIrrelevantExtended =
+      startsIrrelevant ||
+      /^compensation\b/i.test(line);
+
+    if (startsRelevantExtended) {
       active = true;
       const afterColon = line.split(/[：:]/).slice(1).join(":").trim();
       if (afterColon) kept.push(afterColon);
       continue;
     }
 
-    if (startsIrrelevant && isHeader) {
+    if (startsIrrelevantExtended && (isHeader || /^compensation\b/i.test(line))) {
       active = false;
       continue;
     }
@@ -2830,7 +2895,7 @@ function buildPriorityMissingKeywords(keywordMatch, targetRole) {
   }
 
   const order = { high: 0, medium: 1, low: 2 };
-  return result.sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9)).slice(0, 10);
+  return result.sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9)).slice(0, TOP_MISSING_KEYWORD_LIMIT);
 }
 
 function roleNeedsPortfolio(role) {
@@ -3510,7 +3575,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
         resumeOutdated
       }
     },
-    topMissingKeywords: missingKeywords.slice(0, 12),
+    topMissingKeywords: missingKeywords.slice(0, TOP_MISSING_KEYWORD_LIMIT),
     problems: problems.slice(0, 6),
     suggestions: suggestions.slice(0, 6),
     dimensionProblems,

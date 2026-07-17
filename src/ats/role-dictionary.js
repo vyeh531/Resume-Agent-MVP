@@ -21,7 +21,9 @@ function findRoleDictionaryEntry(jobTitle = "", jdText = "") {
   const roles = loadRoleDictionary();
   if (!roles.length) return null;
 
-  const target = normalize(`${jobTitle} ${jdText}`).slice(0, 5000);
+  const titleTarget = normalize(jobTitle);
+  const jdTarget = normalize(jdText).slice(0, 5000);
+  const hasJobTitle = Boolean(titleTarget);
   let best = null;
   let bestScore = 0;
 
@@ -33,14 +35,27 @@ function findRoleDictionaryEntry(jobTitle = "", jdText = "") {
     ].filter(Boolean);
 
     let score = 0;
+    let titleScore = 0;
     for (const alias of aliases) {
       const cleanAlias = normalize(alias);
       if (!cleanAlias) continue;
-      if (target.includes(cleanAlias)) score += 8 + cleanAlias.split(/\s+/).length;
-      else {
-        const overlap = tokenOverlap(cleanAlias, target);
+
+      if (hasJobTitle) {
+        const overlap = tokenOverlap(cleanAlias, titleTarget);
+        const aliasTokens = cleanAlias.split(/\s+/).filter((token) => token.length > 2);
+        if (phraseMatch(titleTarget, cleanAlias)) titleScore += 12 + aliasTokens.length;
+        else if (aliasTokens.length >= 2 && overlap >= 0.6) titleScore += overlap * 8;
+      } else if (phraseMatch(jdTarget, cleanAlias)) {
+        score += 8 + cleanAlias.split(/\s+/).length;
+      } else {
+        const overlap = tokenOverlap(cleanAlias, jdTarget);
         score += overlap * 4;
       }
+    }
+
+    if (hasJobTitle) {
+      if (titleScore <= 0) continue;
+      score += titleScore;
     }
 
     if (score > bestScore) {
@@ -109,9 +124,18 @@ function tokenOverlap(a, b) {
   if (!aTokens.size) return 0;
   let hits = 0;
   for (const token of aTokens) {
-    if (b.includes(token)) hits += 1;
+    if (phraseMatch(b, token)) hits += 1;
   }
   return hits / aTokens.size;
+}
+
+function phraseMatch(text, phrase) {
+  if (!text || !phrase) return false;
+  return new RegExp(`(^|[^a-z0-9+#])${escapeRegExp(phrase)}([^a-z0-9+#]|$)`, "i").test(text);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function unique(items) {
