@@ -1648,10 +1648,14 @@ function compareKeywordProfile(profile, resumeText) {
   let activeWeight = 0;
   let weightedRatio = 0;
   let exactPhraseCount = 0;
+  const experienceEvidence = analyzeKeywordEvidence(profile, resumeText);
 
   for (const [category, weight] of Object.entries(categoryWeights)) {
     const terms = profile[category] || [];
-    const matches = terms.map((term) => matchTermWithCredit(resumeText, term, category));
+    const matches = terms.map((term) => applyContextualKeywordCredit(
+      matchTermWithCredit(resumeText, term, category),
+      experienceEvidence.byTerm[cleanKeyword(term)]
+    ));
     const matched = matches.filter((m) => m.credit > 0).map((m) => m.term);
     const exactMatched = matches.filter((m) => m.type === "exact").map((m) => m.term);
     const normalizedMatched = matches.filter((m) => m.type === "normalized").map((m) => m.term);
@@ -1698,7 +1702,7 @@ function compareKeywordProfile(profile, resumeText) {
     softTermCount: softMatches.length,
     combinedKeywordCoverage: coverageFromMatches([...hardMatches, ...softMatches]),
     exactPhraseCount,
-    experienceEvidence: analyzeKeywordEvidence(profile, resumeText)
+    experienceEvidence
   };
 }
 
@@ -1876,21 +1880,231 @@ function analyzeKeywordEvidence(profile, resumeText) {
   const sections = parseSections(resumeText);
   const experienceProjectsText = sectionText(sections, ["experience", "projects"]);
   const skillsText = sectionText(sections, ["skills"]);
+  const summaryText = sectionText(sections, ["summary", "header"]);
+  const rawBullets = getBulletLines(experienceProjectsText).map(stripBulletMarker);
   const terms = unique([
     ...(profile.core_skills || []),
     ...(profile.tools || []),
     ...(profile.domain_keywords || [])
   ].map(cleanKeyword).filter(Boolean)).slice(0, 40);
-  const matched = terms.filter((term) => resumeHasTerm(resumeText, term));
-  const inExperience = matched.filter((term) => resumeHasTerm(experienceProjectsText, term));
-  const skillsOnly = matched.filter((term) => !resumeHasTerm(experienceProjectsText, term) && resumeHasTerm(skillsText, term));
+  const bulletAbuse = analyzeBulletAbuse(rawBullets, terms);
+
+  const byTerm = {};
+  let totalOccurrences = 0;
+  let maxOccurrences = 0;
+  for (const term of terms) {
+    const occurrences = countTermOccurrences(resumeText, term);
+    const evidenceBullet = rawBullets.find((bullet) => resumeHasTerm(bullet, term));
+    const bulletKeywordCount = evidenceBullet
+      ? terms.filter((candidate) => resumeHasTerm(evidenceBullet, candidate)).length
+      : 0;
+    const withinBulletKeywordCap = bulletKeywordCount <= 5;
+    const inExperience = Boolean(evidenceBullet);
+    const inSkills = resumeHasTerm(skillsText, term);
+    const inSummary = resumeHasTerm(summaryText, term);
+    const fullEvidence = inExperience && withinBulletKeywordCap && hasBulletAction(evidenceBullet) && hasBulletContext(evidenceBullet) && hasBulletMeasure(evidenceBullet);
+    const contextualEvidence = inExperience && withinBulletKeywordCap && hasBulletAction(evidenceBullet) && hasBulletContext(evidenceBullet);
+    const tier = fullEvidence ? "full_evidence"
+      : contextualEvidence ? "contextual_evidence"
+      : inExperience ? "experience_mention"
+      : inSkills ? "skills_only"
+      : inSummary ? "summary_only"
+      : occurrences > 0 ? "unsectioned_mention"
+      : "missing";
+    byTerm[term] = {
+      term,
+      occurrences,
+      inExperience,
+      inSkills,
+      inSummary,
+      fullEvidence,
+      contextualEvidence,
+      bulletKeywordCount,
+      tier
+    };
+    totalOccurrences += occurrences;
+    maxOccurrences = Math.max(maxOccurrences, occurrences);
+  }
+
+  const matched = terms.filter((term) => byTerm[term].tier !== "missing");
+  const inExperience = matched.filter((term) => byTerm[term].inExperience);
+  const fullEvidenceTerms = matched.filter((term) => byTerm[term].fullEvidence);
+  const contextualEvidenceTerms = matched.filter((term) => byTerm[term].contextualEvidence);
+  const skillsOnly = matched.filter((term) => !byTerm[term].inExperience && byTerm[term].inSkills);
+  const wordCount = normalizeText(resumeText).split(/\s+/).filter(Boolean).length;
+  const keywordDensity = wordCount ? totalOccurrences / wordCount : 0;
+  const stuffingPenalty = computeKeywordStuffingPenalty({
+    keywordDensity,
+    maxOccurrences,
+    matchedCount: matched.length,
+    fullEvidenceCount: fullEvidenceTerms.length,
+    skillsOnlyShare: matched.length ? skillsOnly.length / matched.length : 0,
+    bulletAbusePenalty: bulletAbuse.penalty
+  });
+
   return {
     termCount: terms.length,
     matchedCount: matched.length,
     inExperienceCount: inExperience.length,
+    fullEvidenceCount: fullEvidenceTerms.length,
+    contextualEvidenceCount: contextualEvidenceTerms.length,
     skillsOnlyCount: skillsOnly.length,
-    skillsOnlyShare: matched.length ? skillsOnly.length / matched.length : 0
+    skillsOnlyShare: matched.length ? skillsOnly.length / matched.length : 0,
+    keywordDensity: Number(keywordDensity.toFixed(4)),
+    maxKeywordOccurrences: maxOccurrences,
+    stuffingPenalty,
+    bulletAbuse,
+    byTerm
   };
+}
+
+function applyContextualKeywordCredit(match, evidence = {}) {
+  if (!match || match.credit <= 0) return match;
+  const tier = evidence.tier || "unsectioned_mention";
+  const caps = {
+    full_evidence: 1,
+    contextual_evidence: 0.85,
+    experience_mention: 0.7,
+    summary_only: 0.45,
+    skills_only: 0.3,
+    unsectioned_mention: 0.25
+  };
+  const cap = caps[tier] ?? 0.25;
+  return {
+    ...match,
+    credit: Math.min(match.credit, cap),
+    evidenceTier: tier
+  };
+}
+
+function countTermOccurrences(text, term) {
+  const lower = normalizeText(text).toLowerCase();
+  const clean = cleanKeyword(term);
+  if (!clean) return 0;
+  const escaped = escapeRegExp(clean);
+  const pattern = clean.includes(" ")
+    ? new RegExp(`(^|[^a-z0-9+#])${escaped}([^a-z0-9+#]|$)`, "gi")
+    : new RegExp(`\\b${escaped}(?:s|es|ed|ing)?\\b`, "gi");
+  return (lower.match(pattern) || []).length;
+}
+
+function hasBulletAction(bullet) {
+  const stripped = String(bullet || "").trim().replace(/^[^a-zA-Z]+/, "").toLowerCase();
+  return [...STRONG_VERBS].some((verb) => stripped.startsWith(verb)) ||
+    /\b(built|created|developed|designed|implemented|launched|managed|analyzed|optimized|improved|reduced|increased|led|owned|delivered|automated)\b/i.test(stripped);
+}
+
+function hasBulletContext(bullet) {
+  return /\b(for|using|with|across|to|by|through|customer|user|client|team|stakeholder|business|system|service|api|dashboard|campaign|pipeline|data|product|platform)\b/i.test(bullet || "");
+}
+
+function hasBulletMeasure(bullet) {
+  return countQuantifiedResults(bullet || "") > 0 ||
+    /\b(reduced|increased|improved|saved|grew|cut|boosted|generated|delivered)\b/i.test(bullet || "");
+}
+
+function computeKeywordStuffingPenalty({ keywordDensity, maxOccurrences, matchedCount, fullEvidenceCount, skillsOnlyShare, bulletAbusePenalty = 0 }) {
+  let penalty = 0;
+  if (keywordDensity > 0.25) penalty += 0.55;
+  else if (keywordDensity > 0.18) penalty += 0.35;
+  else if (keywordDensity > 0.12) penalty += 0.25;
+  else if (keywordDensity > 0.08) penalty += 0.12;
+  if (maxOccurrences >= 8) penalty += 0.15;
+  else if (maxOccurrences >= 5) penalty += 0.08;
+  if (matchedCount >= 8 && fullEvidenceCount / matchedCount < 0.25) penalty += 0.18;
+  if (skillsOnlyShare > 0.6) penalty += 0.12;
+  penalty += bulletAbusePenalty;
+  return Math.min(0.55, Number(penalty.toFixed(2)));
+}
+
+function analyzeBulletAbuse(rawBullets, terms) {
+  const bullets = (rawBullets || []).filter((bullet) => String(bullet || "").trim().length > 20);
+  if (!bullets.length) {
+    return {
+      penalty: 0,
+      averageKeywordMentionsPerBullet: 0,
+      overKeywordCapBulletCount: 0,
+      repeatedTemplateShare: 0,
+      suspiciousNumberShare: 0,
+      repeatedContextShare: 0
+    };
+  }
+
+  const cleanTerms = unique((terms || []).map(cleanKeyword).filter(Boolean));
+  const bulletKeywordCounts = bullets.map((bullet) =>
+    cleanTerms.filter((term) => resumeHasTerm(bullet, term)).length
+  );
+  const overKeywordCapBulletCount = bulletKeywordCounts.filter((count) => count > 5).length;
+  const averageKeywordMentionsPerBullet = bulletKeywordCounts.reduce((sum, count) => sum + count, 0) / bullets.length;
+
+  const templateCounts = countGroups(bullets.map(normalizeBulletTemplate));
+  const repeatedTemplateShare = Math.max(0, ...Object.values(templateCounts)) / bullets.length;
+  const suspiciousNumberShare = bullets.filter(hasSuspiciousMetricPattern).length / bullets.length;
+  const contextCounts = countGroups(bullets.map(extractBulletContext).filter(Boolean));
+  const repeatedContextShare = Math.max(0, ...Object.values(contextCounts)) / bullets.length;
+
+  let penalty = 0;
+  if (averageKeywordMentionsPerBullet > 5) penalty += 0.18;
+  else if (averageKeywordMentionsPerBullet > 3.5) penalty += 0.10;
+  if (overKeywordCapBulletCount >= 2) penalty += 0.15;
+  else if (overKeywordCapBulletCount === 1) penalty += 0.08;
+  if (repeatedTemplateShare >= 0.7 && bullets.length >= 4) penalty += 0.15;
+  else if (repeatedTemplateShare >= 0.5 && bullets.length >= 4) penalty += 0.08;
+  if (suspiciousNumberShare >= 0.7 && bullets.length >= 4) penalty += 0.10;
+  if (repeatedContextShare >= 0.7 && bullets.length >= 4) penalty += 0.10;
+
+  return {
+    penalty: Math.min(0.3, Number(penalty.toFixed(2))),
+    averageKeywordMentionsPerBullet: Number(averageKeywordMentionsPerBullet.toFixed(2)),
+    overKeywordCapBulletCount,
+    repeatedTemplateShare: Number(repeatedTemplateShare.toFixed(2)),
+    suspiciousNumberShare: Number(suspiciousNumberShare.toFixed(2)),
+    repeatedContextShare: Number(repeatedContextShare.toFixed(2))
+  };
+}
+
+function normalizeBulletTemplate(bullet) {
+  return String(bullet || "")
+    .toLowerCase()
+    .replace(/\b\d+(?:,\d{3})*(?:\.\d+)?\s*(?:%|percent|users?|customers?|clients?|teams?|services?|hours?|days?|k|m|million)?\b/g, "{num}")
+    .replace(/\b(react|node\.?js|typescript|javascript|python|sql|aws|docker|kubernetes|tableau|excel|microservices?|api|apis|dashboard|dashboards|campaigns?|crm)\b/g, "{kw}")
+    .replace(/[^a-z{} ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 12)
+    .join(" ");
+}
+
+function hasSuspiciousMetricPattern(bullet) {
+  const text = String(bullet || "").toLowerCase();
+  const numericClaims = text.match(/\b\d+(?:,\d{3})*(?:\.\d+)?\s*(?:%|percent|users?|customers?|clients?|teams?|services?|hours?|days?|k|m|million)?\b/g) || [];
+  if (numericClaims.length >= 3) return true;
+  const hasRoundPercent = /\b(?:10|15|20|25|30|40|50|75|100)\s*%/.test(text);
+  const hasRoundVolume = /\b(?:100|500|1000|1,000|10k|100k)\+?\s*(?:users?|customers?|clients?|records?|requests?)\b/.test(text);
+  return hasRoundPercent && hasRoundVolume;
+}
+
+function extractBulletContext(bullet) {
+  const text = String(bullet || "").toLowerCase();
+  const match = text.match(/\b(?:for|across|to|with|using|through)\s+([a-z][a-z\s-]{2,40})/);
+  if (!match) return "";
+  return match[1]
+    .replace(/\b\d+\b/g, "")
+    .replace(/\b(users?|customers?|clients?|teams?|services?|stakeholders?)\b/g, "{audience}")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 5)
+    .join(" ");
+}
+
+function countGroups(values) {
+  return values.reduce((acc, value) => {
+    if (!value) return acc;
+    acc[value] = (acc[value] || 0) + 1;
+    return acc;
+  }, {});
 }
 
 function computeHybridJdMatchRatio(keywordMatch, coreBulletSignal) {
@@ -1900,7 +2114,12 @@ function computeHybridJdMatchRatio(keywordMatch, coreBulletSignal) {
 
   const evidence = keywordMatch.experienceEvidence || {};
   const evidenceCoverage = evidence.termCount
-    ? Math.min(1, ((evidence.inExperienceCount || 0) + (evidence.skillsOnlyCount || 0) * 0.35) / evidence.termCount)
+    ? Math.min(1, (
+        (evidence.fullEvidenceCount || 0) +
+        Math.max(0, (evidence.contextualEvidenceCount || 0) - (evidence.fullEvidenceCount || 0)) * 0.8 +
+        Math.max(0, (evidence.inExperienceCount || 0) - (evidence.contextualEvidenceCount || 0)) * 0.55 +
+        (evidence.skillsOnlyCount || 0) * 0.2
+      ) / evidence.termCount)
     : keywordCoverage;
   const roleCoreAlignment = typeof coreBulletSignal?.coverage === "number"
     ? coreBulletSignal.coverage
@@ -1914,7 +2133,7 @@ function computeHybridJdMatchRatio(keywordMatch, coreBulletSignal) {
     roleCoreAlignment * 0.15 +
     placementQuality * 0.10;
 
-  return Math.max(keywordCoverage, hybrid);
+  return Math.max(0, Math.max(keywordCoverage, hybrid) - (evidence.stuffingPenalty || 0));
 }
 
 function analyzeExactJobTitleMatch(resumeText, jobTitle, keywordProfile) {
@@ -1937,6 +2156,9 @@ function analyzeExactJobTitleMatch(resumeText, jobTitle, keywordProfile) {
 function buildScoreCaps({ keywordMatch, exactJobTitle, D_final, F, hybridCoverage }) {
   const caps = [];
   const capCoverage = typeof hybridCoverage === "number" ? hybridCoverage : keywordMatch.combinedKeywordCoverage;
+  const stuffingPenalty = keywordMatch.experienceEvidence?.stuffingPenalty || 0;
+  if (stuffingPenalty >= 0.4) caps.push({ max: 60, reason: "Keyword stuffing risk high" });
+  else if (stuffingPenalty >= 0.25) caps.push({ max: 70, reason: "Keyword stuffing risk elevated" });
   if (capCoverage < 0.3) caps.push({ max: 60, reason: "Hybrid JD coverage < 30%" });
   else if (capCoverage < 0.4) caps.push({ max: 72, reason: "Hybrid JD coverage < 40%" });
   if (exactJobTitle && !exactJobTitle.exact && !exactJobTitle.partial) caps.push({ max: 90, reason: "Exact job title missing" });
@@ -2024,13 +2246,15 @@ function scoreRoleRelevance({ keywordProfile, experienceProjectsText, skillsText
     (t) => !resumeHasTerm(experienceProjectsText, t) && resumeHasTerm(skillsText, t)
   ).length;
   const experienceRatio = expTerms.length
-    ? Math.min(1, (expInExp + expInSkillsOnly * 0.4) / expTerms.length)
+    ? Math.min(1, (expInExp + expInSkillsOnly * 0.2) / expTerms.length)
     : 0;
   const skillsRatio = ratioForTerms(skillsText, [
     ...(keywordProfile.core_skills || []),
     ...(keywordProfile.tools || [])
-  ]);
-  const toolsRatio = ratioForTerms(`${skillsText}\n${experienceProjectsText}`, keywordProfile.tools || []);
+  ]) * 0.6;
+  const toolsInExperience = ratioForTerms(experienceProjectsText, keywordProfile.tools || []);
+  const toolsInSkills = ratioForTerms(skillsText, keywordProfile.tools || []);
+  const toolsRatio = Math.max(toolsInExperience, toolsInSkills * 0.3);
   const titleSummaryRatio = ratioForTerms(summaryText, keywordProfile.target_role || []);
   const domainRatio = ratioForTerms(`${summaryText}\n${experienceProjectsText}`, keywordProfile.domain_keywords || []);
 
@@ -2907,11 +3131,19 @@ function roleNeedsGithub(role) {
 }
 
 function hasPortfolioLink(text) {
-  return /\b(behance\.net|dribbble\.com|portfolio|personal\s+(site|website)|\w[\w-]*\.(me|dev|io|app|site|co))\b/i.test(text || "");
+  const urls = extractUrls(text);
+  return urls.some((url) =>
+    /\b(behance\.net|dribbble\.com)\b/i.test(url) ||
+    /\b[a-z0-9-]+\.(me|dev|io|app|site|co)(\/|$)/i.test(url)
+  );
 }
 
 function hasGithubLink(text) {
-  return /\b(github\.com|gitlab\.com|bitbucket\.org|github\.io)\b/i.test(text || "");
+  return extractUrls(text).some((url) =>
+    /\bgithub\.com\/[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?(?:\/|$)/i.test(url) ||
+    /\b(gitlab\.com|bitbucket\.org)\/[a-z0-9][a-z0-9._-]*(?:\/|$)/i.test(url) ||
+    /\b[a-z0-9-]+\.github\.io(?:\/|$)/i.test(url)
+  );
 }
 
 function hasWebsiteLink(text) {
@@ -2928,13 +3160,19 @@ function hasWebsiteLink(text) {
 }
 
 function hasLinkedInSignal(text) {
-  const value = text || "";
-  return (
-    /\blinkedin\.com\s*\/\s*(in|pub)\s*\//i.test(value) ||
-    /\blinkedin\b/i.test(value) ||
-    /\blinked[\s-]*in\b/i.test(value) ||
-    /\blinkedln\b/i.test(value)
+  return /\blinkedin\b|\blinked[\s-]*in\b|\blinkedln\b/i.test(text || "");
+}
+
+function hasLinkedInUrl(text) {
+  return extractUrls(text).some((url) =>
+    /\blinkedin\.com\/(in|pub)\/[a-z0-9][a-z0-9._%-]*(?:\/|$)/i.test(url)
   );
+}
+
+function extractUrls(text) {
+  return String(text || "")
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, " ")
+    .match(/\b(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s|,;]*)?/gi) || [];
 }
 
 function cleanHeadingTitle(line) {
@@ -2995,6 +3233,7 @@ function buildResumeFacts({
   resumeRole,
   phoneInfo,
   hasEmail,
+  hasLinkedInMention,
   hasLinkedIn,
   hasGithub,
   hasPortfolio,
@@ -3061,6 +3300,7 @@ function buildResumeFacts({
       hasEmail: Boolean(hasEmail),
       hasPhone: Boolean(phoneInfo?.present),
       phoneValid: Boolean(phoneInfo?.valid),
+      hasLinkedInMention: Boolean(hasLinkedInMention),
       hasLinkedIn: Boolean(hasLinkedIn),
       hasGithub: Boolean(hasGithub),
       hasPortfolio: Boolean(hasPortfolio),
@@ -3170,7 +3410,8 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const emailValid = hasEmail && /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(normalized);
   const isGmail = hasEmail && /@gmail\.com\b/i.test(normalized);
   const phoneInfo = analyzePhone(normalized);
-  const hasLinkedIn = hasLinkedInSignal(normalized);
+  const hasLinkedInMention = hasLinkedInSignal(normalized);
+  const hasLinkedIn = hasLinkedInUrl(normalized);
   const hasPortfolio = hasPortfolioLink(normalized);
   const hasGithub = hasGithubLink(normalized);
   const hasWillingToRelocate = /willing\s+to\s+(re)?locate|open\s+to\s+(re)?locat|\brelocate\b|\brelocation\b/i.test(normalized);
@@ -3179,6 +3420,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   if (phoneInfo.valid) B += 1;
   else if (phoneInfo.present) B -= 0.5;
   if (hasLinkedIn) B += 2;
+  else if (hasLinkedInMention) B += 0.5;
   // "Willing to relocate" is scored in E dimension only — no duplicate here
   const hasSummary = Boolean((sections.summary || "").trim());
 
@@ -3251,7 +3493,14 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const jdKeywords = keywordMatch.allTerms;
   const jdHits = keywordMatch.allMatched.length;
   const jdMatchRatio = computeHybridJdMatchRatio(keywordMatch, coreBulletSignal);
-  const D = jdKeywords.length ? clamp(Math.round(jdMatchRatio * DIMENSION_MAX.D), 0, DIMENSION_MAX.D) : 13;
+  let D = jdKeywords.length ? clamp(Math.round(jdMatchRatio * DIMENSION_MAX.D), 0, DIMENSION_MAX.D) : 13;
+  if (
+    jdKeywords.length &&
+    (keywordMatch.experienceEvidence?.stuffingPenalty || 0) === 0 &&
+    (keywordMatch.experienceEvidence?.contextualEvidenceCount || 0) >= 5
+  ) {
+    D = Math.max(D, 20);
+  }
 
   const expText = sections.experience || "";
   const expEntries = parseExperienceEntries(expText);
@@ -3363,6 +3612,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     resumeRole,
     phoneInfo,
     hasEmail,
+    hasLinkedInMention,
     hasLinkedIn,
     hasGithub,
     hasPortfolio,
@@ -3432,7 +3682,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
     exactJobTitle, scoreCaps
   });
   if (marketingLens.active) {
-    problems.push(...marketingLens.problems);
+    problems.unshift(...marketingLens.problems);
   }
   const suggestions = buildSuggestions({
     hasJD, missingKeywords, keywordMatch, quantifiedCount, strongVerbCount, impactCount,
@@ -3453,6 +3703,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
       isGmail,
       phoneValid: analyzePhone(normalized).valid,
       hasLinkedIn,
+      hasLinkedInMention,
       hasPortfolio,
       hasWillingToRelocate,
       hasSummary,
@@ -3544,6 +3795,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
         isGmail,
         phoneValid: phoneInfo.valid,
         hasLinkedIn,
+        hasLinkedInMention,
         hasPortfolio,
         hasGithub,
         portfolioExpected: roleNeedsPortfolio(targetRole),
