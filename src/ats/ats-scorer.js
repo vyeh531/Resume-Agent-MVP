@@ -1014,8 +1014,10 @@ function findCategoryTerms(lowerText, terms, exclude = new Set()) {
 
 function findActionVerbs(lowerText) {
   const verbs = CATEGORY_PHRASES.action_verbs.filter((verb) => {
-    const re = new RegExp(`\\b${escapeRegExp(verb)}(?:s|ed|ing)?\\b`, "i");
-    return re.test(lowerText);
+    const clean = cleanKeyword(verb);
+    return clean.includes(" ")
+      ? phraseOrWordMatch(lowerText, clean)
+      : hasInflectedWord(lowerText, clean);
   });
   return unique(verbs);
 }
@@ -1051,6 +1053,148 @@ function cleanKeyword(value) {
     .replace(/^[^a-z0-9+#\u4e00-\u9fff]+|[^a-z0-9+#\u4e00-\u9fff]+$/gi, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Action verbs in a JD are usually written in base form while resume bullets
+// conventionally use past tense. A suffix-only regex misses spelling changes
+// such as optimize -> optimized and analyze -> analyzed, as well as irregular
+// forms such as lead -> led.
+const IRREGULAR_VERB_FORMS = {
+  be: ["was", "were", "been"],
+  begin: ["began", "begun"],
+  become: ["became", "become"],
+  break: ["broke", "broken"],
+  bring: ["brought"],
+  build: ["built"],
+  buy: ["bought"],
+  catch: ["caught"],
+  choose: ["chose", "chosen"],
+  come: ["came"],
+  cut: ["cut"],
+  do: ["did", "done"],
+  draw: ["drew", "drawn"],
+  drive: ["drove", "driven"],
+  drink: ["drank", "drunk"],
+  eat: ["ate", "eaten"],
+  find: ["found"],
+  fly: ["flew", "flown"],
+  get: ["got", "gotten"],
+  give: ["gave", "given"],
+  go: ["went", "gone"],
+  grow: ["grew", "grown"],
+  have: ["had"],
+  hear: ["heard"],
+  hold: ["held"],
+  keep: ["kept"],
+  know: ["knew", "known"],
+  lead: ["led"],
+  leave: ["left"],
+  make: ["made"],
+  meet: ["met"],
+  pay: ["paid"],
+  read: ["read"],
+  rise: ["rose", "risen"],
+  run: ["ran", "run"],
+  say: ["said"],
+  see: ["saw", "seen"],
+  sell: ["sold"],
+  send: ["sent"],
+  set: ["set"],
+  sit: ["sat"],
+  sleep: ["slept"],
+  speak: ["spoke", "spoken"],
+  spend: ["spent"],
+  stand: ["stood"],
+  take: ["took", "taken"],
+  teach: ["taught"],
+  think: ["thought"],
+  understand: ["understood"],
+  win: ["won"],
+  write: ["wrote", "written"]
+};
+
+function getVerbLemmas(word) {
+  const normalized = cleanKeyword(word);
+  if (!normalized || /\s/.test(normalized)) return normalized ? [normalized] : [];
+
+  const lemmas = new Set([normalized]);
+  for (const [lemma, forms] of Object.entries(IRREGULAR_VERB_FORMS)) {
+    if (forms.includes(normalized)) lemmas.add(lemma);
+  }
+
+  // Recover common regular bases when the keyword itself is inflected.
+  if (normalized.endsWith("ied")) {
+    const stem = normalized.slice(0, -3);
+    lemmas.add(stem + "y"); // identified -> identify, studied -> study
+  }
+  if (normalized.endsWith("ed")) {
+    const withoutD = normalized.slice(0, -1);
+    const withoutEd = normalized.slice(0, -2);
+    lemmas.add(withoutD); // managed -> manage, optimized -> optimize
+    lemmas.add(withoutEd); // launched -> launch
+    if (/(.)\1$/i.test(withoutEd)) lemmas.add(withoutEd.slice(0, -1)); // planned -> plan
+  }
+  if (normalized.endsWith("ing")) {
+    const withoutIng = normalized.slice(0, -3);
+    lemmas.add(withoutIng);
+    lemmas.add(withoutIng + "e"); // managing -> manage, optimizing -> optimize
+    if (/(.)\1$/i.test(withoutIng)) lemmas.add(withoutIng.slice(0, -1)); // running -> run
+  }
+  if (normalized.endsWith("ies")) {
+    const stem = normalized.slice(0, -3);
+    lemmas.add(stem + "y");
+    lemmas.add(stem + "e");
+  }
+  if (normalized.endsWith("s")) lemmas.add(normalized.slice(0, -1));
+  if (normalized.endsWith("es")) lemmas.add(normalized.slice(0, -2));
+
+  return [...lemmas].filter(Boolean);
+}
+
+function getWordForms(word) {
+  const lemmas = getVerbLemmas(word);
+  if (!lemmas.length || lemmas.some((lemma) => /\s/.test(lemma))) return lemmas;
+
+  const forms = new Set();
+  for (const base of lemmas) {
+    forms.add(base);
+    for (const form of IRREGULAR_VERB_FORMS[base] || []) forms.add(form);
+    forms.add(base + "s");
+    forms.add(base + "es");
+    forms.add(base + "ed");
+    forms.add(base + "ing");
+
+    if (base.endsWith("e") && !base.endsWith("ee")) {
+      const stem = base.slice(0, -1);
+      forms.add(stem + "ed");
+      forms.add(stem + "ing");
+      // US/UK spelling variants, e.g. analyze/analyse -> analyzed/analysed.
+      if (base.endsWith("ize")) forms.add(base.replace(/ize$/, "ise") + "d");
+    }
+
+    if (/[^aeiou]y$/i.test(base)) {
+      const stem = base.slice(0, -1);
+      forms.add(stem + "ies");
+      forms.add(stem + "ied");
+    }
+
+    // Cover common CVC doubling: plan -> planned, refer -> referred.
+    if (/[^aeiou][aeiou][^aeiouwxy]$/i.test(base)) {
+      const last = base.slice(-1);
+      forms.add(base + last + "ed");
+      forms.add(base + last + "ing");
+    }
+  }
+
+  return [...forms];
+}
+
+function hasInflectedWord(lowerText, word) {
+  const clean = cleanKeyword(word);
+  if (!clean || clean.includes(" ")) return false;
+  return getWordForms(clean).some((form) =>
+    new RegExp(`\\b${escapeRegExp(form)}\\b`, "i").test(lowerText)
+  );
 }
 
 function parseJdSections(jdText) {
@@ -1620,17 +1764,15 @@ function resumeHasTerm(resumeText, term) {
     if (lower.includes(clean.replace(/\s+/g, ""))) return true;
   } else {
     // inflected forms for single words ("-s", "-ed", "-ing")
-    const re = new RegExp(`\\b${escapeRegExp(clean)}(?:s|ed|ing)?\\b`, "i");
-    if (re.test(lower)) return true;
+    if (hasInflectedWord(lower, clean)) return true;
   }
   // Synonym / verb expansion: if the JD asks for a soft skill (e.g. "leadership"),
   // also check whether the resume demonstrates it through action verbs (e.g. "led").
   const synonyms = SKILL_VERB_MAP[clean];
   if (synonyms) {
     return synonyms.some((syn) => {
-      if (syn.includes(" ")) return lower.includes(syn);
-      const synRe = new RegExp(`\\b${escapeRegExp(syn)}(?:s|ed|ing)?\\b`, "i");
-      return synRe.test(lower);
+      if (syn.includes(" ")) return phraseOrWordMatch(lower, cleanKeyword(syn));
+      return hasInflectedWord(lower, syn);
     });
   }
   return false;
@@ -1723,8 +1865,7 @@ function matchTermWithCredit(resumeText, term, category = "") {
       return { term: clean, category, type: "normalized", credit: 0.8, matchedBy: clean };
     }
   } else {
-    const re = new RegExp(`\\b${escapeRegExp(clean)}(?:s|es|ed|ing)?\\b`, "i");
-    if (re.test(lower)) {
+    if (hasInflectedWord(lower, clean)) {
       return { term: clean, category, type: "normalized", credit: 0.8, matchedBy: clean };
     }
   }
@@ -1804,7 +1945,7 @@ function phraseOrWordMatch(lowerText, cleanTerm) {
   if (hasExactPhrase(lowerText, cleanTerm)) return true;
   return cleanTerm.includes(" ")
     ? hasNormalizedPhrase(lowerText, cleanTerm)
-    : new RegExp(`\\b${escapeRegExp(cleanTerm)}(?:s|es|ed|ing)?\\b`, "i").test(lowerText);
+    : hasInflectedWord(lowerText, cleanTerm);
 }
 
 function matchEvidencePattern(lowerText, cleanTerm) {
