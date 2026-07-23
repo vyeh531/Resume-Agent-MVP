@@ -4035,9 +4035,6 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
 
 function buildProblems(ctx) {
   const problems = [];
-  if (ctx.formatPenaltyTriggered) {
-    problems.unshift("格式或基本资料存在严重缺陷，总分已被上限至 54（高风险）。优先修复格式问题。");
-  }
   if (ctx.allChina) {
     problems.push("所有工作经历均在中国，与美国求职市场适配度极低（E 维度扣分 80%）。");
   } else if (ctx.hasAnyChinaExp) {
