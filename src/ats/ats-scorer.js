@@ -2274,7 +2274,19 @@ function computeHybridJdMatchRatio(keywordMatch, coreBulletSignal) {
     roleCoreAlignment * 0.15 +
     placementQuality * 0.10;
 
-  return Math.max(0, Math.max(keywordCoverage, hybrid) - (evidence.stuffingPenalty || 0));
+  // Keep match coverage separate from credibility. Keyword stuffing should
+  // reduce the D score, but it should not make the coverage diagnostic itself
+  // look lower than the resume's observed JD match.
+  return Math.max(0, Math.max(keywordCoverage, hybrid));
+}
+
+function applyStuffingPenaltyToD(baseD, stuffingPenalty) {
+  // stuffingPenalty is a severity score in the 0..0.55 range, not a direct
+  // percentage of D. A bounded proportional reduction prevents a moderate
+  // signal from causing a multi-point cliff in a low-scoring resume while
+  // still making severe stuffing materially worse.
+  const penaltyRate = Math.min(0.30, Math.max(0, stuffingPenalty) * 0.45);
+  return clamp(Math.round(baseD * (1 - penaltyRate)), 0, DIMENSION_MAX.D);
 }
 
 function analyzeExactJobTitleMatch(resumeText, jobTitle, keywordProfile) {
@@ -2294,18 +2306,39 @@ function analyzeExactJobTitleMatch(resumeText, jobTitle, keywordProfile) {
   };
 }
 
-function buildScoreCaps({ keywordMatch, exactJobTitle, D_final, F, hybridCoverage }) {
+function buildScoreCaps({ keywordMatch, hasJD, jdKeywordCount, hybridCoverage }) {
   const caps = [];
   const capCoverage = typeof hybridCoverage === "number" ? hybridCoverage : keywordMatch.combinedKeywordCoverage;
-  const stuffingPenalty = keywordMatch.experienceEvidence?.stuffingPenalty || 0;
-  if (stuffingPenalty >= 0.4) caps.push({ max: 60, reason: "Keyword stuffing risk high" });
-  else if (stuffingPenalty >= 0.25) caps.push({ max: 70, reason: "Keyword stuffing risk elevated" });
-  if (capCoverage < 0.3) caps.push({ max: 60, reason: "Hybrid JD coverage < 30%" });
-  else if (capCoverage < 0.4) caps.push({ max: 72, reason: "Hybrid JD coverage < 40%" });
-  if (exactJobTitle && !exactJobTitle.exact && !exactJobTitle.partial) caps.push({ max: 90, reason: "Exact job title missing" });
-  if (D_final < 20) caps.push({ max: 70, reason: "D dimension < 20/45" });
-  if (F < 14) caps.push({ max: 80, reason: "F dimension < 14/23" });
+  const evidence = keywordMatch.experienceEvidence || {};
+  const stuffingPenalty = evidence.stuffingPenalty || 0;
+  const extremeStuffing = stuffingPenalty >= 0.4;
+
+  // Moderate stuffing is handled in D itself. A total-score ceiling is only
+  // reserved for evidence of extreme, systemic stuffing.
+  if (extremeStuffing) {
+    caps.push({ max: 70, reason: "Keyword stuffing risk extreme" });
+  }
+
+  // Low coverage is only a total-score gate when the JD is sufficiently
+  // populated and the resume has almost no contextual experience evidence.
+  // D/F continue to carry the normal match signal for all other cases.
+  const contextualEvidenceCount = evidence.contextualEvidenceCount || 0;
+  if (hasJD && jdKeywordCount >= 8 && capCoverage < 0.3 && contextualEvidenceCount < 2) {
+    caps.push({ max: 65, reason: "Hybrid JD coverage < 30% with limited experience evidence" });
+  }
+
   return caps;
+}
+
+function detectFormatBlocker({ normalized, coreSectionCount, emailValid, phoneValid }) {
+  const reasons = [];
+  const wordCount = normalizeText(normalized).split(/\s+/).filter(Boolean).length;
+
+  if (wordCount < 20) reasons.push("无法可靠解析履历文字");
+  if (!emailValid && !phoneValid) reasons.push("未检测到有效 email 或电话");
+  if (coreSectionCount === 0) reasons.push("未检测到可识别的核心履历分段");
+
+  return { triggered: reasons.length > 0, reasons };
 }
 
 function analyzePhone(text) {
@@ -3507,6 +3540,9 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const lowerResume = normalized.toLowerCase();
   const lines = normalized.split("\n");
   const sections = parseSections(normalized);
+  const recognizedCoreSectionCount = ["experience", "education", "skills"]
+    .filter((section) => Boolean((sections[section] || "").trim()))
+    .length;
   const summaryText = sectionText(sections, ["summary", "header"]);
   const experienceProjectsText = sectionText(sections, ["experience", "projects"]);
   const skillsText = sectionText(sections, ["skills"]);
@@ -3634,7 +3670,10 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   const jdKeywords = keywordMatch.allTerms;
   const jdHits = keywordMatch.allMatched.length;
   const jdMatchRatio = computeHybridJdMatchRatio(keywordMatch, coreBulletSignal);
-  let D = jdKeywords.length ? clamp(Math.round(jdMatchRatio * DIMENSION_MAX.D), 0, DIMENSION_MAX.D) : 13;
+  const baseD = jdKeywords.length ? clamp(Math.round(jdMatchRatio * DIMENSION_MAX.D), 0, DIMENSION_MAX.D) : 13;
+  let D = jdKeywords.length
+    ? applyStuffingPenaltyToD(baseD, keywordMatch.experienceEvidence?.stuffingPenalty || 0)
+    : baseD;
   if (
     jdKeywords.length &&
     (keywordMatch.experienceEvidence?.stuffingPenalty || 0) === 0 &&
@@ -3720,12 +3759,21 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   });
 
   const rawTotal = A + B + C + D_final + E + F;
-  const formatPenaltyTriggered = A < 8 * 0.6 || B < 7 * 0.6;
-  const formatPenaltyReason = [];
-  if (A < 8 * 0.6) formatPenaltyReason.push(`格式规范（A 维度）仅 ${A}/8 分`);
-  if (B < 7 * 0.6) formatPenaltyReason.push(`基本资料（B 维度）仅 ${B}/7 分`);
+  const formatBlocker = detectFormatBlocker({
+    normalized,
+    coreSectionCount: recognizedCoreSectionCount,
+    emailValid,
+    phoneValid: phoneInfo.valid
+  });
+  const formatPenaltyTriggered = formatBlocker.triggered;
+  const formatPenaltyReason = formatBlocker.reasons;
   const exactJobTitle = analyzeExactJobTitleMatch(normalized, jobTitle, keywordProfile);
-  const scoreCaps = buildScoreCaps({ keywordMatch, exactJobTitle, D_final, F, hybridCoverage: jdMatchRatio });
+  const scoreCaps = buildScoreCaps({
+    keywordMatch,
+    hasJD,
+    jdKeywordCount: jdKeywords.length,
+    hybridCoverage: jdMatchRatio
+  });
   const cappedTotal = scoreCaps.length ? Math.min(rawTotal, ...scoreCaps.map((cap) => cap.max)) : rawTotal;
   const total = formatPenaltyTriggered ? Math.min(cappedTotal, 54) : cappedTotal;
   const risk = formatPenaltyTriggered ? "高" : (total >= 75 ? "低" : total >= 55 ? "中" : "高");
