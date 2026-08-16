@@ -99,6 +99,7 @@ function inferCanonicalRoleFamily(jobTitle = "", jdText = "") {
     { family: "ai_engineer", pattern: /\b(ai engineer|artificial intelligence engineer|llm engineer|generative ai engineer|prompt engineer)\b/ },
     { family: "data_scientist", pattern: /\b(data scientist|decision scientist|applied scientist)\b/ },
     { family: "data_engineer", pattern: /\b(data engineer|etl developer|analytics engineer)\b/ },
+    { family: "business_analysis", pattern: /\b(business analyst|business systems analyst|business process analyst|business requirements analyst)\b/ },
     { family: "data_analyst", pattern: /\b(data analyst|business intelligence analyst|bi analyst|analytics analyst)\b/ },
     { family: "software_engineer", pattern: /\b(software development engineer|software engineer|software developer|sde|swe|backend engineer|frontend engineer|full stack engineer|full-stack engineer|web developer)\b/ },
     { family: "design_creative", pattern: /\b(graphic designer|visual designer|ui\/ux designer|ux designer|ui designer|product designer|brand designer|motion designer|creative designer)\b/ },

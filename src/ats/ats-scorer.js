@@ -167,6 +167,7 @@ const ROLE_DISPLAY_NAMES = {
   logistics_operations: "物流运营",
   accounting:           "会计",
   software_engineer:    "软件工程师",
+  business_analysis:    "业务分析师",
   data_analyst:         "数据分析师",
   data_scientist:       "数据科学家",
   product_manager:      "产品经理",
@@ -215,7 +216,8 @@ const ROLE_FAMILIES = [
   { role: "ai_engineer", terms: ["ai engineer", "artificial intelligence engineer", "llm engineer", "generative ai", "prompt engineering", "rag", "vector database", "langchain"] },
   { role: "design_creative", terms: ["graphic designer", "visual designer", "ui/ux designer", "ux designer", "ui designer", "product designer", "brand designer", "portfolio", "figma", "adobe"] },
   { role: "software_engineer", terms: ["software engineer", "swe", "backend", "frontend", "full stack", "full-stack", "api", "microservice", "react", "node", "java", "python"] },
-  { role: "data_analyst", terms: ["data analyst", "business analyst", "analytics", "sql", "tableau", "power bi", "excel", "dashboard"] },
+  { role: "business_analysis", terms: ["business analyst", "business analysis", "requirements gathering", "process mapping", "business requirements", "business process", "stakeholder management", "process improvement", "workflow"] },
+  { role: "data_analyst", terms: ["data analyst", "business intelligence analyst", "bi analyst", "analytics analyst", "analytics", "sql", "tableau", "power bi", "excel", "dashboard"] },
   { role: "data_scientist", terms: ["data scientist", "machine learning", "ml", "modeling", "experiment", "statistics", "python", "pandas"] },
   { role: "product_manager", terms: ["product manager", "pm", "roadmap", "user research", "stakeholder", "metrics", "launch"] },
   { role: "financial_analyst", terms: ["financial analyst", "finance", "valuation", "forecast", "investment", "portfolio", "excel"] },
@@ -3299,7 +3301,9 @@ function buildRetrievalQuery(profile, problemTags, priorityMissingKeywords) {
     profile.seniority,
     profile.roleFamily,
     ...topics.slice(0, 3),
-    ...tagNames.slice(0, 3)
+    ...tagNames.slice(0, 3).map((tag) => tag === "insufficient_quantification"
+      ? "resume lacks measurable outcomes"
+      : tag.replace(/_/g, " "))
   ].join(" ");
 
   return {
@@ -3831,8 +3835,11 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   let F = fScore.score;
   if (summaryMentionsRole) F = Math.min(DIMENSION_MAX.F, F + 2);
   const roleSource = `${jobTitle}\n${jdText}`;
-  const targetRole = detectRoleFamily(roleSource || jobTitle);
+  const inferredTargetRole = detectRoleFamily(roleSource || jobTitle);
   const explicitTargetRole = detectExplicitTargetRole(jobTitle, jdText);
+  // An explicit title is stronger evidence than overlapping tools such as SQL,
+  // Excel, or Tableau. This keeps Business Analyst separate from Data Analyst.
+  const targetRole = explicitTargetRole.explicit ? explicitTargetRole : inferredTargetRole;
   const resumeRole = detectRoleFamily(normalized);
   const marketingLens = analyzeMarketingResume({
     jobTitle,
