@@ -108,6 +108,12 @@ const SEMANTIC_MATCH_MAP = {
   "object-oriented design": ["object oriented design", "oop", "object-oriented programming", "object oriented programming"],
   "ci/cd": ["continuous integration", "continuous deployment", "github actions", "jenkins", "gitlab ci"],
   "aws": ["amazon web services"],
+  "financial modeling": ["financial model", "financial models", "modeled financial scenarios", "built financial models"],
+  "fp&a": ["financial planning and analysis", "financial planning & analysis"],
+  "m&a": ["mergers and acquisitions", "mergers & acquisitions"],
+  "gaap": ["generally accepted accounting principles"],
+  "p&l": ["profit and loss", "profit & loss", "income statement"],
+  "roi": ["return on investment"],
   "debugging": ["troubleshooting", "diagnosed", "debugged", "root cause analysis"],
   "data structures": ["data structure"],
   "algorithms": ["algorithm"]
@@ -1036,7 +1042,76 @@ function normalizeProfile(profile) {
   for (const key of ["target_role", "core_skills", "tools", "action_verbs", "domain_keywords", "nice_to_have"]) {
     normalized[key] = unique((normalized[key] || []).map(cleanKeyword).filter(Boolean));
   }
-  return normalized;
+  return deduplicateKeywordProfile(normalized);
+}
+
+// One real-world concept can be emitted by several keyword sources. Keep a
+// single scoring owner for it while preserving genuinely different concepts
+// (for example, "tax" and "tax return" are related but not equivalent).
+const KEYWORD_CONCEPT_ALIASES = {
+  "ms excel": "excel",
+  "microsoft excel": "excel",
+  "financial models": "financial modeling",
+  "financial model": "financial modeling",
+  "financial planning & analysis": "fp&a",
+  "financial planning and analysis": "fp&a",
+  "mergers & acquisitions": "m&a",
+  "mergers and acquisitions": "m&a",
+  "generally accepted accounting principles": "gaap",
+  "profit & loss": "p&l",
+  "profit and loss": "p&l",
+  "return on investment": "roi"
+};
+
+const TOOL_CONCEPTS = new Set([
+  "excel", "quickbooks", "cch axcess", "proseries", "lacerte", "sql", "python",
+  "powerpoint", "sap", "oracle", "netsuite", "bloomberg", "factset", "capital iq",
+  "tableau", "power bi", "matlab", "sas", "morningstar", "anaplan", "argus"
+]);
+
+const CERTIFICATION_CONCEPTS = new Set([
+  "cpa", "cfa", "cfa level i", "cfa level ii", "cfa level iii", "fmva", "frm",
+  "series 7", "enrolled agent", "cbap", "capm"
+]);
+
+function canonicalKeywordConcept(term) {
+  const clean = cleanKeyword(term);
+  return KEYWORD_CONCEPT_ALIASES[clean] || clean;
+}
+
+function keywordCategoryPriority(concept) {
+  if (TOOL_CONCEPTS.has(concept)) {
+    return ["tools", "core_skills", "domain_keywords", "nice_to_have", "action_verbs"];
+  }
+  if (CERTIFICATION_CONCEPTS.has(concept)) {
+    return ["nice_to_have", "core_skills", "domain_keywords", "tools", "action_verbs"];
+  }
+  return ["core_skills", "domain_keywords", "nice_to_have", "tools", "action_verbs"];
+}
+
+function deduplicateKeywordProfile(profile) {
+  const categories = ["core_skills", "tools", "domain_keywords", "nice_to_have", "action_verbs"];
+  const occurrences = new Map();
+
+  for (const category of categories) {
+    for (const term of profile[category] || []) {
+      const concept = canonicalKeywordConcept(term);
+      if (!concept) continue;
+      if (!occurrences.has(concept)) occurrences.set(concept, []);
+      occurrences.get(concept).push({ category, term });
+    }
+  }
+
+  const result = { ...profile };
+  for (const category of categories) result[category] = [];
+
+  for (const [concept, items] of occurrences) {
+    const priority = keywordCategoryPriority(concept);
+    const owner = priority.find((category) => items.some((item) => item.category === category));
+    if (owner) result[owner].push(concept);
+  }
+
+  return result;
 }
 
 function limitKeywordProfile(profile) {
@@ -1403,7 +1478,9 @@ function getBulletLines(text) {
     .map((line) => line.trim())
     .filter((line) => {
       if (!line) return false;
-      if (/^[-*]\s/.test(line)) return true;
+      // Some PDF generators preserve an em dash or omit the space after the
+      // marker. Treat those lines as bullets too.
+      if (/^(?:[-*\u2014]\s*|\d+[.)]\s*)\S/.test(line)) return true;
       // Strip leading non-alpha chars (bullet symbols, etc.) then check verb.
       // Use startsWith instead of splitting on spaces, because pdf-parse often
       // strips all spaces: "Optimized property..." becomes "Optimizedproperty..."
@@ -1538,6 +1615,25 @@ function countQuantifiedResults(text) {
     const digits = m.replace(/[^0-9]/g, "");
     return !/^20[0-3]\d$/.test(digits);
   }).length;
+}
+
+function countExperienceQuantifiedResults(text) {
+  const normalized = normalizeText(text);
+  const recognizedBullets = new Set(getBulletLines(normalized));
+  const resultLanguage = /\b(?:achiev|boost|cut|decreas|deliver|drive|drove|enable|expand|generat|grew|grow|improv|increas|launch|optim|rais|reduc|sav|scale|streamlin)\w*\b|(?:提升|提高|增加|增長|增长|降低|減少|减少|節省|节省|縮短|缩短|優化|优化|完成|達成|达成|服務|服务|影響|影响)/i;
+
+  const evidenceLines = normalized
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => {
+      if (!hasQuantifiedResult(line)) return false;
+      // Keep every recognized bullet. For layout-damaged/non-standard bullets,
+      // require result language so dates and role metadata are not counted.
+      return recognizedBullets.has(line) || resultLanguage.test(line);
+    });
+
+  return countQuantifiedResults(evidenceLines.join("\n"));
 }
 
 function countStrongVerbStarts(lines) {
@@ -3625,7 +3721,7 @@ function scoreResumeATS(resumeText, jobTitle = "", jdText = "", options = {}) {
   B = clamp(B, 0, 7);
 
   let C = 0;
-  const quantifiedCount = countQuantifiedResults(rawBullets.join("\n"));
+  const quantifiedCount = countExperienceQuantifiedResults(experienceProjectsText);
   if (quantifiedCount >= 8) C += 5;
   else if (quantifiedCount >= 5) C += 4;
   else if (quantifiedCount >= 3) C += 3;
